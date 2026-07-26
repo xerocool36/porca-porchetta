@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Porca Porchetta — Fraschetta ad Anguillara Sabazia, Lago di Bracciano</title>
-<meta name="description" content="Fraschetta nel centro storico di Anguillara Sabazia, a due passi dal lago di Bracciano. Porchetta, taglieri di salumi e formaggi, panini zozzi e caraffe di spritz. In una grotta di tufo.">
+<meta name="description" content="Fraschetta in una grotta di tufo nel centro storico di Anguillara Sabazia, a cento metri dal lago di Bracciano. Porchetta, taglieri di salumi e formaggi, panini e caraffe di spritz.">
 <link rel="canonical" href="https://porcaporchetta.it/">
 
 <meta property="og:type" content="restaurant">
 <meta property="og:locale" content="it_IT">
 <meta property="og:title" content="Porca Porchetta — Fraschetta ad Anguillara Sabazia">
-<meta property="og:description" content="Porchetta che cola, taglieri che pesano, caraffe di spritz da 8 litri. In una grotta di tufo a due passi dal lago di Bracciano.">
+<meta property="og:description" content="Porchetta, taglieri e caraffe di spritz in una grotta di tufo, a cento metri dal lago di Bracciano.">
 <meta property="og:image" content="https://porcaporchetta.it/assets/img/tagliere-lungo.webp">
 <meta property="og:url" content="https://porcaporchetta.it/">
 <meta name="twitter:card" content="summary_large_image">
@@ -46,7 +46,10 @@
   },
   "geo": { "@type": "GeoCoordinates", "latitude": 42.0924207, "longitude": 12.2695243 },
   "hasMenu": "https://porcaporchetta.it/menu.html",
-  "sameAs": ["https://www.instagram.com/porcaporchettaanguillara/"],
+  "sameAs": [
+    "https://www.instagram.com/porcaporchettaanguillara/",
+    "https://www.facebook.com/61583761200637"
+  ],
   "openingHoursSpecification": [
     { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Tuesday","Wednesday","Thursday","Friday"], "opens": "17:00", "closes": "23:00" },
     { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Saturday","Sunday"], "opens": "11:30", "closes": "14:30" },
@@ -57,6 +60,39 @@
 </head>
 <body>
 <a class="u-skip" href="#main" data-i18n="skip">Salta al contenuto</a>
+
+<!-- icon sprite: real brand marks, drawn inline so there are no external
+     requests and they inherit currentColor -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- spritz: lighter at the surface, deeper at the base, so the fill reads
+         as liquid rather than a flat block -->
+    <linearGradient id="spritzGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#FFA83D"/>
+      <stop offset="55%"  stop-color="#F5851F"/>
+      <stop offset="100%" stop-color="#E2641A"/>
+    </linearGradient>
+  </defs>
+  <symbol id="i-ig" viewBox="0 0 24 24">
+    <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/>
+    <circle cx="12" cy="12" r="4.6" fill="none" stroke="currentColor" stroke-width="2"/>
+    <circle cx="17.6" cy="6.4" r="1.5" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-fb" viewBox="0 0 24 24">
+    <path d="M14.6 21v-7.6h2.6l.4-3h-3V8.5c0-.9.25-1.5 1.5-1.5h1.6V4.2C17.4 4.1 16.5 4 15.4 4 13 4 11.4 5.5 11.4 8.2v2.2H9v3h2.4V21z" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-tel" viewBox="0 0 24 24">
+    <path d="M6.6 3h2.8l1.7 4.2-2 1.4a11.8 11.8 0 0 0 4.3 4.3l1.4-2L19 12.6v2.8c0 1.3-1 2.3-2.3 2.3A13.9 13.9 0 0 1 4.3 5.3C4.3 4 5.3 3 6.6 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24">
+    <path d="M12 2.6c3.7 0 6.7 3 6.7 6.7 0 4.8-6.7 12.1-6.7 12.1S5.3 14.1 5.3 9.3c0-3.7 3-6.7 6.7-6.7z" fill="none" stroke="currentColor" stroke-width="2"/>
+    <circle cx="12" cy="9.2" r="2.5" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path d="M12 7v5.4l3.4 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+</svg>
 
 <!-- ============================ HERO ============================ -->
 <header class="hero tex" id="top">
@@ -72,38 +108,46 @@
   </div>
 
   <!-- you land looking into the arch: the cave is the brand -->
-  <div class="hero__arch">
+  <div class="hero__arch" id="heroArch">
     <img src="assets/img/cave-corridor.webp" alt="La sala nella grotta di tufo di Porca Porchetta, con i tavoli apparecchiati" width="900" height="1200" fetchpriority="high">
   </div>
   <svg class="hero__stroke" viewBox="0 0 400 530" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M14 530 C10 410 18 306 21 262 C24 192 70 120 138 95 C177 81 227 79 267 95 C336 121 379 192 381 262 C384 308 388 412 385 530"/>
+    <path class="hero__strokePath" d="M14 530 C10 410 18 306 21 262 C24 192 70 120 138 95 C177 81 227 79 267 95 C336 121 379 192 381 262 C384 308 388 412 385 530"/>
   </svg>
+
+  <!-- dust drifting in the light of the cave -->
+  <div class="motes" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+  </div>
 
   <img class="hero__pig" src="assets/img/logo.png" alt="" width="168" height="168" aria-hidden="true">
 
   <div class="wrap hero__inner">
     <p class="hero__neon t-script">Welcome to my world</p>
 
-    <!-- their own Facebook copy, set as the headline -->
     <h1 class="hero__h1 t-display" data-i18n="hero.h1">Porchetta<br>che cola</h1>
-    <p class="hero__strip" data-i18n="hero.strip">Tagliere che pesa · Spritz 5 litri</p>
 
-    <p class="hero__kick">
+    <p class="hero__lede" data-i18n="hero.lede">
+      Fraschetta in una grotta di tufo, nel centro storico di Anguillara.
+      Cento metri dal lago di Bracciano.
+    </p>
+
+    <p class="hero__quote">
       <span class="t-dialetto">“Qua se beve, se magna e se tace.”</span>
     </p>
     <p class="bubble" id="glossHero" hidden>Roughly: here we drink, we eat, and we keep quiet. It’s a compliment.</p>
 
     <div class="hero__cta">
-      <a class="btn btn--fuoco" href="https://www.google.com/maps/dir/?api=1&amp;destination=Porca%20Porchetta%20Via%20del%20Trivio%2031%20Anguillara%20Sabazia" target="_blank" rel="noopener" data-i18n="cta.dir">Dove stiamo</a>
-      <a class="btn btn--ghost" href="tel:+390665495256" data-i18n="cta.call">Chiama</a>
+      <a class="btn btn--fuoco" href="menu.html" data-i18n="cta.menu">Il menù</a>
+      <a class="btn btn--ghost" href="https://www.google.com/maps/dir/?api=1&amp;destination=Porca%20Porchetta%20Via%20del%20Trivio%2031%20Anguillara%20Sabazia" target="_blank" rel="noopener" data-i18n="cta.dir">Come arrivare</a>
     </div>
-
-    <p class="hero__meta">
-      <span data-i18n="hero.m1">Fraschetta · Anguillara Sabazia</span>
-      <span><b data-i18n="hero.rating">4,7★</b> <span data-i18n="hero.m2">su 63 recensioni Google</span></span>
-      <span data-i18n="hero.m3">Lunedì chiusi</span>
-    </p>
   </div>
+
+  <a class="cue" href="#fraschetta" aria-label="Scendi in grotta">
+    <span class="cue__txt" data-i18n="hero.cue">Scendi in grotta</span>
+    <span class="cue__arrow" aria-hidden="true"></span>
+  </a>
 </header>
 
 <main id="main">
@@ -119,20 +163,20 @@
         <p class="t-eyebrow" data-i18n="fr.eyebrow">Via del Trivio 31 · centro storico</p>
         <h2 class="head__title t-display" data-i18n="fr.title">Se magna<br>dentro la grotta</h2>
         <p class="t-lede" data-i18n="fr.p1">
-          Non è un effetto scenografico: è tufo vero, scavato sotto il centro storico
-          di Anguillara. Volte bianche, muri di pietra, tavoli di legno, quattro edere
-          e due neon. Ci si entra per un panino e si esce tre ore dopo.
+          Non è una scenografia: è tufo scavato sotto il centro storico di
+          Anguillara. Volte bianche, muri di pietra, tavoli di legno, due neon
+          e l’edera. Si entra per un panino e si esce tre ore dopo.
         </p>
         <p class="t-lede" data-i18n="fr.p2">
-          La fraschetta è quella cosa romana in cui il tagliere arriva prima che tu
-          abbia finito di ordinare, e il vino sta in caraffa perché nessuno ha tempo
-          per i calici piccoli.
+          La fraschetta è quella cosa romana dove il tagliere arriva prima che tu
+          abbia finito di ordinare, e il vino sta in caraffa perché nessuno qui ha
+          tempo per i calici piccoli.
         </p>
         <p class="frasch__stamp"><span class="stamp">Quello che nun<br>strozza, ingrassa</span></p>
 
         <ul class="frasch__facts">
-          <li data-i18n="fr.f1">Tavoli in grotta, dentro la roccia</li>
-          <li data-i18n="fr.f2">Cento metri dal lago di Bracciano</li>
+          <li data-i18n="fr.f1">Tavoli dentro la roccia</li>
+          <li data-i18n="fr.f2">Cento metri dal lago</li>
           <li data-i18n="fr.f3">Anche da portar via</li>
         </ul>
       </div>
@@ -146,7 +190,10 @@
     <div class="head">
       <p class="t-eyebrow" data-i18n="tg.eyebrow">La cosa per cui ci chiamano</p>
       <h2 class="head__title t-display" data-i18n="tg.title">I nostri<br>taglieri</h2>
-      <p class="head__sub" data-i18n="tg.sub">Salumi, formaggi, bufala, porchetta, bruschette. Si riempie mentre scendi.</p>
+      <p class="head__sub" data-i18n="tg.sub">
+        Si riempie mentre scendi. Dal taglierino per due chiacchiere al tagliere
+        apericena che sul menù, giustamente, sta scritto “esagerato”.
+      </p>
     </div>
 
     <div class="tag__grid">
@@ -172,37 +219,17 @@
       </div>
 
       <div>
-        <div class="rows">
-          <div class="row rev">
-            <p class="row__name">Taglierino</p>
-            <p class="row__price">12<small>€</small></p>
-            <p class="row__note" data-i18n="tg.i1">Selezione di salumi e formaggi</p>
-          </div>
-          <div class="row rev">
-            <p class="row__name">Taglierone</p>
-            <p class="row__price">22<small>€</small></p>
-            <p class="row__note" data-i18n="tg.i2">Selezione di salumi e formaggi · per 2 persone</p>
-          </div>
-          <div class="row rev">
-            <p class="row__name">Tagliere Apericena <span class="flag">esagerato</span></p>
-            <p class="row__price">35<small>€</small></p>
-            <p class="row__note" data-i18n="tg.i3">Caldi, salumi, formaggi, porchetta, bufala, bruschette · per 2 persone</p>
-          </div>
-        </div>
-
-        <!-- it is a torn notebook page on their real board, so it is one here -->
-        <div class="offer rev">
-          <p class="offer__kicker">Maxi tagliere</p>
-          <p class="offer__min" data-i18n="tg.min">Minimo 4 persone</p>
-          <div class="offer__opt">
-            <p data-i18n="tg.o1">Taglierone di salumi e formaggi, bufala e porchetta <b>+</b> caraffa di spritz da 5 litri</p>
-            <b>25€ <span data-i18n="tg.pp">a persona</span></b>
-          </div>
-          <div class="offer__opt">
-            <p data-i18n="tg.o2">Taglierone di salumi e formaggi, bufala e porchetta · bevande escluse</p>
-            <b>18€ <span data-i18n="tg.pp">a persona</span></b>
-          </div>
-        </div>
+        <ul class="onboard">
+          <li class="rev" data-i18n="tg.b1">Salumi affettati al momento</li>
+          <li class="rev" data-i18n="tg.b2">Formaggi e mozzarella di bufala</li>
+          <li class="rev" data-i18n="tg.b3">Porchetta, quella per cui siamo qui</li>
+          <li class="rev" data-i18n="tg.b4">Bruschette, crostini e fritti caldi</li>
+        </ul>
+        <p class="t-lede rev" data-i18n="tg.note">
+          Per due persone o per otto: si allunga il tagliere e si aggiunge una
+          caraffa.
+        </p>
+        <a class="btn btn--pig rev" href="menu.html#m-taglieri" data-i18n="cta.menuPrices">Menù e prezzi</a>
       </div>
     </div>
   </div>
@@ -214,99 +241,105 @@
     <div class="head">
       <p class="t-eyebrow" data-i18n="pn.eyebrow">Ciavatta o ciavattone</p>
       <h2 class="head__title t-display" data-i18n="pn.title">Panini<br>zozzi</h2>
-      <p class="head__sub" data-i18n="pn.sub">Due misure. La seconda è quella giusta.</p>
+      <p class="head__sub" data-i18n="pn.sub">
+        Due misure: la ciavatta per pranzo, il ciavattone quando hai fatto sul
+        serio. Porchetta, salsiccia o trippa.
+      </p>
     </div>
 
     <div class="pan__photo rev">
       <img src="assets/img/ciavattoni.webp" alt="Due ciavattoni imbottiti nella carta di Porca Porchetta, sul lungolago" width="1000" height="800" loading="lazy">
     </div>
 
-    <div class="sizes">
-      <div class="size">
-        <span class="size__bread" aria-hidden="true">🥖</span>
-        <span class="size__label">Ciavatta</span>
-      </div>
-      <div class="size">
-        <span class="size__bread size__bread--big" aria-hidden="true">🥖</span>
-        <span class="size__label">Ciavattone</span>
-      </div>
-    </div>
-
-    <div class="rows">
-      <div class="row rev">
-        <p class="row__name" data-i18n="pn.porchetta">Con porchetta</p>
-        <span class="pan__prices"><span class="row__price">5<small>€</small></span><span class="row__price">9<small>€</small></span></span>
-      </div>
-      <div class="row rev">
-        <p class="row__name" data-i18n="pn.salsiccia">Con salsiccia</p>
-        <span class="pan__prices"><span class="row__price">5<small>€</small></span><span class="row__price">9<small>€</small></span></span>
-      </div>
-      <div class="row rev">
-        <p class="row__name" data-i18n="pn.trippa">Con trippa</p>
-        <span class="pan__prices"><span class="row__price">7<small>€</small></span><span class="row__price">13<small>€</small></span></span>
-      </div>
-    </div>
+    <ul class="fills">
+      <li class="fill rev"><span class="fill__n">Porchetta</span></li>
+      <li class="fill rev"><span class="fill__n" data-i18n="pn.salsiccia">Salsiccia</span></li>
+      <li class="fill rev"><span class="fill__n" data-i18n="pn.trippa">Trippa</span></li>
+    </ul>
 
     <p class="t-eyebrow" data-i18n="pn.contorni">Contorni da aggiungere</p>
     <div class="contorni">
-      <span class="chip">Cicoria <b>+1</b></span>
-      <span class="chip">Broccoletti <b>+1</b></span>
-      <span class="chip">Melanzane <b>+1</b></span>
-      <span class="chip">Peperoni <b>+1</b></span>
-      <span class="chip">Zucchine <b>+1</b></span>
-      <span class="chip" data-i18n="pn.secchi">Pomodori secchi <b>+1</b></span>
-      <span class="chip" data-i18n="pn.bufala">Mozzarella di bufala <b>+2</b></span>
+      <span class="chip">Cicoria</span>
+      <span class="chip">Broccoletti</span>
+      <span class="chip">Melanzane</span>
+      <span class="chip">Peperoni</span>
+      <span class="chip">Zucchine</span>
+      <span class="chip" data-i18n="pn.secchi">Pomodori secchi</span>
+      <span class="chip" data-i18n="pn.bufala">Mozzarella di bufala</span>
     </div>
-    <p class="contorni__note" data-i18n="pn.note">I panini possono essere farciti con qualsiasi contorno, formaggio e salume.</p>
+    <p class="contorni__note" data-i18n="pn.note">
+      I panini possono essere farciti con qualsiasi contorno, formaggio e salume.
+    </p>
   </div>
 </section>
 
 <!-- ========================== CARAFFE ========================== -->
-<section class="band band--dark tex" id="spritz">
+<section class="band band--dark tex spritz" id="spritz">
   <div class="wrap">
     <div class="head">
       <p class="t-eyebrow" data-i18n="cr.eyebrow">Aperitivi boni</p>
       <h2 class="head__title t-display" data-i18n="cr.title">Caraffe<br>di spritz</h2>
-      <p class="head__sub" data-i18n="cr.sub">Si ordinano a litri, non a bicchieri. Da tre in su.</p>
+      <p class="head__sub" data-i18n="cr.sub">
+        Si ordinano a litri, non a bicchieri. Tre, cinque o otto — poi vedi tu.
+      </p>
     </div>
 
-    <div class="car__grid rev">
-      <div class="car">
-        <svg class="car__svg" viewBox="0 0 130 190" role="img" aria-label="Caraffa da 3 litri">
-          <defs><clipPath id="jug3"><path d="M28 44 h64 a10 10 0 0 1 10 10 v106 a14 14 0 0 1-14 14 H32 a14 14 0 0 1-14-14 V54 a10 10 0 0 1 10-10 z"/></clipPath></defs>
-          <rect x="18" y="120" width="84" height="64" fill="#F28B2E" clip-path="url(#jug3)"/>
-          <path d="M28 44 h64 a10 10 0 0 1 10 10 v106 a14 14 0 0 1-14 14 H32 a14 14 0 0 1-14-14 V54 a10 10 0 0 1 10-10 z" fill="none" stroke="#4A2A24" stroke-width="6"/>
-          <path d="M102 76 q20 6 20 26 t-20 26" fill="none" stroke="#4A2A24" stroke-width="6"/>
-          <path d="M60 44 v-30 l18-8" fill="none" stroke="#4A2A24" stroke-width="5" stroke-linecap="round"/>
+    <div class="jugs rev">
+      <!-- one jug drawing, three sizes: the fill level and the height carry the
+           difference, so the comparison reads without reading a number -->
+      <figure class="jug jug--3">
+        <svg class="jug__svg" viewBox="0 0 120 210" role="img" aria-label="Caraffa da 3 litri">
+          <defs>
+            <clipPath id="clip3"><rect x="22" y="86" width="76" height="106" rx="14"/></clipPath>
+          </defs>
+          <path class="jug__straw" d="M64 92 L74 44" />
+          <rect class="jug__fill" x="22" y="132" width="76" height="60" clip-path="url(#clip3)"/>
+          <g class="jug__bubbles" clip-path="url(#clip3)">
+            <circle cx="40" cy="180" r="3.2"/><circle cx="60" cy="186" r="2.4"/><circle cx="78" cy="176" r="2.8"/>
+          </g>
+          <rect class="jug__body" x="22" y="86" width="76" height="106" rx="14"/>
+          <path class="jug__handle" d="M98 112 q18 8 18 26 t-18 26"/>
         </svg>
-        <p class="car__lt">3 litri</p>
-        <p class="car__price">25€</p>
-      </div>
-      <div class="car">
-        <svg class="car__svg" viewBox="0 0 130 190" role="img" aria-label="Caraffa da 5 litri">
-          <defs><clipPath id="jug5"><path d="M28 30 h64 a10 10 0 0 1 10 10 v120 a14 14 0 0 1-14 14 H32 a14 14 0 0 1-14-14 V40 a10 10 0 0 1 10-10 z"/></clipPath></defs>
-          <rect x="18" y="76" width="84" height="112" fill="#F28B2E" clip-path="url(#jug5)"/>
-          <path d="M28 30 h64 a10 10 0 0 1 10 10 v120 a14 14 0 0 1-14 14 H32 a14 14 0 0 1-14-14 V40 a10 10 0 0 1 10-10 z" fill="none" stroke="#4A2A24" stroke-width="6"/>
-          <path d="M102 68 q20 6 20 28 t-20 28" fill="none" stroke="#4A2A24" stroke-width="6"/>
-          <path d="M60 30 v-22 l18-6" fill="none" stroke="#4A2A24" stroke-width="5" stroke-linecap="round"/>
+        <figcaption class="jug__cap">3 <span data-i18n="cr.lt">litri</span></figcaption>
+      </figure>
+
+      <figure class="jug jug--5">
+        <svg class="jug__svg" viewBox="0 0 120 210" role="img" aria-label="Caraffa da 5 litri">
+          <defs>
+            <clipPath id="clip5"><rect x="20" y="56" width="80" height="136" rx="14"/></clipPath>
+          </defs>
+          <path class="jug__straw" d="M66 62 L78 12" />
+          <rect class="jug__fill" x="20" y="88" width="80" height="104" clip-path="url(#clip5)"/>
+          <g class="jug__bubbles" clip-path="url(#clip5)">
+            <circle cx="38" cy="176" r="3.4"/><circle cx="60" cy="184" r="2.6"/><circle cx="80" cy="170" r="3"/>
+          </g>
+          <rect class="jug__body" x="20" y="56" width="80" height="136" rx="14"/>
+          <path class="jug__handle" d="M100 84 q20 8 20 28 t-20 28"/>
         </svg>
-        <p class="car__lt">5 litri</p>
-        <p class="car__price">40€</p>
-      </div>
-      <div class="car">
-        <svg class="car__svg" viewBox="0 0 130 190" role="img" aria-label="Caraffa da 8 litri">
-          <defs><clipPath id="jug8"><path d="M26 16 h68 a10 10 0 0 1 10 10 v134 a14 14 0 0 1-14 14 H30 a14 14 0 0 1-14-14 V26 a10 10 0 0 1 10-10 z"/></clipPath></defs>
-          <rect x="16" y="42" width="88" height="146" fill="#F28B2E" clip-path="url(#jug8)"/>
-          <path d="M26 16 h68 a10 10 0 0 1 10 10 v134 a14 14 0 0 1-14 14 H30 a14 14 0 0 1-14-14 V26 a10 10 0 0 1 10-10 z" fill="none" stroke="#4A2A24" stroke-width="6"/>
-          <path d="M104 62 q20 8 20 30 t-20 30" fill="none" stroke="#4A2A24" stroke-width="6"/>
-          <path d="M60 16 v-12 l18-4" fill="none" stroke="#4A2A24" stroke-width="5" stroke-linecap="round"/>
+        <figcaption class="jug__cap">5 <span data-i18n="cr.lt">litri</span></figcaption>
+      </figure>
+
+      <figure class="jug jug--8">
+        <svg class="jug__svg" viewBox="0 0 120 210" role="img" aria-label="Caraffa da 8 litri">
+          <defs>
+            <clipPath id="clip8"><rect x="18" y="26" width="84" height="166" rx="15"/></clipPath>
+          </defs>
+          <path class="jug__straw" d="M68 32 L82 -14" />
+          <rect class="jug__fill" x="18" y="44" width="84" height="148" clip-path="url(#clip8)"/>
+          <g class="jug__bubbles" clip-path="url(#clip8)">
+            <circle cx="36" cy="172" r="3.6"/><circle cx="60" cy="182" r="2.8"/><circle cx="84" cy="166" r="3.2"/>
+          </g>
+          <rect class="jug__body" x="18" y="26" width="84" height="166" rx="15"/>
+          <path class="jug__handle" d="M102 58 q20 10 20 30 t-20 30"/>
         </svg>
-        <p class="car__lt">8 litri</p>
-        <p class="car__price">70€</p>
-      </div>
+        <figcaption class="jug__cap">8 <span data-i18n="cr.lt">litri</span></figcaption>
+      </figure>
     </div>
 
-    <p class="head__sub" data-i18n="cr.note">Birre, vino e dolci — fra cui il tiramisù di Martina — si chiedono in sala.</p>
+    <p class="head__sub" data-i18n="cr.note">
+      Birre, vino e dolci — fra cui il tiramisù di Martina — si chiedono in sala.
+    </p>
+    <a class="btn btn--pig" href="menu.html#m-spritz" data-i18n="cta.menuPrices">Menù e prezzi</a>
   </div>
 </section>
 
@@ -321,9 +354,9 @@
         <p class="t-eyebrow" data-i18n="lg.eyebrow">Cento metri</p>
         <h2 class="head__title t-display" data-i18n="lg.title">E poi<br>c’è il lago</h2>
         <p class="t-lede" data-i18n="lg.p1">
-          Il ciavattone si prende da portar via, si scende al lungolago e il tramonto
-          su Bracciano fa il resto. Lo spritz nel bicchiere di plastica non è un
-          ripiego: è il piano.
+          Il ciavattone si prende da portar via, si scende al lungolago e al
+          tramonto ci pensa Bracciano. Lo spritz nel bicchiere di plastica non è
+          un ripiego: è il piano.
         </p>
       </div>
     </div>
@@ -352,15 +385,18 @@
         <address class="addr">
           <strong>Porca Porchetta</strong><br>
           Via del Trivio, 31<br>
-          00061 Anguillara Sabazia (RM)<br>
-          <a href="tel:+390665495256">06 6549 5256</a><br>
-          <a href="https://www.instagram.com/porcaporchettaanguillara/" target="_blank" rel="noopener">@porcaporchettaanguillara</a>
+          00061 Anguillara Sabazia (RM)
         </address>
         <div class="info__cta">
-          <a class="btn btn--fuoco" href="https://www.google.com/maps/dir/?api=1&amp;destination=Porca%20Porchetta%20Via%20del%20Trivio%2031%20Anguillara%20Sabazia" target="_blank" rel="noopener" data-i18n="cta.dir">Dove stiamo</a>
-          <a class="btn btn--pig" href="menu.html" data-i18n="cta.menu">Vedi il menù</a>
+          <a class="btn btn--fuoco" href="https://www.google.com/maps/dir/?api=1&amp;destination=Porca%20Porchetta%20Via%20del%20Trivio%2031%20Anguillara%20Sabazia" target="_blank" rel="noopener">
+            <svg class="ic" aria-hidden="true"><use href="#i-pin"></use></svg>
+            <span data-i18n="cta.dir">Come arrivare</span>
+          </a>
+          <a class="btn btn--pig" href="tel:+390665495256">
+            <svg class="ic" aria-hidden="true"><use href="#i-tel"></use></svg>
+            <span>06 6549 5256</span>
+          </a>
         </div>
-        <p class="closed-stamp" data-i18n="in.stamp">Lunedì chiusi</p>
       </div>
     </div>
   </div>
@@ -369,34 +405,99 @@
 </main>
 
 <!-- =========================== FOOTER =========================== -->
-<footer class="ftr">
-  <div class="wrap ftr__grid">
-    <div>
-      <img class="ftr__logo" src="assets/img/logo.png" alt="Porca Porchetta" width="76" height="76" loading="lazy">
-      <p data-i18n="ft.tag">Porchetta · Panini zozzi · Aperitivi boni</p>
+<footer class="ftr tex">
+  <div class="wrap">
+    <div class="ftr__grid">
+
+      <div>
+        <img class="ftr__logo" src="assets/img/logo.png" alt="Porca Porchetta" width="86" height="86" loading="lazy">
+        <p class="ftr__tag" data-i18n="ft.tag">Porchetta · Panini zozzi · Aperitivi boni</p>
+        <ul class="social">
+          <li>
+            <a class="social__a" href="https://www.instagram.com/porcaporchettaanguillara/" target="_blank" rel="noopener" aria-label="Instagram">
+              <svg class="ic" aria-hidden="true"><use href="#i-ig"></use></svg>
+            </a>
+          </li>
+          <li>
+            <a class="social__a" href="https://www.facebook.com/61583761200637" target="_blank" rel="noopener" aria-label="Facebook">
+              <svg class="ic" aria-hidden="true"><use href="#i-fb"></use></svg>
+            </a>
+          </li>
+          <li>
+            <a class="social__a" href="tel:+390665495256" aria-label="Chiama 06 6549 5256">
+              <svg class="ic" aria-hidden="true"><use href="#i-tel"></use></svg>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 data-i18n="ft.where">Dove siamo</h3>
+        <p class="ftr__addr">
+          Via del Trivio, 31<br>
+          00061 Anguillara Sabazia (RM)
+        </p>
+        <h3 data-i18n="ft.hours">Orari</h3>
+        <p class="ftr__addr">
+          <span data-i18n="ft.h1">Mar–Ven 17–23</span><br>
+          <span data-i18n="ft.h2">Sab–Dom 11:30–14:30 · 17–23</span><br>
+          <span class="ftr__closed" data-i18n="ft.h3">Lunedì chiuso</span>
+        </p>
+      </div>
+
+      <!-- drawn map: the old town, Via del Trivio and the lake. Illustrated
+           rather than embedded so the footer stays request-free; the button
+           hands off to real turn-by-turn. -->
+      <div>
+        <h3 data-i18n="ft.map">La mappa</h3>
+        <a class="minimap" href="https://www.google.com/maps/dir/?api=1&amp;destination=Porca%20Porchetta%20Via%20del%20Trivio%2031%20Anguillara%20Sabazia" target="_blank" rel="noopener" aria-label="Apri le indicazioni su Google Maps">
+          <svg viewBox="0 0 300 200" role="img" aria-label="Mappa illustrata: Porca Porchetta nel centro storico di Anguillara, sul lago di Bracciano">
+            <rect width="300" height="200" fill="#EFE7DA"/>
+            <!-- the lake -->
+            <path d="M0 132 C40 122 74 140 108 150 C150 162 210 158 300 168 L300 200 L0 200 Z" fill="#8FB6C4"/>
+            <path d="M0 132 C40 122 74 140 108 150 C150 162 210 158 300 168" fill="none" stroke="#4A2A24" stroke-width="2.5"/>
+            <text x="196" y="190" font-family="Yellowtail, cursive" font-size="17" fill="#2B4B57">lago</text>
+            <!-- the promontory streets of the old town -->
+            <path d="M52 8 C60 46 74 74 96 100 C116 124 140 138 168 146" fill="none" stroke="#C9BCA6" stroke-width="9" stroke-linecap="round"/>
+            <path d="M238 20 C220 56 196 84 166 104 C142 120 118 130 96 136" fill="none" stroke="#C9BCA6" stroke-width="7" stroke-linecap="round"/>
+            <path d="M120 4 C126 40 132 70 140 96" fill="none" stroke="#C9BCA6" stroke-width="6" stroke-linecap="round"/>
+            <path d="M160 60 L232 78" fill="none" stroke="#C9BCA6" stroke-width="5" stroke-linecap="round"/>
+            <!-- Via del Trivio, highlighted -->
+            <path d="M96 100 C116 124 140 138 168 146" fill="none" stroke="#E07A55" stroke-width="6" stroke-linecap="round" stroke-dasharray="1 0"/>
+            <text x="14" y="96" font-family="Archivo, sans-serif" font-size="11" font-weight="700" fill="#7A6A55">CENTRO</text>
+            <text x="14" y="109" font-family="Archivo, sans-serif" font-size="11" font-weight="700" fill="#7A6A55">STORICO</text>
+            <!-- the pin -->
+            <g class="minimap__pin">
+              <path d="M138 84 c9 0 16 7 16 16 0 12-16 28-16 28s-16-16-16-28c0-9 7-16 16-16z" fill="#F2542D" stroke="#4A2A24" stroke-width="2.5"/>
+              <circle cx="138" cy="100" r="5.5" fill="#EFE7DA"/>
+            </g>
+            <text x="158" y="96" font-family="Archivo, sans-serif" font-size="12" font-weight="800" fill="#4A2A24">Via del Trivio</text>
+          </svg>
+          <span class="minimap__cta" data-i18n="ft.open">Apri le indicazioni</span>
+        </a>
+      </div>
     </div>
-    <div>
-      <h3 data-i18n="ft.where">Dove</h3>
-      <p>Via del Trivio, 31<br>00061 Anguillara Sabazia (RM)</p>
-    </div>
-    <div>
-      <h3 data-i18n="ft.contact">Contatti</h3>
-      <p>
-        <a href="tel:+390665495256">06 6549 5256</a><br>
-        <a href="https://www.instagram.com/porcaporchettaanguillara/" target="_blank" rel="noopener">Instagram</a><br>
-        <a href="menu.html" data-i18n="nav.menu">Menù</a>
+
+    <div class="ftr__base">
+      <p class="ftr__note">© <span id="yr">2026</span> Porca Porchetta · <span data-i18n="ft.vat">P.IVA da inserire</span></p>
+      <p class="credit">
+        <span data-i18n="ft.credit">Sito realizzato da</span>
+        <a class="credit__a" href="https://x3roautomations.it" target="_blank" rel="noopener">x3ro&nbsp;Automations</a>
       </p>
     </div>
-  </div>
-  <div class="wrap">
-    <p class="ftr__note">© <span id="yr">2026</span> Porca Porchetta · <span data-i18n="ft.vat">P.IVA da inserire</span></p>
   </div>
 </footer>
 
 <!-- the conversion engine: both actions, permanently in the thumb zone -->
 <nav class="dock" aria-label="Azioni rapide">
-  <a class="btn btn--fuoco" href="https://www.google.com/maps/dir/?api=1&amp;destination=Porca%20Porchetta%20Via%20del%20Trivio%2031%20Anguillara%20Sabazia" target="_blank" rel="noopener" data-i18n="cta.dir2">Indicazioni</a>
-  <a class="btn btn--pig" href="tel:+390665495256" data-i18n="cta.call">Chiama</a>
+  <a class="btn btn--fuoco" href="https://www.google.com/maps/dir/?api=1&amp;destination=Porca%20Porchetta%20Via%20del%20Trivio%2031%20Anguillara%20Sabazia" target="_blank" rel="noopener">
+    <svg class="ic" aria-hidden="true"><use href="#i-pin"></use></svg>
+    <span data-i18n="cta.dir2">Indicazioni</span>
+  </a>
+  <a class="btn btn--pig" href="tel:+390665495256">
+    <svg class="ic" aria-hidden="true"><use href="#i-tel"></use></svg>
+    <span data-i18n="cta.call">Chiama</span>
+  </a>
 </nav>
 
 <script src="js/i18n.js"></script>

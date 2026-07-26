@@ -1,9 +1,11 @@
 /* ==========================================================================
    tris.js — the tic-tac-toe grid printed on their paper placemats, playable
    on the phone already in your hand at the table.
-   You are X and move first; the pig plays O and does not lose (it takes the
-   win, blocks yours, then prefers centre, corners, sides). A beatable
-   opponent would be more fun for thirty seconds and less fun forever.
+
+   Marks are drawn as SVG strokes that draw themselves in, so a move looks
+   hand-written on the placemat rather than typed. You are X and move first;
+   the pig plays O and does not lose (takes the win, blocks yours, then
+   prefers centre, corners, sides).
    ========================================================================== */
 (function () {
   'use strict';
@@ -19,10 +21,21 @@
     [0,4,8],[2,4,6]
   ];
 
+  /* hand-drawn marks — deliberately not perfectly straight/round */
+  var MARK = {
+    x: '<svg class="mk" viewBox="0 0 100 100" aria-hidden="true">' +
+         '<path class="mk__p" d="M24 22 C42 40 58 58 77 78"/>' +
+         '<path class="mk__p mk__p--2" d="M78 23 C60 41 42 59 23 77"/>' +
+       '</svg>',
+    o: '<svg class="mk" viewBox="0 0 100 100" aria-hidden="true">' +
+         '<path class="mk__p" d="M50 18 C74 18 84 38 83 52 C82 70 68 83 49 83 C31 83 17 69 17 51 C17 33 30 18 50 18"/>' +
+       '</svg>'
+  };
+
   var cells = [];
   var grid = new Array(9).fill('');
   var over = false;
-  var lastKey = 'tris.turn';   // so a finished game re-renders on language switch
+  var lastKey = 'tris.turn';
 
   function t(key) {
     return (window.PP_I18N && window.PP_I18N.t) ? window.PP_I18N.t(key) : key;
@@ -59,12 +72,18 @@
     return out;
   }
 
-  function paint() {
-    for (var i = 0; i < 9; i++) {
-      cells[i].textContent = grid[i] ? grid[i].toUpperCase() : '';
-      cells[i].dataset.p = grid[i] || '';
-      cells[i].disabled = over || !!grid[i];
-    }
+  /* Only ever adds a mark, never re-renders the whole board: re-rendering
+     would restart every draw-in animation on each move. */
+  function place(i, who) {
+    grid[i] = who;
+    cells[i].innerHTML = MARK[who];
+    cells[i].dataset.p = who;
+    cells[i].disabled = true;
+    cells[i].setAttribute('aria-label', 'Casella ' + (i + 1) + ': ' + who.toUpperCase());
+  }
+
+  function lockAll() {
+    for (var i = 0; i < 9; i++) cells[i].disabled = true;
   }
 
   function finish(res) {
@@ -76,7 +95,7 @@
       lastKey = 'tris.draw';
     }
     status.textContent = t(lastKey);
-    paint();
+    lockAll();
     if (again) again.hidden = false;
   }
 
@@ -85,18 +104,15 @@
     var open = free(grid);
     var i, g;
 
-    // 1. take a win
-    for (i = 0; i < open.length; i++) {
+    for (i = 0; i < open.length; i++) {          // 1. take a win
       g = grid.slice(); g[open[i]] = 'o';
       if (winner(g)) return open[i];
     }
-    // 2. block yours
-    for (i = 0; i < open.length; i++) {
+    for (i = 0; i < open.length; i++) {          // 2. block yours
       g = grid.slice(); g[open[i]] = 'x';
       if (winner(g)) return open[i];
     }
-    // 3. centre, then corners, then sides
-    var pref = [4, 0, 2, 6, 8, 1, 3, 5, 7];
+    var pref = [4, 0, 2, 6, 8, 1, 3, 5, 7];      // 3. centre, corners, sides
     for (i = 0; i < pref.length; i++) {
       if (!grid[pref[i]]) return pref[i];
     }
@@ -108,42 +124,53 @@
     var i = Number(e.currentTarget.dataset.i);
     if (grid[i]) return;
 
-    grid[i] = 'x';
-    paint();
+    place(i, 'x');
 
     var res = winner(grid);
     if (res) return finish(res);
     if (!free(grid).length) return finish(null);
 
-    // a beat before the pig answers, so the move reads as a response
+    lockAll();  // no double moves while the pig is thinking
+
     setTimeout(function () {
       var m = pigMove();
       if (m < 0) return finish(null);
-      grid[m] = 'o';
-      paint();
+      place(m, 'o');
 
       var r2 = winner(grid);
       if (r2) return finish(r2);
       if (!free(grid).length) return finish(null);
+
+      // hand the free cells back
+      for (var k = 0; k < 9; k++) if (!grid[k]) cells[k].disabled = false;
+
       lastKey = 'tris.turn';
       status.textContent = t(lastKey);
-    }, 260);
+    }, 320);
   }
 
   function reset() {
     grid = new Array(9).fill('');
     over = false;
     lastKey = 'tris.turn';
-    cells.forEach(function (c) { c.classList.remove('is-win'); });
+    for (var i = 0; i < 9; i++) {
+      cells[i].classList.remove('is-win');
+      cells[i].innerHTML = '';
+      cells[i].dataset.p = '';
+      cells[i].disabled = false;
+      cells[i].setAttribute('aria-label', 'Casella ' + (i + 1));
+    }
     status.textContent = t(lastKey);
     if (again) again.hidden = true;
-    paint();
   }
 
   build();
   reset();
 
-  if (again) again.addEventListener('click', reset);
+  if (again) again.addEventListener('click', function () {
+    reset();
+    board.querySelector('.tris__cell').focus();
+  });
 
   /* keep the status line in the current language, finished game included */
   document.addEventListener('pp:lang', function () {

@@ -123,6 +123,71 @@
     setTimeout(function () { p.remove(); }, 700);
   }
 
+  /* -------------------------------------------------------------- parallax
+     The cave drifts slightly slower than the page, so the hero has depth.
+     rAF-throttled, and skipped entirely under reduced motion. */
+  function parallax() {
+    var arch = document.getElementById('heroArch');
+    if (!arch || reduce.matches) return;
+
+    var pending = false;
+
+    /* Sets a custom property rather than `transform`: the arch element already
+       carries a centring transform that differs between mobile and desktop, and
+       writing transform here would silently clobber it. CSS composes --py into
+       the image inside the mask instead. */
+    function frame() {
+      pending = false;
+      var y = window.scrollY;
+      if (y > window.innerHeight * 1.3) return;      // stop once it's offscreen
+      arch.style.setProperty('--py', (y * 0.14).toFixed(1) + 'px');
+    }
+
+    window.addEventListener('scroll', function () {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(frame);
+    }, { passive: true });
+  }
+
+  /* ------------------------------------------------------------- scroll spy
+     Marks the category chip for the section you are actually reading, and
+     scrolls the rail so that chip stays visible. */
+  function spy() {
+    var rail = document.getElementById('cats');
+    if (!rail) return;
+
+    var links = [].slice.call(rail.querySelectorAll('.cats__link'));
+    var sections = links.map(function (a) {
+      return document.querySelector(a.getAttribute('href'));
+    });
+    if (!sections.length || !sections[0]) return;
+
+    function setOn(i) {
+      links.forEach(function (a, n) { a.classList.toggle('is-on', n === i); });
+      var chip = links[i];
+      if (chip) {
+        var inner = rail.querySelector('.cats__inner');
+        var want = chip.offsetLeft - 16;
+        if (Math.abs(inner.scrollLeft - want) > 24) {
+          inner.scrollTo({ left: want, behavior: reduce.matches ? 'auto' : 'smooth' });
+        }
+      }
+    }
+
+    if (!('IntersectionObserver' in window)) return;
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var i = sections.indexOf(e.target);
+        if (i > -1) setOn(i);
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+
+    sections.forEach(function (s) { if (s) io.observe(s); });
+  }
+
   /* ------------------------------------------------------- today's opening
      Highlights the current day so nobody has to count rows. Uses the
      visitor's own clock. */
@@ -146,6 +211,8 @@
     jitter();
     reveals();
     tagliere();
+    parallax();
+    spy();
     today();
     year();
   }

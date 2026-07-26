@@ -446,12 +446,17 @@ a { color: inherit; }
   overflow: hidden;
   z-index: 0;
 }
+/* The image is taller than its mask so it can drift on scroll without
+   exposing an edge. --py is written by main.js. */
 .hero__arch img {
   width: 100%;
-  height: 100%;
+  height: 116%;
+  margin-top: -8%;
   object-fit: cover;
   object-position: 50% 62%;
   filter: saturate(0.88) brightness(0.72) contrast(1.04);
+  transform: translateY(var(--py, 0px));
+  will-change: transform;
 }
 .hero__arch::after {
   content: '';
@@ -514,25 +519,35 @@ a { color: inherit; }
   margin: 2px 0 10px;
 }
 
-/* the other two lines, demoted to a single strip */
-.hero__strip {
-  font-family: var(--display);
-  text-transform: uppercase;
-  font-size: clamp(0.86rem, 4.1vw, 1.2rem);
-  letter-spacing: 0.02em;
-  line-height: 1.25;
+/* what and where, plainly — the hero's job after the name is to answer
+   "what is this place and is it near me" */
+.hero__lede {
+  font-size: clamp(1rem, 4.3vw, 1.22rem);
+  font-weight: 500;
+  line-height: 1.5;
   color: var(--tufo);
-  opacity: 0.9;
-  margin: 0 0 14px;
+  margin: 0 0 16px;
+  max-width: 30ch;
 }
 
-.hero__kick {
-  font-size: clamp(1rem, 4.4vw, 1.25rem);
+/* their line, set as a signature rather than a subtitle */
+.hero__quote {
+  position: relative;
+  padding-left: 16px;
+  margin: 0 0 22px;
+  max-width: 28ch;
+  font-size: clamp(0.98rem, 4.1vw, 1.15rem);
   font-weight: 600;
   font-style: italic;
   color: var(--pig);
-  margin: 0 0 20px;
-  max-width: 28ch;
+}
+.hero__quote::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--coral);
 }
 
 .hero__cta {
@@ -993,90 +1008,326 @@ a { color: inherit; }
 /* ========================= menu page (QR target) ======================== */
 /* Opened at the table, on a phone, over café 4G. It has to paint fast and
    be scannable in one thumb-scroll per category. */
-.mhdr {
-  background: var(--ink);
-  padding: 22px 0 18px;
-  text-align: center;
-}
-.mhdr__logo { width: 84px; margin: 0 auto 10px; }
-.mhdr__title { font-size: clamp(1.9rem, 9vw, 3rem); color: var(--coral); text-shadow: 3px 3px 0 var(--brown); }
-.mhdr__sub { margin: 8px 0 0; font-size: 0.9rem; font-weight: 600; color: var(--pig); }
-.mhdr__act {
+/* The page is read at the table on a phone, so it stays quiet: one accent,
+   generous line spacing, prices aligned in a single scannable column. */
+.menupage { background: var(--ink); }
+
+.mhdr { padding: 14px 0 26px; }
+.mhdr__bar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
   align-items: center;
-  margin-top: 18px;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.mhdr__back {
+  display: grid;
+  place-items: center;
+  width: 44px; height: 44px;
+  flex: none;
+  border: 2.5px solid var(--tufo);
+  border-radius: 50%;
+  color: var(--tufo);
+}
+.mhdr__back:hover { background: var(--tufo); color: var(--ink); }
+.mhdr__back .ic { width: 21px; height: 21px; }
+.mhdr__logo { width: 52px; height: 52px; flex: none; }
+
+.mhdr__title-wrap { text-align: center; }
+.mhdr__title {
+  font-size: clamp(2.1rem, 11vw, 3.4rem);
+  color: var(--coral);
+  text-shadow: 4px 4px 0 var(--brown);
+}
+.mhdr__sub {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(239,231,218,.66);
 }
 
+/* sticky category rail */
 .cats {
   position: sticky;
   top: 0;
   z-index: 50;
+  background: rgba(23,17,15,.97);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(239,231,218,.14);
+}
+.cats__inner {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 12px var(--gut);
-  background: rgba(23,17,15,.96);
-  backdrop-filter: blur(8px);
-  border-bottom: 2px solid var(--brown);
+  padding: 11px var(--gut);
   scrollbar-width: none;
+  max-width: var(--maxw);
+  margin-inline: auto;
 }
-.cats::-webkit-scrollbar { display: none; }
+.cats__inner::-webkit-scrollbar { display: none; }
 .cats__link {
   flex: none;
   text-decoration: none;
-  padding: 8px 14px;
-  border: 2.5px solid var(--tufo);
+  padding: 9px 15px;
+  border: 2px solid rgba(239,231,218,.3);
   border-radius: 999px;
-  color: var(--tufo);
+  color: rgba(239,231,218,.78);
   font-weight: 800;
-  font-size: 0.8rem;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
-.cats__link:hover { background: var(--tufo); color: var(--ink); }
+.cats__link:hover { border-color: var(--tufo); color: var(--tufo); }
+/* current section, set by main.js */
+.cats__link.is-on {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: var(--ink);
+}
 
-.mband { padding-block: 40px; scroll-margin-top: 66px; }
-.mband__title { font-size: clamp(1.7rem, 8vw, 2.6rem); margin-bottom: 6px; }
-.mband__hint { margin: 0 0 20px; font-size: 0.92rem; font-style: italic; opacity: 0.8; }
+.mband {
+  padding-block: 46px;
+  scroll-margin-top: 62px;
+}
+.mband--alt { background: rgba(239,231,218,.045); }
+.mband--tris { background: rgba(239,231,218,.045); }
+
+.mband__head { margin-bottom: 26px; }
+.mband__title {
+  font-size: clamp(1.6rem, 7.4vw, 2.4rem);
+  color: var(--coral);
+  margin-bottom: 8px;
+}
+.mband__hint {
+  margin: 0;
+  font-size: 0.94rem;
+  color: rgba(239,231,218,.7);
+}
+
+/* ---------------------------- menu items -------------------------------- */
+.mlist { display: grid; gap: 22px; }
+
+.mitem__line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.mitem__name {
+  margin: 0;
+  font-family: var(--body);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(1rem, 4.2vw, 1.12rem);
+  letter-spacing: 0.01em;
+  color: var(--tufo);
+}
+/* the dotted leader that carries the eye to the price */
+.mitem__lead {
+  flex: 1 1 auto;
+  min-width: 14px;
+  border-bottom: 2px dotted rgba(239,231,218,.28);
+  transform: translateY(-4px);
+}
+.mitem__price {
+  flex: none;
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 5.4vw, 1.5rem);
+  color: var(--coral);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.mitem__price::after {
+  content: '€';
+  font-size: 0.62em;
+  margin-left: 2px;
+  opacity: 0.75;
+}
+.mitem__desc {
+  margin: 7px 0 0;
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: rgba(239,231,218,.68);
+  max-width: 52ch;
+}
+
+/* ------------------------ panini: two price columns --------------------- */
+.ptable { display: grid; gap: 0; }
+.ptable__head,
+.ptable__row {
+  display: grid;
+  /* columns sized to the longer label ("ciavattone") so the header cannot
+     clip at the right edge on a 390px screen */
+  grid-template-columns: 1fr 4.1rem 5.4rem;
+  gap: 8px;
+  align-items: baseline;
+}
+.ptable__head {
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(239,231,218,.2);
+}
+.ptable__head span {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(239,231,218,.55);
+  text-align: right;
+  white-space: nowrap;
+}
+.ptable__row {
+  padding: 16px 0;
+  border-bottom: 2px dotted rgba(239,231,218,.16);
+}
+.ptable__row:last-child { border-bottom: 0; }
+.ptable__name {
+  margin: 0;
+  font-family: var(--body);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(1rem, 4.2vw, 1.12rem);
+  color: var(--tufo);
+}
+.ptable__p {
+  text-align: right;
+  font-family: var(--display);
+  font-size: clamp(1.15rem, 5vw, 1.4rem);
+  color: var(--coral);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ptable__p::after {
+  content: '€';
+  font-size: 0.6em;
+  margin-left: 1px;
+  opacity: 0.7;
+}
+
+/* ------------------------------- contorni ------------------------------- */
+.sides {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+.side {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 2px dotted rgba(239,231,218,.16);
+  font-weight: 600;
+}
+.side:last-child { border-bottom: 0; }
+.side b {
+  font-family: var(--display);
+  color: var(--coral);
+  font-size: 1.05rem;
+}
+.side b::after { content: '€'; font-size: 0.6em; margin-left: 1px; opacity: .7; }
+
+@media (min-width: 620px) {
+  .sides { grid-template-columns: 1fr 1fr; column-gap: 34px; }
+}
+
+/* ------------------------------- notes ---------------------------------- */
+.mnote {
+  margin: 22px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: rgba(239,231,218,.66);
+  max-width: 62ch;
+}
+.mnote--allerg {
+  padding: 14px 16px;
+  border-left: 3px solid var(--coral);
+  background: rgba(239,231,218,.05);
+  border-radius: 0 10px 10px 0;
+  color: rgba(239,231,218,.8);
+}
 
 /* ============================== tris ==================================== */
 /* Their placemats are printed with a tic-tac-toe grid. This is that grid,
    on the phone already in your hand at the table. */
 .tris { text-align: center; }
+
+/* the placemat: kraft paper, a printed grid, and a hand-drawn frame — the
+   real object this is copied from */
+.tris__mat {
+  position: relative;
+  width: min(340px, 86vw);
+  margin: 20px auto 16px;
+  padding: 18px;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(90deg, rgba(122,90,60,.05) 0 2px, transparent 2px 5px),
+    linear-gradient(165deg, #E8D9BE 0%, #DFCDAC 100%);
+  border: var(--stroke) solid var(--brown);
+  box-shadow: var(--pop);
+  transform: rotate(-1deg);
+}
+.tris__mat::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 2px dashed rgba(74,42,36,.32);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
 .tris__board {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  width: min(300px, 78vw);
-  margin: 18px auto 14px;
+  gap: 0;
+  width: 100%;
 }
+/* one continuous printed grid rather than nine separate boxes */
 .tris__cell {
   appearance: none;
+  position: relative;
   aspect-ratio: 1;
-  font-family: var(--display);
-  font-size: clamp(2rem, 11vw, 2.8rem);
-  line-height: 1;
-  background: var(--tufo);
-  color: var(--brown);
-  border: var(--stroke) solid var(--brown);
-  border-radius: 14px;
-  box-shadow: var(--pop-sm);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-right: 3px solid rgba(74,42,36,.55);
+  border-bottom: 3px solid rgba(74,42,36,.55);
   cursor: pointer;
-  transition: transform 120ms ease;
+  transition: background 160ms ease;
 }
+.tris__cell:nth-child(3n) { border-right: 0; }
+.tris__cell:nth-child(n+7) { border-bottom: 0; }
+.tris__cell:hover:not(:disabled) { background: rgba(224,122,85,.14); }
 .tris__cell:disabled { cursor: default; }
-.tris__cell[data-p="x"] { color: var(--fuoco); }
-.tris__cell[data-p="o"] { color: var(--ivy); }
-.tris__cell.is-win { background: var(--neon-2); }
+.tris__cell.is-win { background: rgba(255,233,163,.6); }
+
+/* the marks: SVG strokes that draw themselves in */
+.mk { width: 100%; height: 100%; display: block; }
+.mk__p {
+  fill: none;
+  stroke: var(--fuoco);
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: ink 340ms ease-out forwards;
+}
+.mk__p--2 { animation-delay: 190ms; }
+.tris__cell[data-p="o"] .mk__p { stroke: var(--ivy); stroke-dasharray: 260; stroke-dashoffset: 260; }
+
+@keyframes ink { to { stroke-dashoffset: 0; } }
+
 .tris__status {
   min-height: 1.6em;
   margin: 0 0 14px;
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 1.02rem;
 }
 
 /* ============================== 404 ===================================== */
@@ -1128,6 +1379,324 @@ a { color: inherit; }
   .js-anim .rev,
   .js-anim .tag__disc { opacity: 1 !important; transform: none !important; }
   .hero__line { opacity: 1; color: var(--coral); }
+}
+
+/* ============================ icons ===================================== */
+/* Hidden without `display:none`: symbols would still resolve, but gradients
+   and other paint servers inside a display:none SVG do not. */
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.ic {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  color: currentColor;
+}
+
+/* ====================== hero: atmosphere & motion ======================= */
+/* The neon breathes rather than strobes — a real sign hums, and a hard
+   flicker would be both cheap-looking and a seizure risk. */
+.hero__neon { animation: hum 5.5s ease-in-out infinite; }
+
+@keyframes hum {
+  0%, 100% { opacity: 1; }
+  47%      { opacity: 0.9; }
+  50%      { opacity: 0.68; }
+  53%      { opacity: 0.94; }
+}
+
+/* the arch stroke draws itself in on load */
+.js-anim .hero__strokePath {
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation: draw 1.9s cubic-bezier(.4, 0, .2, 1) .25s forwards;
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+/* dust drifting in the cave light. Nine spans, no images, no JS. */
+.motes {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+.motes span {
+  position: absolute;
+  bottom: -12px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--neon-2);
+  opacity: 0;
+  animation: mote 15s linear infinite;
+}
+.motes span:nth-child(1) { left: 12%; animation-delay: 0s;   }
+.motes span:nth-child(2) { left: 27%; animation-delay: 2.4s; width: 3px; height: 3px; }
+.motes span:nth-child(3) { left: 39%; animation-delay: 5.1s; }
+.motes span:nth-child(4) { left: 51%; animation-delay: 1.2s; width: 5px; height: 5px; }
+.motes span:nth-child(5) { left: 63%; animation-delay: 7.6s; }
+.motes span:nth-child(6) { left: 71%; animation-delay: 3.8s; width: 3px; height: 3px; }
+.motes span:nth-child(7) { left: 83%; animation-delay: 9.2s; }
+.motes span:nth-child(8) { left: 92%; animation-delay: 6.3s; width: 3px; height: 3px; }
+.motes span:nth-child(9) { left: 5%;  animation-delay: 11s;  }
+
+@keyframes mote {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  12%  { opacity: 0.5; }
+  70%  { opacity: 0.32; }
+  100% { transform: translateY(-84svh) translateX(26px); opacity: 0; }
+}
+
+/* scroll cue — desktop only: on a phone the sticky action bar owns the bottom
+   of the screen, and stacking a hint above it just crowds the thumb zone */
+.cue { display: none; }
+
+@media (min-width: 800px) {
+  .cue {
+    position: absolute;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    display: flex;
+  }
+}
+
+.cue {
+  z-index: 3;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 4px;
+  color: rgba(239,231,218,.72);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.cue:hover { color: var(--neon-2); }
+.cue__arrow {
+  width: 9px; height: 9px;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: rotate(45deg);
+  animation: nudge 1.9s ease-in-out infinite;
+}
+@keyframes nudge {
+  0%, 100% { transform: rotate(45deg) translate(0, 0); }
+  50%      { transform: rotate(45deg) translate(3px, 3px); }
+}
+
+/* ===================== taglieri: what's on the board ==================== */
+.onboard {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.onboard li {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-weight: 600;
+  font-size: 1.03rem;
+  padding-bottom: 12px;
+  border-bottom: 2px dashed rgba(239,231,218,.2);
+}
+.onboard li::before {
+  content: '';
+  flex: none;
+  width: 10px; height: 10px;
+  margin-top: 8px;
+  border-radius: 50%;
+  background: var(--coral);
+  border: 2px solid var(--brown);
+}
+
+/* ======================== panini: the fillings ========================== */
+.fills {
+  list-style: none;
+  margin: 0 0 26px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.fill {
+  border: var(--stroke) solid var(--brown);
+  border-radius: 16px;
+  background: rgba(255,255,255,.42);
+  box-shadow: var(--pop-sm);
+  padding: 14px 18px;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.fill:nth-child(2) { transform: rotate(-0.6deg); }
+.fill:nth-child(3) { transform: rotate(0.5deg); }
+.fill:hover { transform: translate(-2px, -2px) rotate(0deg); box-shadow: var(--pop); }
+.fill__n {
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: clamp(1.1rem, 5.4vw, 1.5rem);
+  color: var(--brown);
+  line-height: 1;
+}
+
+@media (min-width: 640px) {
+  .fills { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ============================ caraffe =================================== */
+.spritz { overflow: hidden; }
+
+.jugs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 26px;
+}
+.jug { margin: 0; text-align: center; }
+.jug__svg { width: 100%; height: auto; overflow: visible; }
+
+/* the drawn jug */
+.jug__body {
+  fill: none;
+  stroke: var(--tufo-2);
+  stroke-width: 5;
+}
+.jug__handle {
+  fill: none;
+  stroke: var(--tufo-2);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.jug__straw {
+  fill: none;
+  stroke: var(--tufo-2);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  opacity: .8;
+}
+.jug__straw--hide { display: none; }
+/* spritz: two-stop orange so it reads as liquid, not a flat block */
+.jug__fill { fill: url(#spritzGrad); }
+.jug__bubbles circle {
+  fill: rgba(255,255,255,.55);
+  animation: rise 3.4s ease-in infinite;
+}
+.jug__bubbles circle:nth-child(2) { animation-delay: 1.1s; }
+.jug__bubbles circle:nth-child(3) { animation-delay: 2.2s; }
+
+@keyframes rise {
+  0%   { transform: translateY(0);     opacity: 0; }
+  15%  { opacity: .75; }
+  100% { transform: translateY(-92px); opacity: 0; }
+}
+
+.jug__cap {
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: clamp(0.95rem, 4.4vw, 1.35rem);
+  color: var(--coral);
+  line-height: 1;
+  margin-top: 10px;
+}
+
+/* ============================== footer ================================== */
+.ftr__tag { margin: 0 0 16px; font-weight: 600; }
+.ftr__addr { margin: 0 0 20px; line-height: 1.65; }
+.ftr__closed { color: var(--fuoco); font-weight: 800; }
+
+.social {
+  list-style: none;
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+.social__a {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 2.5px solid var(--tufo);
+  border-radius: 50%;
+  color: var(--tufo);
+  transition: transform 150ms ease, background 150ms ease, color 150ms ease;
+}
+.social__a .ic { width: 22px; height: 22px; }
+.social__a:hover {
+  background: var(--coral);
+  border-color: var(--coral);
+  color: var(--ink);
+  transform: translateY(-3px);
+}
+
+/* the drawn map */
+.minimap {
+  display: block;
+  border: var(--stroke) solid var(--brown);
+  border-radius: var(--r);
+  overflow: hidden;
+  box-shadow: var(--pop);
+  text-decoration: none;
+  transition: transform 160ms ease;
+}
+.minimap:hover { transform: translate(-2px, -2px); }
+.minimap svg { width: 100%; height: auto; display: block; }
+.minimap__pin { animation: bob 2.6s ease-in-out infinite; transform-origin: 138px 128px; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+.minimap__cta {
+  display: block;
+  padding: 11px 14px;
+  background: var(--brown);
+  color: var(--tufo);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.ftr__base {
+  margin-top: 34px;
+  padding-top: 20px;
+  border-top: 2px dashed rgba(239,231,218,.2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.ftr__base .ftr__note { margin: 0; }
+
+.credit { margin: 0; font-size: 0.82rem; opacity: 0.8; }
+.credit__a {
+  font-weight: 800;
+  color: var(--coral);
+  text-decoration: none;
+  border-bottom: 2px solid rgba(224,122,85,.45);
+  padding-bottom: 1px;
+}
+.credit__a:hover { color: var(--neon-2); border-bottom-color: var(--neon-2); }
+
+/* ==================== reduced motion: kill the ambience ================= */
+@media (prefers-reduced-motion: reduce) {
+  .hero__neon,
+  .motes span,
+  .cue__arrow,
+  .jug__bubbles circle,
+  .minimap__pin { animation: none !important; }
+  .motes { display: none; }
+  .js-anim .hero__strokePath { stroke-dasharray: none; stroke-dashoffset: 0; animation: none; }
 }
 
 /* ============================== print =================================== */
