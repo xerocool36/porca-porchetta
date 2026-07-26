@@ -239,11 +239,6 @@ a { color: inherit; }
   padding: 22px 20px;
 }
 
-/* sticker rotation — set per element so nothing reads machine-aligned */
-.tilt-l  { transform: rotate(-1.4deg); }
-.tilt-r  { transform: rotate(1.6deg); }
-.tilt-l2 { transform: rotate(-0.7deg); }
-
 /* rubber stamp: for their placemat proverb ------------------------------ */
 .stamp {
   display: inline-block;
@@ -428,7 +423,9 @@ a { color: inherit; }
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 96px 0 34px;
+  /* the bottom pad clears the fixed action bar: the hero ends at 100svh, so
+     without it the CTAs sit underneath the dock */
+  padding: 92px 0 calc(90px + env(safe-area-inset-bottom, 0px));
   overflow: hidden;
   background:
     radial-gradient(120% 70% at 50% 8%, #3A2622 0%, var(--ink) 62%);
@@ -569,21 +566,9 @@ a { color: inherit; }
   pointer-events: none;
 }
 
-.hero__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  margin-top: 24px;
-  font-size: 0.84rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(239,231,218,.72);
-}
-.hero__meta b { color: var(--neon-2); }
-
 @media (min-width: 800px) {
-  .hero { justify-content: center; padding-top: 120px; }
+  /* no dock on desktop, so the reserved space goes away */
+  .hero { justify-content: center; padding: 120px 0 34px; }
 
   /* desktop splits the hero: type on the left, the cave arch on the right */
   .hero__arch, .hero__stroke {
@@ -613,7 +598,6 @@ a { color: inherit; }
 
   .hero__inner { max-width: 600px; }
   .hero__pig { right: 5%; top: auto; bottom: 13%; width: 126px; }
-  .hero__meta { font-size: 0.8rem; }
 }
 
 /* ======================= la fraschetta (the cave) ======================= */
@@ -708,41 +692,6 @@ a { color: inherit; }
 
 /* price rows, set like their board */
 .rows { display: grid; gap: 0; }
-.row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px 14px;
-  align-items: baseline;
-  padding: 15px 0;
-  border-bottom: 2px dashed rgba(74,42,36,.32);
-}
-.band--dark .row { border-bottom-color: rgba(239,231,218,.22); }
-.row:last-child { border-bottom: 0; }
-
-.row__name {
-  font-weight: 800;
-  font-style: italic;
-  text-transform: uppercase;
-  font-size: clamp(1rem, 4.3vw, 1.12rem);
-  letter-spacing: 0.01em;
-  margin: 0;
-}
-.row__note {
-  grid-column: 1 / -1;
-  margin: 3px 0 0;
-  font-size: 0.9rem;
-  opacity: 0.78;
-  line-height: 1.45;
-}
-.row__price {
-  font-weight: 800;
-  font-size: clamp(1.4rem, 6vw, 1.75rem);
-  color: var(--fuoco);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-.band--dark .row__price { color: var(--coral); }
-.row__price small { font-size: 0.62em; font-weight: 700; opacity: 0.8; }
 
 /* the "esagerato" flag straight off their board */
 .flag {
@@ -828,31 +777,6 @@ a { color: inherit; }
   gap: 12px;
   margin-bottom: 10px;
 }
-.size {
-  text-align: center;
-  padding: 12px 8px 14px;
-  border: 2.5px solid var(--brown);
-  border-radius: 16px;
-  background: rgba(74,42,36,.05);
-}
-.band--dark .size { background: rgba(239,231,218,.06); border-color: rgba(239,231,218,.5); }
-.size__bread { display: block; line-height: 1; font-size: 1.5rem; }
-.size__bread--big { font-size: 2.4rem; }
-.size__label {
-  display: block;
-  margin-top: 6px;
-  font-family: var(--display);
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.pan__prices {
-  display: flex;
-  gap: 20px;
-  align-items: baseline;
-}
-.pan__prices .row__price { min-width: 2.4ch; text-align: right; }
 
 .contorni {
   display: flex;
@@ -866,34 +790,9 @@ a { color: inherit; }
   font-style: italic;
   opacity: 0.8;
 }
-
-/* ============================== caraffe ================================= */
-.car__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  align-items: end;
-}
-.car { text-align: center; }
-.car__svg { width: 100%; height: auto; margin: 0 auto 10px; }
 /* the jugs sit on the dark band, so the ink line goes light — brown-on-ink
    was almost invisible. CSS wins over the inline stroke attribute. */
 .car__svg path { stroke: var(--tufo-2); }
-.car__lt {
-  font-family: var(--display);
-  font-size: clamp(1.1rem, 5.4vw, 1.6rem);
-  text-transform: uppercase;
-  line-height: 1;
-  margin: 0;
-  color: var(--tufo);
-}
-.car__price {
-  font-family: var(--display);
-  color: var(--coral);
-  font-size: clamp(1.2rem, 6vw, 1.8rem);
-  margin: 4px 0 0;
-  line-height: 1;
-}
 
 /* ================================ lago ================================== */
 .lago { position: relative; overflow: hidden; }
@@ -933,19 +832,6 @@ a { color: inherit; }
   border-radius: 8px;
   padding-inline: 10px;
   margin-inline: -10px;
-}
-
-.closed-stamp {
-  display: inline-block;
-  margin-top: 18px;
-  border: 4px solid var(--fuoco);
-  color: var(--fuoco);
-  font-family: var(--display);
-  text-transform: uppercase;
-  font-size: 1rem;
-  padding: 8px 14px;
-  border-radius: 10px;
-  transform: rotate(-5deg);
 }
 
 .addr { font-style: normal; font-weight: 600; line-height: 1.7; }
@@ -1378,7 +1264,6 @@ a { color: inherit; }
   /* the board arrives fully composed, the hero shows all three lines lit */
   .js-anim .rev,
   .js-anim .tag__disc { opacity: 1 !important; transform: none !important; }
-  .hero__line { opacity: 1; color: var(--coral); }
 }
 
 /* ============================ icons ===================================== */
@@ -1582,7 +1467,6 @@ a { color: inherit; }
   stroke-linecap: round;
   opacity: .8;
 }
-.jug__straw--hide { display: none; }
 /* spritz: two-stop orange so it reads as liquid, not a flat block */
 .jug__fill { fill: url(#spritzGrad); }
 .jug__bubbles circle {
@@ -1678,15 +1562,30 @@ a { color: inherit; }
 }
 .ftr__base .ftr__note { margin: 0; }
 
-.credit { margin: 0; font-size: 0.82rem; opacity: 0.8; }
-.credit__a {
-  font-weight: 800;
-  color: var(--coral);
+/* our credit */
+.credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   text-decoration: none;
-  border-bottom: 2px solid rgba(224,122,85,.45);
-  padding-bottom: 1px;
+  padding: 6px 0;
+  transition: opacity 160ms ease;
 }
-.credit__a:hover { color: var(--neon-2); border-bottom-color: var(--neon-2); }
+.credit:hover { opacity: 1; }
+.credit__txt {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(239,231,218,.55);
+}
+.credit__logo {
+  width: 132px;
+  height: auto;
+  opacity: 0.92;
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+.credit:hover .credit__logo { opacity: 1; transform: translateY(-2px); }
 
 /* ==================== reduced motion: kill the ambience ================= */
 @media (prefers-reduced-motion: reduce) {

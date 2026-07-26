@@ -88,10 +88,6 @@
     <path d="M12 2.6c3.7 0 6.7 3 6.7 6.7 0 4.8-6.7 12.1-6.7 12.1S5.3 14.1 5.3 9.3c0-3.7 3-6.7 6.7-6.7z" fill="none" stroke="currentColor" stroke-width="2"/>
     <circle cx="12" cy="9.2" r="2.5" fill="currentColor"/>
   </symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
-    <path d="M12 7v5.4l3.4 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  </symbol>
 </svg>
 
 <!-- ============================ HERO ============================ -->
@@ -124,13 +120,15 @@
   <img class="hero__pig" src="assets/img/logo.png" alt="" width="168" height="168" aria-hidden="true">
 
   <div class="wrap hero__inner">
-    <p class="hero__neon t-script">Welcome to my world</p>
+    <!-- the script word from their own logo lockup, lit like the signs on
+         their wall -->
+    <p class="hero__neon t-script">fraschetta</p>
 
     <h1 class="hero__h1 t-display" data-i18n="hero.h1">Porchetta<br>che cola</h1>
 
     <p class="hero__lede" data-i18n="hero.lede">
-      Fraschetta in una grotta di tufo, nel centro storico di Anguillara.
-      Cento metri dal lago di Bracciano.
+      In una grotta di tufo nel centro storico di Anguillara,
+      a cento metri dal lago.
     </p>
 
     <p class="hero__quote">
@@ -480,10 +478,10 @@
 
     <div class="ftr__base">
       <p class="ftr__note">© <span id="yr">2026</span> Porca Porchetta · <span data-i18n="ft.vat">P.IVA da inserire</span></p>
-      <p class="credit">
-        <span data-i18n="ft.credit">Sito realizzato da</span>
-        <a class="credit__a" href="https://x3roautomations.it" target="_blank" rel="noopener">x3ro&nbsp;Automations</a>
-      </p>
+      <a class="credit" href="https://x3roautomations.it" target="_blank" rel="noopener">
+        <span class="credit__txt" data-i18n="ft.credit">Sito realizzato da</span>
+        <img class="credit__logo" src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265" loading="lazy">
+      </a>
     </div>
   </div>
 </footer>

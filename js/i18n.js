@@ -17,7 +17,7 @@
     'cta.menuPrices': 'Menu and prices',
 
     'hero.h1': 'Dripping<br>porchetta',
-    'hero.lede': 'A fraschetta inside a tufo cave, in the old town of Anguillara. A hundred metres from Lake Bracciano.',
+    'hero.lede': 'Inside a tufo cave in the old town of Anguillara, a hundred metres from the lake.',
     'hero.cue': 'Down into the cave',
 
     'fr.eyebrow': 'Via del Trivio 31 · old town',
