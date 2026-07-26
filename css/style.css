@@ -878,7 +878,10 @@ a { color: inherit; }
 }
 .ftr__logo { width: 76px; margin-bottom: 16px; }
 .ftr__grid { display: grid; gap: 26px; }
-.ftr a { display: inline-block; padding: 5px 0; font-weight: 700; }
+/* No blanket `.ftr a` rule: at specificity (0,1,1) it outranked .social__a,
+   .minimap and .credit — stripping their display and re-adding padding, which
+   pushed every social icon 5px off centre. The footer has no plain text links
+   left, so each link type styles itself. */
 .ftr h3 {
   font-family: var(--display);
   font-size: 0.95rem;
@@ -1281,6 +1284,9 @@ a { color: inherit; }
   height: 1.15em;
   flex: none;
   color: currentColor;
+  /* the icon box is square and the artwork is centred inside it, so the mark
+     lands dead centre of whatever circle or button holds it */
+  display: block;
 }
 
 /* ====================== hero: atmosphere & motion ======================= */
@@ -1508,12 +1514,13 @@ a { color: inherit; }
   place-items: center;
   width: 46px;
   height: 46px;
+  padding: 0;
   border: 2.5px solid var(--tufo);
   border-radius: 50%;
   color: var(--tufo);
   transition: transform 150ms ease, background 150ms ease, color 150ms ease;
 }
-.social__a .ic { width: 22px; height: 22px; }
+.social__a .ic { width: 21px; height: 21px; }
 .social__a:hover {
   background: var(--coral);
   border-color: var(--coral);
@@ -1552,37 +1559,37 @@ a { color: inherit; }
 
 .ftr__base {
   margin-top: 34px;
-  padding-top: 20px;
+  padding-top: 22px;
   border-top: 2px dashed rgba(239,231,218,.2);
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-  justify-content: space-between;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
 }
 .ftr__base .ftr__note { margin: 0; }
 
-/* our credit */
+/* our credit — centred, and deliberately small: it signs the work without
+   competing with the client's own footer */
 .credit {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
   text-decoration: none;
-  padding: 6px 0;
-  transition: opacity 160ms ease;
+  padding: 4px 0;
 }
-.credit:hover { opacity: 1; }
 .credit__txt {
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(239,231,218,.55);
+  color: rgba(239,231,218,.42);
 }
 .credit__logo {
-  width: 132px;
+  width: 84px;
   height: auto;
-  opacity: 0.92;
+  opacity: 0.85;
   transition: transform 200ms ease, opacity 200ms ease;
 }
 .credit:hover .credit__logo { opacity: 1; transform: translateY(-2px); }
