@@ -49,8 +49,20 @@ It is a preference, not tracking, so no consent banner is required.
 
 ## Deploy
 
-Netlify, publish directory `.` - `netlify.toml` carries the security headers, cache policy
-and the `/menu` redirect.
+Currently on **GitHub Pages** (project site), served from the repo root on `main`:
+<https://xerocool36.github.io/porca-porchetta/>
+
+`.nojekyll` is present so Pages serves the files as-is. Note that Pages cannot apply
+custom headers, so the CSP and security headers in `netlify.toml` are inert there — they
+take effect only if the site moves to Netlify.
+
+Canonical, OG and sitemap URLs currently point at the Pages address so link previews
+resolve. **When a real domain is bought, update those URLs** in `index.html`, `menu.html`,
+`sitemap.xml` and `robots.txt`.
+
+### If moving to Netlify
+Publish directory `.` - `netlify.toml` carries the security headers, cache policy and the
+`/menu` redirect.
 
 Stage from a clean directory (never deploy `--dir .` straight from the working tree) and
 pass the site **ID**, not the name - deploying an unlinked directory by name silently

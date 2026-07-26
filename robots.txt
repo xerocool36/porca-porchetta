@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://porcaporchetta.it/sitemap.xml
+Sitemap: https://xerocool36.github.io/porca-porchetta/sitemap.xml
