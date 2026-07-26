@@ -861,6 +861,9 @@ a { color: inherit; }
 }
 .car { text-align: center; }
 .car__svg { width: 100%; height: auto; margin: 0 auto 10px; }
+/* the jugs sit on the dark band, so the ink line goes light — brown-on-ink
+   was almost invisible. CSS wins over the inline stroke attribute. */
+.car__svg path { stroke: var(--tufo-2); }
 .car__lt {
   font-family: var(--display);
   font-size: clamp(1.1rem, 5.4vw, 1.6rem);
