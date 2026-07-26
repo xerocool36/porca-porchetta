@@ -1,0 +1,1136 @@
+/* ==========================================================================
+   Porca Porchetta — fraschetta, Anguillara Sabazia
+   "Fraschetta Fumetto" — comic book set inside their tufo cave.
+   Mobile-first: every value below is authored for 390px, then widened.
+   ========================================================================== */
+
+/* --- self-hosted fonts (no third-party CDN: GDPR + no render-blocking) --- */
+@font-face {
+  font-family: 'Titan One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/titanone-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Yellowtail';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/yellowtail-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('../assets/fonts/archivo-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: italic;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('../assets/fonts/archivo-italic-latin.woff2') format('woff2');
+}
+
+/* ============================== tokens ================================== */
+:root {
+  /* colour — sampled from their own menu board, logo and neon wall */
+  --ink:    #17110F;   /* cave dark, warm black      */
+  --ink-2:  #221917;   /* raised dark surface        */
+  --tufo:   #EFE7DA;   /* whitewashed cave wall      */
+  --tufo-2: #E3D8C7;   /* shaded tufo                */
+  --coral:  #E07A55;   /* brand accent               */
+  --fuoco:  #F2542D;   /* CTA only                   */
+  --pig:    #EFCABC;   /* logo pig pink              */
+  --neon:   #FF4FB0;   /* neon sign only             */
+  --neon-2: #FFE9A3;   /* butter neon                */
+  --brown:  #4A2A24;   /* logo outline — every ink stroke */
+  --ivy:    #4E7B3C;
+
+  /* type */
+  --display: 'Titan One', 'Archivo', system-ui, sans-serif;
+  --script:  'Yellowtail', cursive;
+  --body:    'Archivo', system-ui, -apple-system, sans-serif;
+
+  /* comic grammar */
+  --stroke: 3px;
+  --pop: 5px 5px 0 var(--brown);
+  --pop-sm: 3px 3px 0 var(--brown);
+  --r: 20px;
+
+  /* rhythm */
+  --gut: 20px;
+  --band-y: 68px;
+  --maxw: 1160px;
+
+  /* halftone dots — inline SVG, no extra request */
+  --halftone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Ccircle cx='2' cy='2' r='1.1' fill='%234A2A24'/%3E%3C/svg%3E");
+}
+
+@media (min-width: 800px) {
+  :root { --gut: 40px; --band-y: 120px; --stroke: 4px; --pop: 7px 7px 0 var(--brown); }
+}
+
+/* ============================== base ==================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--tufo);
+  font-family: var(--body);
+  font-size: 1.0625rem;
+  line-height: 1.62;
+  font-weight: 400;
+  overflow-x: hidden;
+  /* room for the sticky action bar */
+  padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 800px) {
+  body { padding-bottom: 0; }
+}
+
+img, svg { display: block; max-width: 100%; }
+img { height: auto; }
+a { color: inherit; }
+
+/* Components below set an explicit `display`, which would otherwise beat the
+   hidden attribute and leak the English gloss into the Italian page and the
+   tris replay button onto a fresh board. */
+[hidden] { display: none !important; }
+
+::selection { background: var(--coral); color: var(--ink); }
+
+/* focus: a thick ink outline, so accessibility matches the comic grammar
+   instead of fighting it */
+:focus-visible {
+  outline: 4px solid var(--neon-2);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.u-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--neon-2);
+  color: var(--ink);
+  padding: 12px 18px;
+  font-weight: 800;
+  z-index: 200;
+}
+.u-skip:focus { left: 8px; top: 8px; }
+
+.u-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================ type ====================================== */
+.t-display {
+  font-family: var(--display);
+  font-weight: 400;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+  margin: 0;
+}
+
+/* per-letter hand-set jitter, applied by main.js — static, not animated,
+   so it survives reduced-motion */
+.t-display .jit {
+  display: inline-block;
+  transform: rotate(var(--rot, 0deg)) translateY(var(--dy, 0px));
+}
+/* keeps a word's characters together: without this the per-character
+   inline-blocks become individual break opportunities and long words split
+   mid-word */
+.t-display .jw {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.t-script {
+  font-family: var(--script);
+  text-transform: none;
+  font-weight: 400;
+}
+
+.t-eyebrow {
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  color: var(--coral);
+  margin: 0 0 12px;
+}
+
+.t-lede {
+  font-size: 1.09rem;
+  line-height: 1.65;
+  margin: 0 0 18px;
+  max-width: 60ch;
+}
+
+/* the romanesco voice: their own words, set as spoken asides */
+.t-dialetto {
+  font-family: var(--body);
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* ========================== comic primitives ============================ */
+.ink {
+  border: var(--stroke) solid var(--brown);
+  border-radius: var(--r);
+  box-shadow: var(--pop);
+}
+
+/* buttons ---------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 52px;
+  padding: 13px 22px;
+  border: var(--stroke) solid var(--brown);
+  border-radius: 999px;
+  box-shadow: var(--pop);
+  background: var(--tufo);
+  color: var(--brown);
+  font-family: var(--body);
+  font-weight: 800;
+  font-size: 0.97rem;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.btn:hover { transform: translate(2px, 2px); box-shadow: var(--pop-sm); }
+.btn:active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--brown); }
+
+.btn--fuoco { background: var(--fuoco); color: #fff; }
+.btn--pig   { background: var(--pig);   color: var(--brown); }
+.btn--ghost { background: transparent;  color: var(--tufo); border-color: var(--tufo); box-shadow: 5px 5px 0 rgba(239,231,218,.28); }
+
+/* cards ----------------------------------------------------------------- */
+.card {
+  background: var(--tufo);
+  color: var(--brown);
+  border: var(--stroke) solid var(--brown);
+  border-radius: var(--r);
+  box-shadow: var(--pop);
+  padding: 22px 20px;
+}
+
+/* sticker rotation — set per element so nothing reads machine-aligned */
+.tilt-l  { transform: rotate(-1.4deg); }
+.tilt-r  { transform: rotate(1.6deg); }
+.tilt-l2 { transform: rotate(-0.7deg); }
+
+/* rubber stamp: for their placemat proverb ------------------------------ */
+.stamp {
+  display: inline-block;
+  border: 4px solid var(--coral);
+  border-radius: 14px;
+  padding: 12px 18px;
+  color: var(--coral);
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: clamp(0.95rem, 4.4vw, 1.5rem);
+  line-height: 1.05;
+  transform: rotate(-4.5deg);
+  opacity: 0.92;
+}
+
+/* speech bubble: carries the EN gloss of the dialect lines -------------- */
+.bubble {
+  position: relative;
+  display: inline-block;
+  background: var(--pig);
+  color: var(--brown);
+  border: var(--stroke) solid var(--brown);
+  border-radius: 18px;
+  padding: 12px 16px;
+  font-size: 0.94rem;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: var(--pop-sm);
+  max-width: 34ch;
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  left: 26px;
+  bottom: calc(-1 * var(--stroke) - 13px);
+  width: 0; height: 0;
+  border: 8px solid transparent;
+  border-top-color: var(--brown);
+  border-right-width: 14px;
+}
+
+/* chips: contorni, menu categories -------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 2.5px solid var(--brown);
+  border-radius: 999px;
+  background: var(--tufo);
+  color: var(--brown);
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: var(--pop-sm);
+}
+.chip b { font-weight: 800; color: var(--fuoco); }
+
+/* halftone + grain overlays --------------------------------------------- */
+.tex {
+  position: relative;
+  isolation: isolate;
+}
+.tex::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--halftone);
+  background-size: 7px 7px;
+  opacity: 0.055;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================= layout =================================== */
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gut);
+  position: relative;
+  z-index: 2;
+}
+
+.band {
+  padding-block: var(--band-y);
+  position: relative;
+}
+.band--tufo {
+  background: var(--tufo);
+  color: var(--brown);
+}
+.band--pig {
+  background: var(--pig);
+  color: var(--brown);
+}
+.band--dark {
+  background: var(--ink);
+  color: var(--tufo);
+}
+
+/* section heading block ------------------------------------------------- */
+.head { margin-bottom: 30px; }
+.head__title {
+  font-size: clamp(2.1rem, 9.5vw, 4.2rem);
+}
+.band--tufo .head__title,
+.band--pig .head__title {
+  color: var(--brown);
+  text-shadow: 4px 4px 0 var(--coral);
+}
+.band--dark .head__title {
+  color: var(--coral);
+  text-shadow: 4px 4px 0 var(--brown);
+}
+.head__sub {
+  margin: 14px 0 0;
+  font-size: 1.03rem;
+  max-width: 54ch;
+}
+
+/* ============================== header ================================== */
+.hdr {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px var(--gut);
+}
+.hdr__logo {
+  width: 58px;
+  height: 58px;
+  flex: none;
+}
+.hdr__spacer { flex: 1 1 auto; }
+
+.hdr__link {
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--tufo);
+  padding: 9px 14px;
+  border: 2.5px solid var(--tufo);
+  border-radius: 999px;
+}
+.hdr__link:hover { background: var(--tufo); color: var(--ink); }
+
+/* language toggle ------------------------------------------------------- */
+.lang {
+  display: inline-flex;
+  border: 2.5px solid var(--tufo);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.lang__btn {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--tufo);
+  font-family: var(--body);
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  padding: 9px 12px;
+  min-height: 40px;
+  cursor: pointer;
+}
+.lang__btn[aria-pressed="true"] {
+  background: var(--tufo);
+  color: var(--ink);
+}
+
+/* =============================== hero =================================== */
+/* Structure encodes the venue: the cave is a run of tufo vaults, and an
+   arch is a comic panel. You land looking *into* the arch. */
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 96px 0 34px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 70% at 50% 8%, #3A2622 0%, var(--ink) 62%);
+}
+
+.hero__arch {
+  position: absolute;
+  left: 50%;
+  top: 5%;
+  width: min(86vw, 470px);
+  aspect-ratio: 40 / 53;
+  transform: translateX(-50%);
+  /* the arch itself: semicircular head on straight jambs */
+  border-radius: 50% 50% 10px 10px / 44% 44% 10px 10px;
+  overflow: hidden;
+  z-index: 0;
+}
+.hero__arch img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 62%;
+  filter: saturate(0.88) brightness(0.72) contrast(1.04);
+}
+.hero__arch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(23,17,15,0) 40%, rgba(23,17,15,.8) 76%, var(--ink) 100%);
+}
+
+/* hand-drawn stroke laid over the arch — non-scaling so the line keeps a
+   constant weight while the shape stretches with the viewport */
+.hero__stroke {
+  position: absolute;
+  left: 50%;
+  top: 5%;
+  width: min(86vw, 470px);
+  aspect-ratio: 40 / 53;
+  transform: translateX(-50%);
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+.hero__stroke path {
+  fill: none;
+  stroke: var(--tufo-2);
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 3;
+}
+
+/* the neon sign, recreated from the one on their wall */
+.hero__neon {
+  font-family: var(--script);
+  font-size: clamp(1.6rem, 7.5vw, 2.5rem);
+  color: #fff;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  text-shadow:
+    0 0 4px #fff,
+    0 0 11px var(--neon),
+    0 0 24px var(--neon),
+    0 0 48px rgba(255,79,176,.65);
+}
+
+/* Their own Facebook line, set as the headline. One idea at full size beats
+   three fighting for the same screen — and it leaves the cave visible behind,
+   which is the thing that actually sells the place. */
+.hero__h1 {
+  /* capped so the longest word ("PORCHETTA") still fits the column at every
+     width in both languages */
+  font-size: clamp(2.4rem, 12.4vw, 4.6rem);
+  line-height: 0.86;
+  color: var(--coral);
+  text-shadow: 4px 4px 0 var(--brown);
+  margin: 2px 0 10px;
+}
+
+/* the other two lines, demoted to a single strip */
+.hero__strip {
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: clamp(0.86rem, 4.1vw, 1.2rem);
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: var(--tufo);
+  opacity: 0.9;
+  margin: 0 0 14px;
+}
+
+.hero__kick {
+  font-size: clamp(1rem, 4.4vw, 1.25rem);
+  font-weight: 600;
+  font-style: italic;
+  color: var(--pig);
+  margin: 0 0 20px;
+  max-width: 28ch;
+}
+
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* the mascot, peeking in over the shoulder of the arch — kept clear of the
+   buttons so it never competes with a tap target */
+.hero__pig {
+  position: absolute;
+  right: 10px;
+  top: 13%;
+  width: clamp(76px, 21vw, 128px);
+  z-index: 2;
+  transform: rotate(13deg);
+  filter: drop-shadow(4px 4px 0 rgba(74,42,36,.55));
+  pointer-events: none;
+}
+
+.hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 24px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(239,231,218,.72);
+}
+.hero__meta b { color: var(--neon-2); }
+
+@media (min-width: 800px) {
+  .hero { justify-content: center; padding-top: 120px; }
+
+  /* desktop splits the hero: type on the left, the cave arch on the right */
+  .hero__arch, .hero__stroke {
+    width: min(48vw, 560px);
+    left: 68%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .hero__arch::after {
+    background: linear-gradient(to bottom, rgba(23,17,15,0) 55%, rgba(23,17,15,.7) 88%, var(--ink) 100%);
+  }
+
+  /* a scrim so the display type keeps its contrast where it would otherwise
+     cross the bright whitewashed tufo */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(100deg,
+      var(--ink) 0%,
+      rgba(23,17,15,.94) 34%,
+      rgba(23,17,15,.42) 60%,
+      rgba(23,17,15,.06) 100%);
+    pointer-events: none;
+  }
+
+  .hero__inner { max-width: 600px; }
+  .hero__pig { right: 5%; top: auto; bottom: 13%; width: 126px; }
+  .hero__meta { font-size: 0.8rem; }
+}
+
+/* ======================= la fraschetta (the cave) ======================= */
+.frasch__grid { display: grid; gap: 26px; }
+
+.frasch__photo {
+  position: relative;
+  border-radius: 50% 50% 14px 14px / 30% 30% 14px 14px;
+  overflow: hidden;
+  border: var(--stroke) solid var(--brown);
+  box-shadow: var(--pop);
+}
+.frasch__photo img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+
+.frasch__stamp { margin-top: 22px; }
+
+.frasch__facts {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.frasch__facts li {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-weight: 600;
+}
+.frasch__facts li::before {
+  content: '';
+  flex: none;
+  width: 11px; height: 11px;
+  margin-top: 8px;
+  border-radius: 50%;
+  background: var(--coral);
+  border: 2px solid var(--brown);
+}
+
+@media (min-width: 800px) {
+  .frasch__grid { grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+}
+
+/* ==================== ★ signature: ER TAGLIERE ========================== */
+/* A drawn board that fills as you scroll: real food, in ink-ringed discs,
+   drops onto it one at a time. Cartoon motion, real photography — appetite
+   is carried by actual food, never by drawings of food. */
+.tag { position: relative; }
+
+.tag__stage {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto 34px;
+  aspect-ratio: 1 / 1.12;
+}
+
+.tag__board { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.tag__disc {
+  position: absolute;
+  width: 30%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: var(--stroke) solid var(--brown);
+  box-shadow: 4px 4px 0 rgba(74,42,36,.85);
+  object-fit: cover;
+  z-index: 2;
+}
+/* placed by hand, overlapping, so the board reads as loaded rather than
+   gridded — "tagliere che pesa" is the promise, so it has to look heavy */
+.tag__disc--1 { left: 6%;  top: 10%; width: 34%; }
+.tag__disc--2 { left: 40%; top: 4%;  width: 30%; }
+.tag__disc--3 { left: 66%; top: 22%; width: 28%; }
+.tag__disc--4 { left: 33%; top: 30%; width: 33%; }
+.tag__disc--5 { left: 4%;  top: 40%; width: 30%; }
+.tag__disc--6 { left: 62%; top: 52%; width: 29%; }
+.tag__disc--7 { left: 28%; top: 60%; width: 30%; }
+.tag__disc--8 { left: 6%;  top: 68%; width: 26%; }
+
+.tag__pof {
+  position: absolute;
+  z-index: 3;
+  font-family: var(--display);
+  font-size: clamp(0.9rem, 3.6vw, 1.15rem);
+  color: var(--neon-2);
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 var(--brown);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* price rows, set like their board */
+.rows { display: grid; gap: 0; }
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 14px;
+  align-items: baseline;
+  padding: 15px 0;
+  border-bottom: 2px dashed rgba(74,42,36,.32);
+}
+.band--dark .row { border-bottom-color: rgba(239,231,218,.22); }
+.row:last-child { border-bottom: 0; }
+
+.row__name {
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  font-size: clamp(1rem, 4.3vw, 1.12rem);
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+.row__note {
+  grid-column: 1 / -1;
+  margin: 3px 0 0;
+  font-size: 0.9rem;
+  opacity: 0.78;
+  line-height: 1.45;
+}
+.row__price {
+  font-weight: 800;
+  font-size: clamp(1.4rem, 6vw, 1.75rem);
+  color: var(--fuoco);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.band--dark .row__price { color: var(--coral); }
+.row__price small { font-size: 0.62em; font-weight: 700; opacity: 0.8; }
+
+/* the "esagerato" flag straight off their board */
+.flag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--fuoco);
+  color: #fff;
+  font-family: var(--display);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+
+/* the maxi-tagliere offer, as a torn notebook page (it is a torn notebook
+   page on their real board) */
+.offer {
+  margin-top: 30px;
+  background: #FBF7EE;
+  color: var(--brown);
+  border: var(--stroke) solid var(--brown);
+  border-radius: 6px;
+  box-shadow: var(--pop);
+  padding: 22px 20px;
+  transform: rotate(-1.2deg);
+  background-image: repeating-linear-gradient(
+    to bottom, transparent 0 27px, rgba(74,42,36,.13) 27px 28px
+  );
+}
+.offer__kicker {
+  font-family: var(--display);
+  text-transform: uppercase;
+  color: var(--fuoco);
+  font-size: clamp(1.3rem, 6vw, 2rem);
+  line-height: 1;
+  margin: 0 0 4px;
+}
+.offer__min {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin: 0 0 14px;
+}
+.offer__opt {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 0;
+  border-top: 2px dashed rgba(74,42,36,.3);
+}
+.offer__opt p { margin: 0; font-weight: 600; font-size: 0.97rem; }
+.offer__opt b {
+  font-family: var(--display);
+  color: var(--fuoco);
+  font-size: 1.15rem;
+  white-space: nowrap;
+}
+
+@media (min-width: 900px) {
+  .tag__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+  .tag__stage { margin-bottom: 0; max-width: none; }
+}
+
+/* ============================== panini ================================== */
+.pan__photo {
+  border: var(--stroke) solid var(--brown);
+  border-radius: var(--r);
+  box-shadow: var(--pop);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.pan__photo img { width: 100%; aspect-ratio: 5/4; object-fit: cover; }
+
+/* the size gag: ciavatta vs ciavattone, priced side by side */
+.sizes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.size {
+  text-align: center;
+  padding: 12px 8px 14px;
+  border: 2.5px solid var(--brown);
+  border-radius: 16px;
+  background: rgba(74,42,36,.05);
+}
+.band--dark .size { background: rgba(239,231,218,.06); border-color: rgba(239,231,218,.5); }
+.size__bread { display: block; line-height: 1; font-size: 1.5rem; }
+.size__bread--big { font-size: 2.4rem; }
+.size__label {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--display);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pan__prices {
+  display: flex;
+  gap: 20px;
+  align-items: baseline;
+}
+.pan__prices .row__price { min-width: 2.4ch; text-align: right; }
+
+.contorni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 22px;
+}
+.contorni__note {
+  margin: 16px 0 0;
+  font-size: 0.92rem;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* ============================== caraffe ================================= */
+.car__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+.car { text-align: center; }
+.car__svg { width: 100%; height: auto; margin: 0 auto 10px; }
+.car__lt {
+  font-family: var(--display);
+  font-size: clamp(1.1rem, 5.4vw, 1.6rem);
+  text-transform: uppercase;
+  line-height: 1;
+  margin: 0;
+  color: var(--tufo);
+}
+.car__price {
+  font-family: var(--display);
+  color: var(--coral);
+  font-size: clamp(1.2rem, 6vw, 1.8rem);
+  margin: 4px 0 0;
+  line-height: 1;
+}
+
+/* ================================ lago ================================== */
+.lago { position: relative; overflow: hidden; }
+.lago__photo img {
+  width: 100%;
+  aspect-ratio: 3/2;
+  object-fit: cover;
+  border: var(--stroke) solid var(--brown);
+  border-radius: var(--r);
+  box-shadow: var(--pop);
+}
+.lago__copy { margin-top: 26px; }
+
+@media (min-width: 800px) {
+  .lago__grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 52px; align-items: center; }
+  .lago__copy { margin-top: 0; }
+}
+
+/* =========================== orari & dove =============================== */
+.info__grid { display: grid; gap: 26px; }
+
+.hours { margin: 0; }
+.hours__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 0;
+  border-bottom: 2px dashed rgba(74,42,36,.28);
+  font-weight: 600;
+}
+.hours__row:last-child { border-bottom: 0; }
+.hours__row dt { font-weight: 800; text-transform: uppercase; font-size: 0.88rem; letter-spacing: .05em; }
+.hours__row dd { margin: 0; font-variant-numeric: tabular-nums; text-align: right; }
+.hours__row.is-closed { color: var(--fuoco); }
+.hours__row.is-today {
+  background: rgba(224,122,85,.16);
+  border-radius: 8px;
+  padding-inline: 10px;
+  margin-inline: -10px;
+}
+
+.closed-stamp {
+  display: inline-block;
+  margin-top: 18px;
+  border: 4px solid var(--fuoco);
+  color: var(--fuoco);
+  font-family: var(--display);
+  text-transform: uppercase;
+  font-size: 1rem;
+  padding: 8px 14px;
+  border-radius: 10px;
+  transform: rotate(-5deg);
+}
+
+.addr { font-style: normal; font-weight: 600; line-height: 1.7; }
+/* inline-block with padding so these sit-on-their-own-line links are a
+   comfortable thumb target, not a 16px sliver */
+.addr a {
+  display: inline-block;
+  padding: 5px 0;
+  font-weight: 800;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.info__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+
+@media (min-width: 800px) {
+  .info__grid { grid-template-columns: 1fr 1fr; gap: 56px; }
+}
+
+/* ============================ sticky bar ================================ */
+/* The conversion engine: the two actions, permanently in the thumb zone. */
+.dock {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 90;
+  display: flex;
+  gap: 10px;
+  padding: 10px var(--gut) calc(10px + env(safe-area-inset-bottom, 0px));
+  background: rgba(23,17,15,.93);
+  backdrop-filter: blur(9px);
+  border-top: var(--stroke) solid var(--brown);
+}
+.dock .btn { flex: 1 1 0; min-width: 0; box-shadow: var(--pop-sm); font-size: 0.88rem; padding-inline: 12px; }
+
+@media (min-width: 800px) { .dock { display: none; } }
+
+/* ============================== footer ================================== */
+.ftr {
+  background: var(--ink-2);
+  color: rgba(239,231,218,.8);
+  padding: 46px 0 40px;
+  border-top: var(--stroke) solid var(--brown);
+  font-size: 0.92rem;
+}
+.ftr__logo { width: 76px; margin-bottom: 16px; }
+.ftr__grid { display: grid; gap: 26px; }
+.ftr a { display: inline-block; padding: 5px 0; font-weight: 700; }
+.ftr h3 {
+  font-family: var(--display);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--coral);
+  margin: 0 0 8px;
+}
+.ftr__note { margin: 22px 0 0; font-size: 0.8rem; opacity: 0.6; }
+
+@media (min-width: 700px) { .ftr__grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ========================= menu page (QR target) ======================== */
+/* Opened at the table, on a phone, over café 4G. It has to paint fast and
+   be scannable in one thumb-scroll per category. */
+.mhdr {
+  background: var(--ink);
+  padding: 22px 0 18px;
+  text-align: center;
+}
+.mhdr__logo { width: 84px; margin: 0 auto 10px; }
+.mhdr__title { font-size: clamp(1.9rem, 9vw, 3rem); color: var(--coral); text-shadow: 3px 3px 0 var(--brown); }
+.mhdr__sub { margin: 8px 0 0; font-size: 0.9rem; font-weight: 600; color: var(--pig); }
+.mhdr__act {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.cats {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px var(--gut);
+  background: rgba(23,17,15,.96);
+  backdrop-filter: blur(8px);
+  border-bottom: 2px solid var(--brown);
+  scrollbar-width: none;
+}
+.cats::-webkit-scrollbar { display: none; }
+.cats__link {
+  flex: none;
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 2.5px solid var(--tufo);
+  border-radius: 999px;
+  color: var(--tufo);
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.cats__link:hover { background: var(--tufo); color: var(--ink); }
+
+.mband { padding-block: 40px; scroll-margin-top: 66px; }
+.mband__title { font-size: clamp(1.7rem, 8vw, 2.6rem); margin-bottom: 6px; }
+.mband__hint { margin: 0 0 20px; font-size: 0.92rem; font-style: italic; opacity: 0.8; }
+
+/* ============================== tris ==================================== */
+/* Their placemats are printed with a tic-tac-toe grid. This is that grid,
+   on the phone already in your hand at the table. */
+.tris { text-align: center; }
+.tris__board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: min(300px, 78vw);
+  margin: 18px auto 14px;
+}
+.tris__cell {
+  appearance: none;
+  aspect-ratio: 1;
+  font-family: var(--display);
+  font-size: clamp(2rem, 11vw, 2.8rem);
+  line-height: 1;
+  background: var(--tufo);
+  color: var(--brown);
+  border: var(--stroke) solid var(--brown);
+  border-radius: 14px;
+  box-shadow: var(--pop-sm);
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+.tris__cell:disabled { cursor: default; }
+.tris__cell[data-p="x"] { color: var(--fuoco); }
+.tris__cell[data-p="o"] { color: var(--ivy); }
+.tris__cell.is-win { background: var(--neon-2); }
+.tris__status {
+  min-height: 1.6em;
+  margin: 0 0 14px;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+/* ============================== 404 ===================================== */
+.oops { min-height: 74svh; display: grid; place-items: center; text-align: center; }
+.oops__title { font-size: clamp(2.4rem, 13vw, 5.5rem); color: var(--coral); text-shadow: 5px 5px 0 var(--brown); }
+
+/* ======================= motion entrances (JS-driven) =================== */
+/* Elements marked .rev start hidden only when JS is present and motion is
+   allowed — main.js adds .js-anim to <html>. Without JS everything is
+   visible by default, so the page never depends on script to be readable. */
+.js-anim .rev { opacity: 0; transform: translateY(24px); }
+.js-anim .tag__disc { opacity: 0; }
+
+.js-anim .rev.is-in {
+  opacity: 1;
+  transform: none;
+  transition: opacity 600ms ease, transform 700ms cubic-bezier(.2, .85, .25, 1);
+}
+
+/* the drop: falls in, squashes on landing, settles. Squash-and-stretch is the
+   whole reason this reads as cartoon rather than as a fade-in. */
+.js-anim .tag__disc.is-in { animation: drop 640ms cubic-bezier(.3, 1.2, .4, 1) both; }
+
+@keyframes drop {
+  0%   { opacity: 0; transform: translateY(-88px) rotate(-13deg) scale(.72); }
+  55%  { opacity: 1; }
+  74%  { transform: translateY(0) rotate(2deg) scale(1.1, .86); }
+  88%  { transform: translateY(0) rotate(-1deg) scale(.97, 1.04); }
+  100% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+.tag__pof.is-in { animation: pof 620ms ease-out both; }
+
+@keyframes pof {
+  0%   { opacity: 0; transform: scale(.4) translateY(0); }
+  30%  { opacity: 1; transform: scale(1.12) translateY(-4px); }
+  100% { opacity: 0; transform: scale(1.35) translateY(-20px); }
+}
+
+/* ========================= reduced motion =============================== */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  /* the board arrives fully composed, the hero shows all three lines lit */
+  .js-anim .rev,
+  .js-anim .tag__disc { opacity: 1 !important; transform: none !important; }
+  .hero__line { opacity: 1; color: var(--coral); }
+}
+
+/* ============================== print =================================== */
+@media print {
+  .dock, .cats, .lang, .hero__pig, .tris { display: none !important; }
+  body { background: #fff; color: #000; padding: 0; }
+  .band, .mband { padding-block: 12px; }
+  .card, .offer { box-shadow: none; }
+}
