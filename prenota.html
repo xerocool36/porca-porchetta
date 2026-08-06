@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prenota un tavolo, Porca Porchetta ad Anguillara Sabazia</title>
+<meta name="description" content="Prenota un tavolo nella grotta di tufo di Porca Porchetta, ad Anguillara Sabazia: scegli il giorno, l'orario e quante siete. Conferma via email con il codice per annullare.">
+<link rel="canonical" href="https://xerocool36.github.io/porca-porchetta/prenota.html">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="it_IT">
+<meta property="og:title" content="Prenota un tavolo, Porca Porchetta">
+<meta property="og:description" content="Sessanta coperti in una grotta di tufo ad Anguillara Sabazia. Scegli giorno e ora, la conferma arriva via email.">
+<meta property="og:image" content="https://xerocool36.github.io/porca-porchetta/assets/img/cave-dining.webp">
+<meta property="og:url" content="https://xerocool36.github.io/porca-porchetta/prenota.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#F2F2F0">
+
+<link rel="icon" href="assets/img/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="assets/img/logo-180.png">
+<link rel="manifest" href="site.webmanifest">
+
+<link rel="preload" href="assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="has-dock">
+<a class="u-skip" href="#main">Salta al contenuto</a>
+
+<!-- same inline sprite as the rest of the site: no external requests, and the
+     marks inherit currentColor -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-ig" viewBox="0 0 24 24">
+    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <circle cx="12" cy="12" r="4.3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <circle cx="16.9" cy="7.1" r="1.3" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-fb" viewBox="0 0 24 24">
+    <path d="M13.9 21v-7.4h2.5l.38-2.9h-2.88V8.85c0-.84.23-1.41 1.44-1.41h1.54V4.85A20.6 20.6 0 0 0 14.64 4.75c-2.23 0-3.76 1.36-3.76 3.86v2.09H8.4v2.9h2.48V21z" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-tel" viewBox="0 0 24 24">
+    <path d="M7.2 3.6h2.5l1.5 3.8-1.8 1.3a11 11 0 0 0 4.4 4.4l1.3-1.8 3.8 1.5v2.5c0 1.2-1 2.2-2.2 2.2A13.2 13.2 0 0 1 5 6.1c0-1.2 1-2.2 2.2-2.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24">
+    <path d="M12 3.2c3.5 0 6.3 2.8 6.3 6.3 0 4.5-6.3 11.3-6.3 11.3S5.7 14 5.7 9.5C5.7 6 8.5 3.2 12 3.2z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <circle cx="12" cy="9.4" r="2.3" fill="currentColor"/>
+  </symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24">
+    <rect x="3.4" y="5.2" width="17.2" height="15.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M3.4 10.1h17.2M8.2 3.4v3.6M15.8 3.4v3.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24">
+    <path d="M5 4.2h14v15.6H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <path d="M8.4 8.6h7.2M8.4 12h7.2M8.4 15.4h4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<!-- The IT/EN toggle is deliberately absent here. The booking flow is Italian
+     only: every label, error and confirmation email is in Italian, and a
+     half translated form is worse than one honest language. -->
+<header class="hdr">
+  <div class="hdr__inner">
+    <a href="index.html" aria-label="Porca Porchetta">
+      <img class="hdr__logo" src="assets/img/logo.png" alt="Porca Porchetta, fraschetta" width="512" height="512">
+    </a>
+    <span class="hdr__spacer"></span>
+    <a class="hdr__link" href="menu.html">Menù</a>
+    <a class="hdr__link hdr__link--cta" href="tel:+390665495256">06 6549 5256</a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================= INTRO ============================= -->
+<section class="band band--tight band--white" style="padding-block:52px 44px;">
+  <div class="wrap">
+    <hr class="rule">
+    <h1 class="head__title t-display">Prenota nella grotta</h1>
+    <p class="head__sub">
+      Scegli il giorno, l'ora e quante siete. La conferma arriva via email con
+      il codice: se cambia qualcosa, si annulla da lì in un tocco.
+    </p>
+  </div>
+</section>
+
+<!-- ============================ PRENOTA ============================ -->
+<section class="prenota">
+  <div class="wrap">
+    <div class="prenota__grid">
+
+      <div>
+        <!-- Mount point for js/booking.js. The id is the contract: the widget
+             replaces everything inside as soon as the script runs, so what is
+             written here is the no-JavaScript fallback. -->
+        <div class="card">
+          <div id="porca-prenota">
+            <noscript>
+              <p class="alert alert--info">
+                Per prenotare online serve JavaScript. Chiamaci al
+                <a href="tel:+390665495256">06 6549 5256</a> e ti troviamo un tavolo.
+              </p>
+            </noscript>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+          <p class="label">Buono a sapersi</p>
+          <p>
+            <strong>Teniamo il tavolo per una quindicina di minuti.</strong>
+            Se fai tardi, chiamaci e lo spostiamo.
+          </p>
+          <p>
+            <strong>Siete più di otto?</strong> Quei tavoli li sistemiamo a mano:
+            chiamaci al <a href="tel:+390665495256">06 6549 5256</a> e ce ne
+            occupiamo noi.
+          </p>
+          <p>
+            <strong>Il lunedì siamo chiusi.</strong> Da martedì a venerdì solo la
+            sera, sabato e domenica anche a pranzo.
+          </p>
+        </div>
+      </div>
+
+      <!-- The live summary lives out here, outside the widget's mount point, so
+           it is never inside the DOM the widget throws away and rebuilds.
+           booking.js writes into the [data-r] cells. -->
+      <aside class="riepilogo" id="pp-riepilogo">
+        <h2>Il tuo tavolo</h2>
+        <div class="riepilogo__row">
+          <span class="riepilogo__k">Giorno</span>
+          <span class="riepilogo__v" data-r="date">Da scegliere</span>
+        </div>
+        <div class="riepilogo__row">
+          <span class="riepilogo__k">Orario</span>
+          <span class="riepilogo__v" data-r="time">Da scegliere</span>
+        </div>
+        <div class="riepilogo__row">
+          <span class="riepilogo__k">Persone</span>
+          <span class="riepilogo__v" data-r="party">2 persone</span>
+        </div>
+        <div class="riepilogo__row">
+          <span class="riepilogo__k">A nome di</span>
+          <span class="riepilogo__v" data-r="name">Da compilare</span>
+        </div>
+        <p class="riepilogo__note">
+          Tutti gli orari sono ora di Roma.<br>
+          Via del Trivio 31, Anguillara Sabazia. Sessanta coperti scavati nel tufo.
+        </p>
+      </aside>
+
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- =========================== FOOTER =========================== -->
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr__grid">
+
+      <div>
+        <img class="ftr__logo" src="assets/img/logo.png" alt="Porca Porchetta" width="512" height="512" loading="lazy">
+        <p class="ftr__tag">
+          Fraschetta in una grotta di tufo, ad Anguillara Sabazia.
+        </p>
+        <ul class="social">
+          <li>
+            <a class="social__a" href="https://www.instagram.com/porcaporchettaanguillara/" target="_blank" rel="noopener" aria-label="Instagram">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ig"></use></svg>
+            </a>
+          </li>
+          <li>
+            <a class="social__a" href="https://www.facebook.com/61583761200637" target="_blank" rel="noopener" aria-label="Facebook">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-fb"></use></svg>
+            </a>
+          </li>
+          <li>
+            <a class="social__a" href="tel:+390665495256" aria-label="06 6549 5256">
+              <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tel"></use></svg>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3>Il locale</h3>
+        <ul class="ftr__nav">
+          <li><a href="menu.html">Menù</a></li>
+          <li><a href="prenota.html" aria-current="page">Prenota</a></li>
+          <li><a href="index.html#dove">Orari</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3>Dove siamo</h3>
+        <p>
+          Via del Trivio, 31<br>
+          00061 Anguillara Sabazia (RM)<br>
+          <a href="tel:+390665495256">06 6549 5256</a><br>
+          <a href="mailto:Porcaporchetta2025@gmail.com">Porcaporchetta2025@gmail.com</a>
+        </p>
+        <h3 style="margin-top:22px;">Orari</h3>
+        <p>
+          Mar-Ven 17:00-23:00<br>
+          Sab-Dom 11:30-14:30 · 17:00-23:00<br>
+          <span class="ftr__closed">Lunedì chiuso</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="ftr__base">
+      <p class="ftr__note">© <span id="yr">2026</span> Porca Porchetta · P.IVA da inserire</p>
+      <a class="credit" href="https://x3roautomations.it" target="_blank" rel="noopener">
+        <span>Sito realizzato da</span>
+        <img class="credit__logo" src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265" loading="lazy">
+      </a>
+    </div>
+  </div>
+</footer>
+
+<!-- Prenota is the page you are on, so the thumb zone primary is the phone -->
+<nav class="dock" aria-label="Azioni rapide">
+  <a class="btn btn--vino" href="tel:+390665495256">
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tel"></use></svg>
+    <span>Chiama</span>
+  </a>
+  <a class="btn btn--ghost" href="menu.html">
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-menu"></use></svg>
+    <span>Menù</span>
+  </a>
+  <a class="btn btn--ghost" href="https://www.google.com/maps/dir/?api=1&amp;destination=Porca%20Porchetta%20Via%20del%20Trivio%2031%20Anguillara%20Sabazia" target="_blank" rel="noopener">
+    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pin"></use></svg>
+    <span>Indicazioni</span>
+  </a>
+</nav>
+
+<script src="js/main.js"></script>
+<script>
+window.PORCA_BOOKING_CONFIG = {
+  functionsUrl: "https://wednfenmftdlywrglhgj.supabase.co/functions/v1",
+  anonKey: "PASTE_ANON_KEY",
+  turnstileSiteKey: "",
+  privacyUrl: "privacy.html"
+};
+</script>
+<script defer src="js/booking.js"></script>
+</body>
+</html>

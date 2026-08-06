@@ -1,12 +1,12 @@
 {
   "name": "Porca Porchetta — fraschetta",
   "short_name": "Porca Porchetta",
-  "description": "Fraschetta ad Anguillara Sabazia: porchetta, taglieri, panini zozzi e caraffe di spritz.",
+  "description": "Fraschetta romana in una grotta di tufo ad Anguillara Sabazia: porchetta, taglieri, panini e vino in caraffa.",
   "lang": "it",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#17110F",
-  "theme_color": "#17110F",
+  "background_color": "#1A1512",
+  "theme_color": "#1A1512",
   "icons": [
     {
       "src": "assets/img/favicon-32.png",

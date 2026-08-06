@@ -1,217 +1,225 @@
-/* ==========================================================================
-   main.js — no dependencies, no CDN, no third-party requests.
-   Everything here is progressive: with JS off the page is fully readable and
-   every price, hour and phone number is already in the HTML.
-   ========================================================================== */
+/* Porca Porchetta, page behaviour.
+
+   Vanilla, no dependencies, no smooth scroll library: the QR menu has to paint
+   fast on a phone underground, and scroll hijacking makes touch feel worse.
+
+   There is no scroll listener in this file. Everything that reacts to the
+   scroll position does it with IntersectionObserver, and the photographs use
+   CSS scroll driven animation where the browser has it (see css/style.css,
+   section 24). prefers-reduced-motion switches the whole layer off: the
+   .js-anim class is never added, so none of the animated rules ever match. */
 (function () {
   'use strict';
 
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var hasIO = 'IntersectionObserver' in window;
 
-  /* ---------------------------------------------------------------- jitter
-     Hand-set lettering. Deterministic per character index, so the same word
-     always looks the same — a random seed per load would read as a glitch.
-     This is a static transform, not an animation, so it stays on under
-     reduced-motion. */
-  function jitter() {
-    document.querySelectorAll('.t-display').forEach(function (el) {
-      if (el.dataset.jit) return;
-      el.dataset.jit = '1';
+  /* Added synchronously, before first paint, so the entrance animations never
+     flash their end state first. Under reduced motion it is never added and
+     every animated rule in the stylesheet stops matching. */
+  if (!reduce.matches) document.documentElement.classList.add('js-anim');
 
-      var out = '';
-      var i = 0;
-      // walk the markup, wrapping only text characters and leaving tags alone
-      el.innerHTML.replace(/(<[^>]+>)|([^<]+)/g, function (m, tag, text) {
-        if (tag) { out += tag; return m; }
-
-        // Split into words first. Each character becomes its own inline-block,
-        // which would otherwise let the browser break *inside* a word — so the
-        // characters of a word are kept together in a nowrap wrapper.
-        text.split(/(\s+)/).forEach(function (tok) {
-          if (!tok) return;
-          if (/^\s+$/.test(tok)) { out += tok; return; }
-
-          out += '<span class="jw">';
-          for (var c = 0; c < tok.length; c++) {
-            var ch = tok[c];
-            var rot = (((i * 37) % 11) - 5) * 0.5;   // -2.5deg .. +2.5deg
-            var dy  = (((i * 53) % 7) - 3) * 0.5;    // -1.5px  .. +1.5px
-            out += '<span class="jit" style="--rot:' + rot.toFixed(2) + 'deg;--dy:' +
-                   dy.toFixed(2) + 'px">' + (ch === '&' ? '&amp;' : ch) + '</span>';
-            i++;
-          }
-          out += '</span>';
-        });
-        return m;
-      });
-      el.innerHTML = out;
-    });
+  /* ---------------------------------------------------------------------
+     Measured chrome heights. Sticky offsets and scroll-margins are written
+     as custom properties instead of hard coded numbers, so they stay right
+     when the header wraps or the font loads at a different size.
+     --------------------------------------------------------------------- */
+  function measure() {
+    var root = document.documentElement;
+    var bar = document.querySelector('.hdr');
+    var rail = document.querySelector('.cats');
+    if (bar) root.style.setProperty('--bar-h', Math.round(bar.offsetHeight) + 'px');
+    if (rail) root.style.setProperty('--rail-h', Math.round(rail.offsetHeight) + 'px');
   }
 
-  /* --------------------------------------------------------------- reveals */
-  function reveals() {
-    var els = document.querySelectorAll('.rev');
-    if (!els.length) return;
+  function watchSize() {
+    measure();
+    if ('ResizeObserver' in window) {
+      var ro = new ResizeObserver(measure);
+      var bar = document.querySelector('.hdr');
+      var rail = document.querySelector('.cats');
+      if (bar) ro.observe(bar);
+      if (rail) ro.observe(rail);
+    } else {
+      var t;
+      window.addEventListener('resize', function () {
+        clearTimeout(t);
+        t = setTimeout(measure, 120);
+      });
+    }
+  }
 
-    if (!('IntersectionObserver' in window) || reduce.matches) {
-      els.forEach(function (el) { el.classList.add('is-in'); });
+  /* ---------------------------------------------------------------------
+     Reveals. Blocks marked .rev fade up once; photo frames marked .ph get
+     their fallback unfurl here when the browser has no view() timeline.
+     Siblings stagger so a grid does not pop all at once.
+     --------------------------------------------------------------------- */
+  function reveals() {
+    var items = document.querySelectorAll('.rev, .ph');
+    if (!items.length) return;
+
+    if (!hasIO || reduce.matches) {
+      for (var i = 0; i < items.length; i++) items[i].classList.add('is-in');
       return;
     }
 
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
-        e.target.classList.add('is-in');
+        var el = e.target;
+        var sibs = el.parentNode ? el.parentNode.querySelectorAll(':scope > .rev') : [];
+        var idx = Array.prototype.indexOf.call(sibs, el);
+        el.style.setProperty('--d', (idx > 0 ? idx * 90 : 0) + 'ms');
+        el.classList.add('is-in');
+        io.unobserve(el);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+
+    for (var j = 0; j < items.length; j++) io.observe(items[j]);
+  }
+
+  /* ---------------------------------------------------------------------
+     Header state. Solid plate once the hero has left the top of the screen.
+     A one pixel sentinel is watched instead of the scroll position.
+     --------------------------------------------------------------------- */
+  function barState() {
+    var bar = document.querySelector('.hdr--over');
+    var hero = document.querySelector('.hero');
+    if (!bar || !hero) return;
+
+    if (!hasIO) { bar.classList.add('is-stuck'); return; }
+
+    var io = new IntersectionObserver(function (entries) {
+      bar.classList.toggle('is-stuck', !entries[0].isIntersecting);
+    }, { rootMargin: '-72px 0px 0px 0px', threshold: 0 });
+
+    io.observe(hero);
+  }
+
+  /* ---------------------------------------------------------------------
+     The sticky chapter. The photograph is held by CSS position:sticky; this
+     only swaps which frame is visible so the picture matches the passage
+     being read. Under reduced motion the crossfade duration is zero (the
+     stylesheet kills the transition) and the swap is instant.
+     --------------------------------------------------------------------- */
+  function chapter() {
+    var stage = document.getElementById('stage');
+    var steps = document.querySelectorAll('.chapter__step');
+    if (!stage || !steps.length || !hasIO) return;
+
+    var shots = stage.querySelectorAll('.chapter__shot');
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var n = e.target.getAttribute('data-step');
+        for (var i = 0; i < shots.length; i++) {
+          shots[i].classList.toggle('is-on', shots[i].getAttribute('data-shot') === n);
+        }
+      });
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+
+    for (var s = 0; s < steps.length; s++) io.observe(steps[s]);
+  }
+
+  /* ---------------------------------------------------------------------
+     The three facts count up once. The final value is already in the markup,
+     so with no JavaScript, no IntersectionObserver or reduced motion on, the
+     numbers are simply there.
+     --------------------------------------------------------------------- */
+  function counters() {
+    var nums = document.querySelectorAll('[data-count]');
+    if (!nums.length || !hasIO || reduce.matches) return;
+
+    function run(el) {
+      var target = parseInt(el.getAttribute('data-count'), 10);
+      if (isNaN(target)) return;
+      var suffix = el.getAttribute('data-suffix') || '';
+      var dur = 900;
+      var t0 = null;
+
+      function frame(ts) {
+        if (t0 === null) t0 = ts;
+        var p = Math.min((ts - t0) / dur, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * eased) + suffix;
+        if (p < 1) window.requestAnimationFrame(frame);
+      }
+
+      el.textContent = '0' + suffix;
+      window.requestAnimationFrame(frame);
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        run(e.target);
         io.unobserve(e.target);
       });
-    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.12 });
+    }, { threshold: 0.6 });
 
-    els.forEach(function (el) { io.observe(el); });
+    for (var i = 0; i < nums.length; i++) io.observe(nums[i]);
   }
 
-  /* ------------------------------------------------- ★ er tagliere fills up
-     The board is drawn; the food is real. Discs drop in one at a time with a
-     squash on landing, each with a small comic puff. */
-  var POF = ['POF!', 'CIAF!', 'PAM!', 'TOC!', 'CIAF!', 'POF!', 'PAM!', 'CIAF!'];
-
-  function tagliere() {
-    var stage = document.getElementById('tagStage');
-    if (!stage) return;
-
-    var discs = stage.querySelectorAll('.tag__disc');
-    if (!discs.length) return;
-
-    if (!('IntersectionObserver' in window) || reduce.matches) {
-      discs.forEach(function (d) { d.classList.add('is-in'); });
-      return;
-    }
-
-    var io = new IntersectionObserver(function (entries, obs) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        obs.unobserve(e.target);
-
-        discs.forEach(function (d, n) {
-          setTimeout(function () {
-            d.classList.add('is-in');
-            puff(stage, d, POF[n % POF.length]);
-          }, 140 * n);
-        });
-      });
-    }, { threshold: 0.3 });
-
-    io.observe(stage);
-  }
-
-  /* A small comic puff, positioned in percentages so it tracks the
-     responsive stage rather than fixed pixels. */
-  function puff(stage, disc, word) {
-    var p = document.createElement('span');
-    p.className = 'tag__pof';
-    p.textContent = word;
-    p.setAttribute('aria-hidden', 'true');
-
-    var r = disc.getBoundingClientRect();
-    var s = stage.getBoundingClientRect();
-    if (!s.width || !s.height) return;
-
-    p.style.left = (((r.left - s.left) + r.width * 0.72) / s.width * 100) + '%';
-    p.style.top  = (((r.top - s.top) - 6) / s.height * 100) + '%';
-
-    stage.appendChild(p);
-    requestAnimationFrame(function () { p.classList.add('is-in'); });
-    setTimeout(function () { p.remove(); }, 700);
-  }
-
-  /* -------------------------------------------------------------- parallax
-     The cave drifts slightly slower than the page, so the hero has depth.
-     rAF-throttled, and skipped entirely under reduced motion. */
-  function parallax() {
-    var arch = document.getElementById('heroArch');
-    if (!arch || reduce.matches) return;
-
-    var pending = false;
-
-    /* Sets a custom property rather than `transform`: the arch element already
-       carries a centring transform that differs between mobile and desktop, and
-       writing transform here would silently clobber it. CSS composes --py into
-       the image inside the mask instead. */
-    function frame() {
-      pending = false;
-      var y = window.scrollY;
-      if (y > window.innerHeight * 1.3) return;      // stop once it's offscreen
-      arch.style.setProperty('--py', (y * 0.14).toFixed(1) + 'px');
-    }
-
-    window.addEventListener('scroll', function () {
-      if (pending) return;
-      pending = true;
-      requestAnimationFrame(frame);
-    }, { passive: true });
-  }
-
-  /* ------------------------------------------------------------- scroll spy
-     Marks the category chip for the section you are actually reading, and
-     scrolls the rail so that chip stays visible. */
+  /* ---------------------------------------------------------------------
+     Menu page: highlight the category whose section is on screen, and keep
+     that chip scrolled into view in the rail.
+     --------------------------------------------------------------------- */
   function spy() {
     var rail = document.getElementById('cats');
-    if (!rail) return;
+    if (!rail || !hasIO) return;
 
-    var links = [].slice.call(rail.querySelectorAll('.cats__link'));
-    var sections = links.map(function (a) {
-      return document.querySelector(a.getAttribute('href'));
+    var links = rail.querySelectorAll('.cats__link');
+    var inner = rail.querySelector('.cats__inner');
+    var map = {};
+    var watched = [];
+
+    links.forEach(function (a) {
+      var id = (a.getAttribute('href') || '').replace(/^#/, '');
+      var sec = id && document.getElementById(id);
+      if (!sec) return;
+      map[id] = a;
+      watched.push(sec);
     });
-    if (!sections.length || !sections[0]) return;
-
-    function setOn(i) {
-      links.forEach(function (a, n) { a.classList.toggle('is-on', n === i); });
-      var chip = links[i];
-      if (chip) {
-        var inner = rail.querySelector('.cats__inner');
-        var want = chip.offsetLeft - 16;
-        if (Math.abs(inner.scrollLeft - want) > 24) {
-          inner.scrollTo({ left: want, behavior: reduce.matches ? 'auto' : 'smooth' });
-        }
-      }
-    }
-
-    if (!('IntersectionObserver' in window)) return;
+    if (!watched.length) return;
 
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
-        var i = sections.indexOf(e.target);
-        if (i > -1) setOn(i);
+        var a = map[e.target.id];
+        if (!a) return;
+        links.forEach(function (l) { l.classList.remove('is-on'); });
+        a.classList.add('is-on');
+        if (inner) {
+          var want = a.offsetLeft - (inner.clientWidth - a.offsetWidth) / 2;
+          inner.scrollTo({ left: Math.max(want, 0), behavior: reduce.matches ? 'auto' : 'smooth' });
+        }
       });
-    }, { rootMargin: '-45% 0px -50% 0px' });
+    }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
 
-    sections.forEach(function (s) { if (s) io.observe(s); });
+    watched.forEach(function (s) { io.observe(s); });
   }
 
-  /* ------------------------------------------------------- today's opening
-     Highlights the current day so nobody has to count rows. Uses the
-     visitor's own clock. */
+  /* Mark today's row in the opening hours list. */
   function today() {
-    var rows = document.querySelectorAll('.hours__row');
-    if (!rows.length) return;
-    var d = new Date().getDay(); // 0 = Sunday
-    rows.forEach(function (row) {
-      if (Number(row.dataset.day) === d) row.classList.add('is-today');
-    });
+    var list = document.getElementById('hours');
+    if (!list) return;
+    var d = String(new Date().getDay());
+    var row = list.querySelector('.orari__row[data-day="' + d + '"]');
+    if (row) row.classList.add('is-today');
   }
 
   function year() {
-    var y = document.getElementById('yr');
-    if (y) y.textContent = String(new Date().getFullYear());
+    var el = document.getElementById('yr');
+    if (el) el.textContent = String(new Date().getFullYear());
   }
 
-  /* ------------------------------------------------------------------ init */
   function init() {
-    if (!reduce.matches) document.documentElement.classList.add('js-anim');
-    jitter();
+    watchSize();
     reveals();
-    tagliere();
-    parallax();
+    barState();
+    chapter();
+    counters();
     spy();
     today();
     year();
@@ -222,13 +230,4 @@
   } else {
     init();
   }
-
-  /* Re-apply the hand-set lettering after a language switch, since i18n
-     rewrites the innerHTML of the display headings. */
-  document.addEventListener('pp:lang', function () {
-    document.querySelectorAll('.t-display').forEach(function (el) {
-      delete el.dataset.jit;
-    });
-    jitter();
-  });
 })();

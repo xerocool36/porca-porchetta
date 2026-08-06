@@ -1,0 +1,12 @@
+-- Placeholder. No-op by design.
+--
+-- This Supabase project is shared by several restaurants, each isolated in its
+-- own schema. `supabase_migrations.schema_migrations` therefore already records
+-- versions applied from the other tenants' repos, and `supabase db push`
+-- compares the local migrations directory against that shared ledger.
+--
+-- This version (the x3ro maintenance-account admin seed) lives in another repo
+-- and sorts ABOVE both porca migrations, so without a local file of the same
+-- name the CLI reports divergence and refuses to push.
+--
+-- Do not put anything in this file. The real migration is not ours to own.

@@ -3,47 +3,91 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pagina non trovata — Porca Porchetta</title>
+<title>Pagina non trovata, Porca Porchetta</title>
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#17110F">
+<meta name="theme-color" content="#F2F2F0">
 <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32">
-<!-- Deliberately self-contained: this page is served for unknown URLs, where a
-     stylesheet path may not resolve. Inlining the few rules it needs means it
-     always renders, on a root domain or under a project subpath. -->
+
+<!-- Deliberately self contained. GitHub Pages serves this file for unknown
+     URLs at any depth under /porca-porchetta/, where even a relative path to
+     css/style.css may not resolve. So the font and the handful of rules this
+     page needs are inlined and it depends on nothing. Keep it that way. -->
 <style>
-  @font-face{font-family:'Titan One';font-style:normal;font-weight:400;font-display:swap;
-    src:url('assets/fonts/titanone-latin.woff2') format('woff2')}
-  @font-face{font-family:'Archivo';font-style:normal;font-weight:400 800;font-display:swap;
-    src:url('assets/fonts/archivo-latin.woff2') format('woff2')}
-  *,*::before,*::after{box-sizing:border-box}
-  body{margin:0;min-height:100svh;display:grid;place-items:center;text-align:center;
-    background:#17110F;color:#EFE7DA;font-family:'Archivo',system-ui,sans-serif;
-    font-size:1.0625rem;line-height:1.6;padding:32px 20px}
-  img{display:block;max-width:100%;height:auto}
-  h1{font-family:'Titan One','Archivo',sans-serif;font-weight:400;text-transform:uppercase;
-    line-height:.9;margin:0 0 18px;font-size:clamp(2.4rem,13vw,5rem);
-    color:#E07A55;text-shadow:5px 5px 0 #4A2A24}
-  p{margin:0 auto 26px;max-width:34ch}
-  .acts{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
-  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;
-    padding:13px 22px;border:3px solid #4A2A24;border-radius:999px;
-    box-shadow:5px 5px 0 #4A2A24;font-weight:800;font-size:.97rem;letter-spacing:.045em;
-    text-transform:uppercase;text-decoration:none;transition:transform .14s ease,box-shadow .14s ease}
-  .btn:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 #4A2A24}
-  .btn--a{background:#F2542D;color:#fff}
-  .btn--b{background:#EFCABC;color:#4A2A24}
-  a:focus-visible{outline:4px solid #FFE9A3;outline-offset:3px}
+  @font-face {
+    font-family: 'Geist';
+    src: url('assets/fonts/geist-latin.woff2') format('woff2');
+    font-weight: 100 900; font-style: normal; font-display: swap;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 48px 22px;
+    background: #F2F2F0;
+    color: #2E2C29;
+    font-family: 'Geist', system-ui, -apple-system, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    letter-spacing: -0.004em;
+    -webkit-font-smoothing: antialiased;
+  }
+  .box { max-width: 34rem; }
+  img { display: block; width: 62px; height: 62px; margin: 0 0 34px; }
+  .rule { width: 56px; height: 2px; background: #C0392B; border: 0; margin: 0 0 26px; }
+  .n {
+    font-size: .78rem;
+    font-weight: 500;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: #6E6A63;
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-weight: 500;
+    font-size: clamp(1.9rem, 6vw, 2.9rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 14px;
+  }
+  p.lede { margin: 0 0 34px; color: #4A4742; max-width: 44ch; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; }
+  a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 14px 28px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    font-size: .95rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: #FFFFFF;
+    transition: background-color .28s cubic-bezier(.16,1,.3,1),
+                border-color .28s cubic-bezier(.16,1,.3,1),
+                color .28s cubic-bezier(.16,1,.3,1);
+  }
+  .a-rosso { background: #C0392B; border-color: #C0392B; }
+  .a-rosso:hover { background: #A2301F; border-color: #A2301F; }
+  .a-line { border-color: #6E6A63; color: #2E2C29; }
+  .a-line:hover { background: #2E2C29; border-color: #2E2C29; color: #F2F2F0; }
+  a:focus-visible { outline: 2px solid #C0392B; outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { a { transition: none; } }
 </style>
 </head>
 <body>
-  <main>
-    <img src="assets/img/logo.png" alt="Porca Porchetta" width="120" height="120" style="margin:0 auto 18px">
-    <h1>Porca<br>paletta</h1>
-    <p>Questa pagina non c’è. Il tagliere però sì.</p>
-    <div class="acts">
-      <a class="btn btn--a" href="index.html">Torna alla home</a>
-      <a class="btn btn--b" href="menu.html">Vedi il menù</a>
+  <div class="box">
+    <img src="assets/img/logo.png" alt="Porca Porchetta" width="512" height="512">
+    <hr class="rule">
+    <p class="n">Errore 404</p>
+    <h1>Questa pagina non esiste</h1>
+    <p class="lede">Il menù e la prenotazione sì. Torna alla home o vai direttamente al menù.</p>
+    <div class="row">
+      <a class="a-rosso" href="./">Torna alla home</a>
+      <a class="a-line" href="menu.html">Menù</a>
     </div>
-  </main>
+  </div>
 </body>
 </html>

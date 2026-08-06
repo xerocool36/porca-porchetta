@@ -1,125 +1,264 @@
 /* ==========================================================================
-   i18n — Italian is canonical, English is a real translation.
-   The romanesco lines stay in Italian in both languages: translating dialect
-   kills the joke. In EN a speech bubble glosses them instead.
+   i18n. Italian is canonical and lives in the markup; it is snapshotted once
+   at load from every [data-i18n] node, so switching back to it is lossless.
+   Only English is a literal dictionary here.
+
+   Product names the owner prints on his own boards (Ciavatta, Ciavattone,
+   Taglierino, Taglierone, Tagliere apericena, esagerato, fraschetta,
+   porchetta) are deliberately left in Italian in both languages. Wine, beer
+   and cocktail names carry no key at all for the same reason.
+
+   A missing key silently falls back to Italian, which is invisible in the
+   browser, so this dictionary is kept exhaustive against index.html and
+   menu.html on purpose.
    ========================================================================== */
 (function () {
   'use strict';
 
   var EN = {
     'skip': 'Skip to content',
+
+    /* ---------------------------------------------------------------- nav */
     'nav.menu': 'Menu',
+    'nav.book': 'Book',
 
-    'cta.dir': 'How to get here',
-    'cta.dir2': 'Directions',
-    'cta.call': 'Call',
-    'cta.menu': 'The menu',
     'cta.menuPrices': 'Menu and prices',
+    'cta.wine': 'The wine list',
+    'cta.call': 'Call',
+    'cta.dir': 'Directions',
 
-    'hero.h1': 'Dripping<br>porchetta',
-    'hero.lede': 'Inside a tufo cave in the old town of Anguillara, a hundred metres from the lake.',
-    'hero.cue': 'Down into the cave',
+    /* --------------------------------------------------------------- hero */
+    'hero.kicker': 'Anguillara Sabazia · Lake Bracciano',
+    'hero.h1a': 'A fraschetta',
+    'hero.h1b': 'cut into the tufo',
+    'hero.lede': 'Porchetta carved to order, boards, sandwiches and wine by the jug. A hundred metres from Lake Bracciano.',
 
-    'fr.eyebrow': 'Via del Trivio 31 · old town',
-    'fr.title': 'You eat<br>inside the cave',
-    'fr.p1': 'Not a stage set: it is tufo, dug out under the old town of Anguillara. White vaults, stone walls, wooden tables, two neon signs and the ivy. You come in for a sandwich and leave three hours later.',
-    'fr.p2': 'A fraschetta is the Roman thing where the board lands before you have finished ordering, and the wine comes in a jug because nobody here has time for small glasses.',
-    'fr.f1': 'Tables inside the rock',
-    'fr.f2': 'A hundred metres from the lake',
-    'fr.f3': 'Takeaway too',
+    /* ------------------------------------------------------------ apertura */
+    'ap.title': 'The osteria of the Castelli, under Anguillara',
+    'ap.sub': 'One room, the house wine, food brought to the table without ceremony. Here the room is a cave cut into the tufo.',
+    'ap.s1': 'covers in the cave',
+    'ap.s2': 'from Lake Bracciano',
+    'ap.s3': 'days a week, closed Monday',
 
-    'tg.eyebrow': 'What people come for',
-    'tg.title': 'Our<br>boards',
-    'tg.sub': 'It fills up as you scroll. From the small board for a couple of drinks to the apericena board that the menu, quite rightly, calls "esagerato".',
-    'tg.b1': 'Cured meats, sliced to order',
-    'tg.b2': 'Cheeses and buffalo mozzarella',
-    'tg.b3': 'Porchetta, the reason we are here',
-    'tg.b4': 'Bruschette, crostini and hot fried bites',
-    'tg.note': 'For two people or for eight: the board gets longer and a jug arrives.',
-    'tg.i1': 'A selection of cured meats and cheeses',
-    'tg.i2': 'A selection of cured meats and cheeses · for 2',
-    'tg.i3': 'Hot bites, cured meats, cheeses, porchetta, buffalo mozzarella, bruschette · for 2',
-    'tg.min': 'Minimum 4 people',
-    'tg.o1': 'Large board of cured meats and cheeses, buffalo mozzarella and porchetta <b>+</b> a 5-litre jug of spritz',
-    'tg.o2': 'Large board of cured meats and cheeses, buffalo mozzarella and porchetta · drinks not included',
-    'tg.pp': 'per person',
+    /* -------------------------------------------------------------- grotta */
+    'gr.t1': 'The entrance',
+    'gr.p1': 'You come in from the alley, past the counter with the cured meats hanging above it. Via del Trivio 31, in the old town.',
+    'gr.t2': 'The rooms',
+    'gr.p2': 'The corridor runs down under the vaults: white stone, terrazzo floor, wooden tables. Sixty covers in all.',
+    'gr.t3': 'The evening',
+    'gr.p3': 'In summer the jasmine reaches the door. You stay at the table until eleven.',
 
-    'pn.eyebrow': 'Ciavatta or ciavattone',
-    'pn.title': 'Filthy<br>sandwiches',
-    'pn.sub': 'Two sizes: the ciavatta for lunch, the ciavattone when you mean it. Porchetta, sausage or tripe.',
-    'pn.salsiccia': 'Sausage',
-    'pn.trippa': 'Tripe',
-    'pn.porchetta': 'With porchetta',
-    'pn.contorni': 'Sides to add',
-    'pn.secchi': 'Sun-dried tomatoes',
-    'pn.bufala': 'Buffalo mozzarella',
-    'pn.note': 'Any sandwich can be filled with any side, cheese or cured meat.',
+    /* ------------------------------------------------------------ a tavola */
+    'tv.title': 'At the table',
+    'tv.sub': 'Cured meats and cheeses sliced to order, hot porchetta, sandwiches and traditional dishes.',
+    'tv.c1t': 'The boards',
+    'tv.c1d': 'From the taglierino for two to the tagliere apericena, which the menu marks as esagerato.',
+    'tv.c2t': 'The porchetta',
+    'tv.c2d': 'Carved to order: with warm bread, in tacos, or on the board with everything else.',
+    'tv.c3t': 'Ciavatta and ciavattone',
+    'tv.c3d': 'Two sizes of sandwich: porchetta, sausage, tripe or meatballs. Takeaway too.',
+    'tv.c4t': 'On the plate',
+    'tv.p1': 'Meatballs in tomato sauce',
+    'tv.p2': 'Tripe',
+    'tv.p3': 'Mixed bruschette',
+    'tv.p4': 'Bresaola and rocket',
+    'tv.p5': 'Caprese',
+    'tv.p6': 'Chicory and turnip greens',
 
-    'cr.eyebrow': 'Proper aperitivo',
-    'cr.title': 'Jugs<br>of spritz',
-    'cr.sub': 'Ordered by the litre, not by the glass. Three, five or eight — then it is up to you.',
-    'cr.lt': 'litres',
-    'cr.note': 'Beers, wine and desserts — including Martina’s tiramisù — just ask at the table.',
+    /* ----------------------------------------------------------- in caraffa */
+    'bv.title': 'By the jug',
+    'bv.sub': 'The house wine is ordered by the glass, the quarter, the half litre or the litre.',
+    'bv.g1': 'House wine',
+    'bv.g1a': 'Glass',
+    'bv.g1b': 'Quarter litre',
+    'bv.g1c': 'Half litre',
+    'bv.g1d': 'Litre',
+    'bv.g2': 'On the list',
+    'bv.g2c': 'Seven whites and seven reds',
+    'bv.g3': 'Jugs and draught',
+    'bv.g3a': 'Spritz in 3, 5 and 8 litre jugs',
+    'bv.g3b': 'Draught lager',
+    'bv.g3c': 'Amari, grappa, genziana',
 
-    'lg.eyebrow': 'A hundred metres',
-    'lg.title': 'And then<br>the lake',
-    'lg.p1': 'Take the ciavattone to go, walk down to the lakefront, and at sunset Bracciano handles the rest. The spritz in a plastic cup is not a compromise: it is the plan.',
+    /* ---------------------------------------------------------------- lago */
+    'lg.title': 'The lake, a hundred metres away',
+    'lg.p1': 'The ciavattone can be taken away. From the alley to the lakefront is a two minute walk, about as long as the sunset over Bracciano.',
 
-    'in.title': 'Hours<br>& address',
+    /* ------------------------------------------------------------- prenota */
+    'pr.title': 'Book a table',
+    'pr.sub': 'Sixty covers, and at the weekend they fill up. The confirmation reaches you by email within a minute.',
+    'pr.alt': 'Groups of more than eight: <a href="tel:+390665495256">06 6549 5256</a>',
+
+    /* --------------------------------------------------------- orari, dove */
+    'in.title': 'Hours and contacts',
     'in.closed': 'Closed',
-    'in.stamp': 'Closed Mondays',
 
     'd.mon': 'Monday', 'd.tue': 'Tuesday', 'd.wed': 'Wednesday', 'd.thu': 'Thursday',
     'd.fri': 'Friday', 'd.sat': 'Saturday', 'd.sun': 'Sunday',
 
-    'ft.tag': 'Porchetta · Filthy sandwiches · Proper aperitivo',
+    /* -------------------------------------------------------------- footer */
+    'ft.tag': 'A fraschetta in a tufo cave, in Anguillara Sabazia.',
+    'ft.nav': 'The place',
     'ft.where': 'Where we are',
-    'ft.contact': 'Contact',
     'ft.hours': 'Hours',
-    'ft.h1': 'Tue–Fri 17:00–23:00',
-    'ft.h2': 'Sat–Sun 11:30–14:30 · 17:00–23:00',
+    'ft.h1': 'Tue to Fri 17:00-23:00',
+    'ft.h2': 'Sat and Sun 11:30-14:30 · 17:00-23:00',
     'ft.h3': 'Closed Monday',
-    'ft.map': 'The map',
-    'ft.open': 'Open directions',
+    'ft.privacy': 'Privacy',
     'ft.credit': 'Site by',
     'ft.vat': 'VAT number to be added',
 
-    /* menu page */
+    /* ===================================================== menu page: chrome */
     'm.title': 'The menu',
     'm.sub': 'Via del Trivio 31 · Anguillara Sabazia',
-    'm.back': 'Home',
-    'm.cat1': 'Boards', 'm.cat2': 'Sandwiches', 'm.cat3': 'Sides', 'm.cat4': 'Spritz', 'm.cat5': 'Tris',
-    'm.t1': 'Our boards',
-    'm.h1': 'Sliced to order.',
-    'm.t2': 'Filthy sandwiches',
-    'm.h2': 'Ciavatta is the small one, ciavattone is the serious one.',
-    'm.t3': 'Sides',
-    'm.h3': 'In the sandwich or on the side.',
-    'm.secchi': 'Sun-dried tomatoes',
-    'm.bufala': 'Buffalo mozzarella',
-    'm.t4': 'Jugs of spritz',
-    'm.h4': 'By the litre.',
-    'm.t5': 'While you wait',
-    'm.h5': 'The same game printed on the paper placemat in front of you.',
-    'm.allerg': 'Allergies or intolerances? Tell the staff before ordering — we will tell you exactly what is in it.',
-    'm.ask': 'Beers, wine, soft drinks and desserts change often: ask at the table.',
-    'm.size.s': 'Ciavatta',
-    'm.size.l': 'Ciavattone',
 
+    'm.cat1': 'Boards',
+    'm.cat2': 'On the plate',
+    'm.cat3': 'Sandwiches',
+    'm.cat4': 'Sides',
+    'm.cat5': 'Kids',
+    'm.cat6': 'Desserts',
+    'm.cat7': 'Wine',
+    'm.cat8': 'Jugs',
+    'm.cat9': 'Beer',
+    'm.cat10': 'Drinks',
+    'm.cat11': 'Tris',
+
+    /* ==================================================== menu page: bands */
+    'm.t1': 'Our boards',
+    'm.h1': 'Cured meats and cheeses sliced to order. All prices in euro.',
+
+    'm.t2': 'On the plate',
+    'm.h2': 'Traditional dishes, brought to the table to be shared.',
+
+    'm.t3': 'Sandwiches',
+    'm.h3': 'The ciavatta is the small size, the ciavattone the large one.',
+
+    'm.t4': 'Sides',
+    'm.h4': 'On the plate. To add them to a sandwich, the supplement is in the Sandwiches section.',
+
+    'm.t5': 'Kids’ menu',
+    'm.h5': 'One plate for the little ones.',
+
+    'm.t6': 'Desserts',
+    'm.h6': 'To finish.',
+
+    'm.t7': 'Wine',
+    'm.h7': 'Whites, reds and the house wine: by the glass, the quarter, the half litre or the litre.',
+
+    'm.t8': 'Jugs and cocktails',
+    'm.h8': 'Spritz is ordered by the litre.',
+
+    'm.t9': 'Beer',
+    'm.h9': 'Bottled and on draught.',
+
+    'm.t10': 'Soft drinks and coffee',
+    'm.h10': 'Soft drinks, coffee and, to finish, amari and spirits.',
+
+    'm.t11': 'While you wait',
+    'm.h11': 'The same game printed on the paper mat on your table.',
+
+    /* -------------------------------------------- menu page: group headings */
+    'm.g.altri': 'Other sandwiches',
+    'm.g.aggiunte': 'Sides to add',
+    'm.g.bianchi': 'White',
+    'm.g.rossi': 'Red',
+    'm.g.casa': 'House wine',
+    'm.g.caraffe': 'Jugs of spritz',
+    'm.g.cocktail': 'Cocktails',
+    'm.g.bottiglia': 'Bottled',
+    'm.g.spina': 'On draught',
+    'm.g.bibite': 'Soft drinks and coffee',
+    'm.g.distillati': 'Amari and spirits',
+
+    'm.th.panino': 'Sandwich',
+    'm.th.contorno': 'Side',
+
+    /* ------------------------------------- menu page: descriptions and notes */
+    'm.d.salumi': 'A selection of cured meats and cheeses',
+    'm.d.apericena': 'Hot bites, cured meats, cheeses, porchetta, buffalo mozzarella, bruschette',
+    'm.d.fresco': 'Caprese, panzanella, chicken salad, fresh cheeses, cured meats, prosciutto and buffalo mozzarella',
+    'm.d.bimbi': 'Breaded cutlet, fries and a drink',
+
+    'm.n.due': 'for 2 people',
+    'm.n.2pz': '2 pcs',
+    'm.n.4pz': '4 pcs',
+    'm.novita': 'new',
+
+    'm.off.eyebrow': 'Offer',
+    'm.off.t': 'Maxi tagliere',
+    'm.off.min': 'Minimum 4 people',
+    'm.off.o1': 'Large board of cured meats and cheeses, buffalo mozzarella and porchetta <b>+</b> a 5-litre jug of spritz',
+    'm.off.o2': 'Large board of cured meats and cheeses, buffalo mozzarella and porchetta · drinks not included',
+    'm.off.pp': 'per person',
+
+    'm.pn.supp': 'The prices for sides to add are the supplement per sandwich.',
+    'm.pn.note': 'Any sandwich can be filled with any side, cheese or cured meat.',
+
+    'm.allerg': 'If you have an allergy or an intolerance, please tell the staff before ordering: we will tell you exactly what is in each dish.',
+
+    /* ----------------------------------------------------- menu page: items */
+    'm.i.frutta': 'Fruit board',
+    'm.i.fresco': 'Fresh board',
+
+    'm.i.tacos': 'Porchetta tacos',
+    'm.i.polpsugo': 'Meatballs in tomato sauce',
+    'm.i.polpfritte': 'Fried meatballs',
+    'm.i.porchettapane': 'Porchetta with warm bread',
+    'm.i.trippa': 'Tripe',
+    'm.i.bufalacrudo': 'Buffalo mozzarella and prosciutto crudo',
+    'm.i.focaccia': 'Focaccia with oil, salt and rosemary',
+    'm.i.bruschette': 'Mixed bruschette',
+    'm.i.bresaola': 'Bresaola and rocket',
+    'm.i.pollo': 'Chicken salad',
+    'm.i.caprese': 'Caprese',
+
+    'm.i.salsiccia': 'Sausage',
+    'm.i.porchetta': 'Porchetta',
+
+    'm.i.cicoria': 'Chicory',
+    'm.i.broccoletti': 'Turnip greens',
+    'm.i.melanzane': 'Aubergine',
+    'm.i.peperoni': 'Peppers',
+    'm.i.zucchine': 'Courgette',
+    'm.i.secchi': 'Sun-dried tomatoes',
+    'm.i.bufala': 'Buffalo mozzarella',
+    'm.i.patatine': 'Fries',
+    'm.i.delgiorno': 'Side of the day',
+
+    'm.i.bimbi': 'Kids’ menu',
+    'm.i.ciambelline': 'Ciambelline al vino, served with wine',
+
+    'm.i.calice': 'Glass',
+    'm.i.car3': '3 l jug',
+    'm.i.car5': '5 l jug',
+    'm.i.car8': '8 l jug',
+
+    'm.i.ichnusa': 'Ichnusa unfiltered',
+    'm.i.chiarap': 'Lager, small',
+    'm.i.chiaram': 'Lager, medium',
+
+    'm.i.caffecorr': 'Espresso with a dash of liquor',
+    'm.i.acquap': 'Water, small',
+    'm.i.acquag': 'Water, large',
+    'm.i.cocagrande': 'Coca Cola 1.5 l',
+    'm.i.grappab': 'Barrel-aged grappa',
+
+    /* ------------------------------------------------------------ the tris */
     'tris.turn': 'Your turn',
-    'tris.win': 'You won. Porca porchetta.',
-    'tris.lose': 'The pig wins.',
-    'tris.draw': 'Draw. Order another jug.',
+    'tris.win': 'You won.',
+    'tris.lose': 'You lost.',
+    'tris.draw': 'A draw.',
     'tris.again': 'Play again'
   };
 
   /* Strings created at runtime by tris.js have no element in the markup to be
      snapshotted from, so their Italian source lives here. */
   var IT_RUNTIME = {
-    'tris.turn': 'Tocca a te',
-    'tris.win': 'Hai vinto. Porca porchetta.',
-    'tris.lose': 'Vince il maiale.',
-    'tris.draw': 'Pari. Ordina un’altra caraffa.',
+    'tris.turn': 'Il tuo turno',
+    'tris.win': 'Partita vinta.',
+    'tris.lose': 'Partita persa.',
+    'tris.draw': 'Pareggio.',
     'tris.again': 'Rigioca'
   };
 
@@ -146,10 +285,6 @@
 
     document.documentElement.lang = lang;
 
-    /* the dialect gloss only exists in English */
-    var gloss = document.getElementById('glossHero');
-    if (gloss) gloss.hidden = (lang !== 'en');
-
     document.querySelectorAll('.lang__btn').forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
     });
@@ -159,8 +294,8 @@
   }
 
   /* Italian is the default, full stop. Sniffing navigator.language would greet
-     a Roman with an English browser in English — wrong for a fraschetta whose
-     customers are overwhelmingly local. Tourists get EN via the toggle or
+     a Roman with an English browser in English, which is wrong for a fraschetta
+     whose customers are overwhelmingly local. Visitors get EN via the toggle or
      ?lang=en, and the choice is then remembered. */
   function initial() {
     var q = new URLSearchParams(location.search).get('lang');

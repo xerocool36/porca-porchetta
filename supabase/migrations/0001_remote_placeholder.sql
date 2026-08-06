@@ -1,0 +1,7 @@
+-- Placeholder for remote version 0001 — the first tenant's engine migration, applied
+-- from its own repo against this shared x3ro Supabase project. This file exists only
+-- so the CLI's migration ledger comparison passes: version 0001 is already recorded in
+-- supabase_migrations.schema_migrations, and without a local file of the same version
+-- `supabase db push` / `supabase migration list` reports the histories as divergent.
+-- It is never executed, and it must never touch another tenant's schema.
+-- Do not put SQL here.

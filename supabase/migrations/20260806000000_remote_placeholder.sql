@@ -1,0 +1,7 @@
+-- Placeholder for remote version 20260806000000 — another restaurant tenant's engine
+-- migration, applied from its own repo against this shared x3ro Supabase project.
+-- This file exists only so the CLI's migration ledger comparison passes: that version
+-- is already recorded in supabase_migrations.schema_migrations, and without a local
+-- file of the same version `supabase db push` / `supabase migration list` reports the
+-- histories as divergent. It is never executed, and it must never touch another
+-- tenant's schema. Do not put SQL here.

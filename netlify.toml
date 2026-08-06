@@ -5,6 +5,18 @@
 
 # Security headers. Single global block: stacking multiple matching [[headers]]
 # blocks duplicates CSP on Netlify, so everything the site needs lives here.
+#
+# connect-src carries the Supabase project because prenota.html calls three
+# Edge Functions there (porca-availability / porca-book / porca-cancel). With
+# 'self' alone the booking widget would fail silently on the first fetch.
+#
+# form-action is 'self', not 'none': the booking form is submitted by JS, but a
+# CSP that forbids every form destination breaks the no-JavaScript path and any
+# future plain <form> on the site. 'self' still blocks exfiltration off-origin.
+#
+# If Turnstile is ever switched on, script-src and frame-src will also need
+# https://challenges.cloudflare.com — today the site makes no third-party
+# request at all and the CSP says so.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -12,7 +24,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=()"
-    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self' https://wednfenmftdlywrglhgj.supabase.co; form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
 
 # Fingerprint-free assets: cache hard, they are replaced by name on redeploy.
 [[headers]]
@@ -34,4 +46,15 @@
 [[redirects]]
   from = "/menu/"
   to = "/menu.html"
+  status = 200
+
+# /prenota is the short link we hand out by phone and print on the card.
+[[redirects]]
+  from = "/prenota"
+  to = "/prenota.html"
+  status = 200
+
+[[redirects]]
+  from = "/prenota/"
+  to = "/prenota.html"
   status = 200
