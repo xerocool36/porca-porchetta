@@ -261,12 +261,25 @@ export interface OutboundEmail {
  * the caller decides what that means. NOTHING in this codebase may let a mail
  * failure change a booking outcome: every call site wraps this in try/catch.
  *
- * RESEND_API_KEY is an Edge Function secret. It is read here and nowhere else,
- * it never appears in a response, and it is never logged.
+ * PORCA_RESEND_API_KEY is an Edge Function secret. It is read here and nowhere
+ * else, it never appears in a response, and it is never logged.
+ *
+ * The name is deliberately prefixed. Edge Function secrets are scoped to the
+ * PROJECT, not to the function, and for the preview this schema shares a project
+ * with other tenants — one of which has already set a bare `RESEND_API_KEY`.
+ * Reading that name here would quietly send this venue's guest mail through
+ * somebody else's Resend account, from their verified domain, against their
+ * daily quota. Prefixing makes that impossible rather than merely unlikely.
+ *
+ * It is currently UNSET on purpose: Porca Porchetta has no domain and no Resend
+ * account yet, and both will be opened in the owner's own name. Until then
+ * sendEmail() throws, every call site swallows it, and a booking still confirms
+ * on screen with its code. Set this — and PORCA_MAIL_FROM, on a domain verified
+ * in the owner's own Resend account — to switch mail on.
  */
 export async function sendEmail(mail: OutboundEmail, label: string): Promise<void> {
-  const apiKey = Deno.env.get('RESEND_API_KEY');
-  if (!apiKey) throw new Error('RESEND_API_KEY is not set');
+  const apiKey = Deno.env.get('PORCA_RESEND_API_KEY');
+  if (!apiKey) throw new Error('PORCA_RESEND_API_KEY is not set');
 
   const recipients = mail.to.map((value) => value.trim()).filter((value) => value.length > 0);
   if (recipients.length === 0) throw new Error('no recipients');

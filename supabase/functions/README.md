@@ -78,7 +78,7 @@ Names only — never commit a value, never print one in a log.
 
 ```bash
 supabase secrets set PORCA_DB_URL="postgres://USER:PASSWORD@HOST:6543/postgres"
-supabase secrets set RESEND_API_KEY="re_xxxxxxxxxxxxxxxxxxxxxxxx"
+supabase secrets set PORCA_RESEND_API_KEY="re_xxxxxxxxxxxxxxxxxxxxxxxx"  # owner's own Resend account
 supabase secrets set PORCA_NOTIFY_EMAIL="Porcaporchetta2025@gmail.com"
 supabase secrets set PORCA_IP_SALT="<32+ random chars, e.g. openssl rand -hex 24>"
 supabase secrets set PORCA_MAIL_FROM="Porca Porchetta <prenotazioni@porcaporchetta.it>"
@@ -93,7 +93,7 @@ supabase secrets set PORCA_ALLOWED_ORIGINS="https://porcaporchetta.it,https://ww
 | `SUPABASE_URL` | injected | admin | admin returns `server_error` |
 | `SUPABASE_ANON_KEY` | injected | admin | admin returns `server_error` |
 | `TURNSTILE_SECRET` | **NO — must stay unset** | book | CAPTCHA off, which is the intended state (see Turnstile below) |
-| `RESEND_API_KEY` | yes | book, cancel | guest confirmation + owner e-mail skipped |
+| `PORCA_RESEND_API_KEY` | not yet | book, cancel | guest confirmation + owner e-mail skipped |
 | `PORCA_NOTIFY_EMAIL` | yes | book, cancel | owner e-mail skipped silently |
 | `PORCA_IP_SALT` | **yes in prod** | all | rate-limit keys are unsalted + warning |
 | `PORCA_MAIL_FROM` | **yes in prod** | book, cancel | falls back to the `onboarding@resend.dev` sandbox, which only delivers to the Resend account owner |

@@ -16,7 +16,7 @@
  */
 window.PORCA_BOOKING_CONFIG = {
   functionsUrl: "https://wednfenmftdlywrglhgj.supabase.co/functions/v1",
-  anonKey: "PASTE_ANON_KEY",
+  anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlZG5mZW5tZnRkbHl3cmdsaGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTkzODQsImV4cCI6MjA5MTk5NTM4NH0.iKXesGP9UJl2tLuYKupRkcrGGz0GR-NOPu6upR46YdU",
   turnstileSiteKey: "",
   privacyUrl: "privacy.html"
 };
