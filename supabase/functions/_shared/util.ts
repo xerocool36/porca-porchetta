@@ -42,8 +42,13 @@ export const MESSAGES = {
   no_such_slot: 'Questo orario non è disponibile.',
   too_late: 'È troppo tardi per prenotare online questo orario. Chiamaci pure.',
   too_far: 'Questa data è troppo lontana: le prenotazioni online aprono più avanti.',
+  // NO NUMBER HERE ON PURPOSE. The real cap is porca.settings.max_party and
+  // porca.book() builds the exact sentence from it ("Per gruppi oltre 8
+  // persone…"); porca-book returns that message verbatim. This copy is only the
+  // fallback for the outer-bound refusal (party > 40), so hard-coding 8 in it
+  // would go stale the day the owner raises the setting in the console.
   party_too_large:
-    'Per gruppi oltre 8 persone chiamaci al 06 6549 5256 — li gestiamo direttamente noi.',
+    'Per gruppi numerosi chiamaci al 06 6549 5256 — li gestiamo direttamente noi.',
   duplicate: 'Risulta già una prenotazione con questo numero per questa data.',
   full: 'Non ci sono più posti per questo orario. Prova con un altro orario.',
   // porca.cancel() outcome — deliberately generic
@@ -51,7 +56,9 @@ export const MESSAGES = {
   // transport / validation
   invalid_body: 'Dati non validi. Controlla i campi e riprova.',
   invalid_email: 'Inserisci un indirizzo email valido: ti mandiamo lì la conferma.',
-  invalid_phone: 'Inserisci un numero di telefono valido (almeno 8 cifre).',
+  // Same rule as party_too_large: the digit floor lives in porca.book() and its
+  // message comes back verbatim. Quoting "almeno 8 cifre" here would duplicate it.
+  invalid_phone: 'Inserisci un numero di telefono valido.',
   payload_too_large: 'Richiesta troppo grande.',
   method_not_allowed: 'Metodo non consentito.',
   origin_not_allowed: 'Origine non consentita.',

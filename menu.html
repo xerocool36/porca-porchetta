@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-i18n-page="menu">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Spec build for a real named business that has not signed off yet. Stays out of
+     the index until the owner approves. -->
+<meta name="robots" content="noindex, nofollow">
 <title>Menù, Porca Porchetta ad Anguillara Sabazia</title>
 <meta name="description" content="Il menù di Porca Porchetta: taglieri di salumi e formaggi, porchetta e piatti della tradizione, panini in ciavatta e ciavattone, contorni, dolci, vini del Lazio, birre e caraffe di spritz. Via del Trivio 31, Anguillara Sabazia.">
 <link rel="canonical" href="https://xerocool36.github.io/porca-porchetta/menu.html">
@@ -11,16 +14,17 @@
 <meta property="og:locale" content="it_IT">
 <meta property="og:title" content="Menù, Porca Porchetta">
 <meta property="og:description" content="Taglieri, porchetta, panini, contorni, dolci, vino in caraffa e caraffe di spritz. Via del Trivio 31, Anguillara Sabazia.">
-<meta property="og:image" content="https://xerocool36.github.io/porca-porchetta/assets/img/tagliere-lungo.webp">
+<meta property="og:image" content="https://xerocool36.github.io/porca-porchetta/assets/img/porchetta-board.webp">
 <meta property="og:url" content="https://xerocool36.github.io/porca-porchetta/menu.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#F2F2F0">
+<meta name="theme-color" content="#F4EEE2">
 
 <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/img/logo-180.png">
 <link rel="manifest" href="site.webmanifest">
 
 <link rel="preload" href="assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/bevan-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/style.css">
 
 <script type="application/ld+json">
@@ -234,7 +238,7 @@
     <a class="mhdr__back" href="index.html" aria-label="Home">
       <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-home"></use></svg>
     </a>
-    <img class="mhdr__logo" src="assets/img/logo.png" alt="Porca Porchetta" width="512" height="512">
+    <img class="mhdr__logo" src="assets/img/logo-128.webp" alt="" width="128" height="128" decoding="async">
     <div class="lang" role="group" aria-label="Lingua / Language">
       <button class="lang__btn" type="button" data-lang="it" aria-pressed="true"><span>IT</span></button>
       <button class="lang__btn" type="button" data-lang="en" aria-pressed="false"><span>EN</span></button>
@@ -244,7 +248,7 @@
   <h1 class="mhdr__title t-display" data-i18n="m.title">Il menù</h1>
   <p class="mhdr__sub" data-i18n="m.sub">Via del Trivio 31 · Anguillara Sabazia</p>
 
-  <div class="cta-row" style="justify-content:center;">
+  <div class="cta-row cta-row--mid">
     <a class="btn btn--vino" href="prenota.html">
       <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>
       <span data-i18n="nav.book">Prenota</span>
@@ -265,6 +269,9 @@
     <a class="cats__link" href="#m-birre" data-i18n="m.cat9">Birre</a>
     <a class="cats__link" href="#m-bibite" data-i18n="m.cat10">Bibite</a>
     <a class="cats__link" href="#m-tris" data-i18n="m.cat11">Tris</a>
+    <!-- one bar, driven from the same IntersectionObserver that sets .is-on,
+         instead of a filled pill jumping 400px across a hidden scroller -->
+    <span class="cats__bar" aria-hidden="true"></span>
   </div>
 </nav>
 
@@ -277,6 +284,68 @@
         <h2 class="mband__title t-display" data-i18n="m.t1">I nostri taglieri</h2>
         <p class="mband__hint" data-i18n="m.h1">Salumi e formaggi affettati al momento. Tutti i prezzi sono in euro.</p>
       </header>
+
+      <!-- Dalla cucina. Eight of their own dish photographs, round, because
+           the round plate is this venue's graphic form (see .targa). A QR menu
+           about food with no food on it is the one thing that cannot stand. -->
+      <div class="dischi">
+        <figure class="disco">
+          <img src="assets/img/disc-porchetta-220.webp"
+               srcset="assets/img/disc-porchetta-220.webp 220w, assets/img/disc-porchetta.webp 420w"
+               sizes="(min-width: 760px) 140px, 22vw"
+               alt="" width="420" height="420" loading="lazy" decoding="async">
+          <figcaption data-i18n="m.di.porchetta">Porchetta</figcaption>
+        </figure>
+        <figure class="disco">
+          <img src="assets/img/disc-salame-220.webp"
+               srcset="assets/img/disc-salame-220.webp 220w, assets/img/disc-salame.webp 420w"
+               sizes="(min-width: 760px) 140px, 22vw"
+               alt="" width="420" height="420" loading="lazy" decoding="async">
+          <figcaption data-i18n="m.di.salame">Salumi</figcaption>
+        </figure>
+        <figure class="disco">
+          <img src="assets/img/disc-bruschetta-220.webp"
+               srcset="assets/img/disc-bruschetta-220.webp 220w, assets/img/disc-bruschetta.webp 420w"
+               sizes="(min-width: 760px) 140px, 22vw"
+               alt="" width="420" height="420" loading="lazy" decoding="async">
+          <figcaption data-i18n="m.di.bruschetta">Bruschette</figcaption>
+        </figure>
+        <figure class="disco">
+          <img src="assets/img/disc-suppli-220.webp"
+               srcset="assets/img/disc-suppli-220.webp 220w, assets/img/disc-suppli.webp 420w"
+               sizes="(min-width: 760px) 140px, 22vw"
+               alt="" width="420" height="420" loading="lazy" decoding="async">
+          <figcaption data-i18n="m.di.suppli">Fritti</figcaption>
+        </figure>
+        <figure class="disco">
+          <img src="assets/img/disc-bufala-220.webp"
+               srcset="assets/img/disc-bufala-220.webp 220w, assets/img/disc-bufala.webp 420w"
+               sizes="(min-width: 760px) 140px, 22vw"
+               alt="" width="420" height="420" loading="lazy" decoding="async">
+          <figcaption data-i18n="m.di.bufala">Bufala</figcaption>
+        </figure>
+        <figure class="disco">
+          <img src="assets/img/disc-crudo-220.webp"
+               srcset="assets/img/disc-crudo-220.webp 220w, assets/img/disc-crudo.webp 420w"
+               sizes="(min-width: 760px) 140px, 22vw"
+               alt="" width="420" height="420" loading="lazy" decoding="async">
+          <figcaption data-i18n="m.di.crudo">Crudo</figcaption>
+        </figure>
+        <figure class="disco">
+          <img src="assets/img/disc-funghi-220.webp"
+               srcset="assets/img/disc-funghi-220.webp 220w, assets/img/disc-funghi.webp 420w"
+               sizes="(min-width: 760px) 140px, 22vw"
+               alt="" width="420" height="420" loading="lazy" decoding="async">
+          <figcaption data-i18n="m.di.funghi">Funghi</figcaption>
+        </figure>
+        <figure class="disco">
+          <img src="assets/img/disc-olive-220.webp"
+               srcset="assets/img/disc-olive-220.webp 220w, assets/img/disc-olive.webp 420w"
+               sizes="(min-width: 760px) 140px, 22vw"
+               alt="" width="420" height="420" loading="lazy" decoding="async">
+          <figcaption data-i18n="m.di.olive">Olive</figcaption>
+        </figure>
+      </div>
 
       <div class="mlist">
         <article class="mitem">
@@ -300,7 +369,7 @@
 
         <article class="mitem">
           <div class="mitem__line">
-            <h3 class="mitem__name">Tagliere apericena <span class="flag">esagerato</span></h3>
+            <h3 class="mitem__name">Tagliere apericena <span class="flag" data-i18n="m.esagerato">esagerato</span></h3>
             <span class="mitem__note" data-i18n="m.n.due">per 2 persone</span>
             <span class="mitem__lead" aria-hidden="true"></span>
             <span class="mitem__price">36</span>
@@ -449,23 +518,23 @@
            belongs to which panino -->
       <div class="ptable">
         <div class="ptable__h" data-i18n="m.th.panino">Panino</div>
-        <div class="ptable__h">Ciavatta</div>
-        <div class="ptable__h">Ciavattone</div>
+        <div class="ptable__h" data-i18n="m.th.ciavatta">Ciavatta</div>
+        <div class="ptable__h" data-i18n="m.th.ciavattone">Ciavattone</div>
 
         <div class="ptable__n" data-i18n="m.i.salsiccia">Salsiccia</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>5</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>9</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>5</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>9</div>
 
         <div class="ptable__n" data-i18n="m.i.trippa">Trippa</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>7</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>13</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>7</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>13</div>
 
         <div class="ptable__n" data-i18n="m.i.porchetta">Porchetta</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>5</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>9</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>5</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>9</div>
       </div>
 
-      <h3 class="mgroup" style="margin-top:34px;" data-i18n="m.g.altri">Altri panini</h3>
+      <h3 class="mgroup" data-i18n="m.g.altri">Altri panini</h3>
 
       <div class="mlist">
         <article class="mitem">
@@ -491,40 +560,40 @@
         </article>
       </div>
 
-      <h3 class="mgroup" style="margin-top:34px;" data-i18n="m.g.aggiunte">Contorni da aggiungere</h3>
+      <h3 class="mgroup" data-i18n="m.g.aggiunte">Contorni da aggiungere</h3>
 
       <div class="ptable">
         <div class="ptable__h" data-i18n="m.th.contorno">Contorno</div>
-        <div class="ptable__h">Ciavatta</div>
-        <div class="ptable__h">Ciavattone</div>
+        <div class="ptable__h" data-i18n="m.th.ciavatta">Ciavatta</div>
+        <div class="ptable__h" data-i18n="m.th.ciavattone">Ciavattone</div>
 
         <div class="ptable__n" data-i18n="m.i.cicoria">Cicoria</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>1</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>2</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>1</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>2</div>
 
         <div class="ptable__n" data-i18n="m.i.broccoletti">Broccoletti</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>1</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>2</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>1</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>2</div>
 
         <div class="ptable__n" data-i18n="m.i.melanzane">Melanzane</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>1</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>2</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>1</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>2</div>
 
         <div class="ptable__n" data-i18n="m.i.peperoni">Peperoni</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>1</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>2</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>1</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>2</div>
 
         <div class="ptable__n" data-i18n="m.i.zucchine">Zucchine</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>1</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>2</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>1</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>2</div>
 
         <div class="ptable__n" data-i18n="m.i.secchi">Pomodori secchi</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>1</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>2</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>1</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>2</div>
 
         <div class="ptable__n" data-i18n="m.i.bufala">Mozzarella di bufala</div>
-        <div class="ptable__p"><span class="u-sr">Ciavatta </span>2</div>
-        <div class="ptable__p"><span class="u-sr">Ciavattone </span>3</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavatta">Ciavatta </span>2</div>
+        <div class="ptable__p"><span class="u-sr" data-i18n="m.sr.ciavattone">Ciavattone </span>3</div>
       </div>
 
       <p class="mnote" data-i18n="m.pn.supp">I prezzi dei contorni da aggiungere sono il supplemento per panino.</p>
@@ -605,7 +674,7 @@
       <div class="mlist">
         <article class="mitem">
           <div class="mitem__line">
-            <h3 class="mitem__name">Tiramisù</h3>
+            <h3 class="mitem__name" data-i18n="m.i.tiramisu">Tiramisù</h3>
             <span class="mitem__lead" aria-hidden="true"></span>
             <span class="mitem__price">6</span>
           </div>
@@ -619,14 +688,14 @@
         </article>
         <article class="mitem">
           <div class="mitem__line">
-            <h3 class="mitem__name">Panna cotta</h3>
+            <h3 class="mitem__name" data-i18n="m.i.pannacotta">Panna cotta</h3>
             <span class="mitem__lead" aria-hidden="true"></span>
             <span class="mitem__price">6</span>
           </div>
         </article>
         <article class="mitem">
           <div class="mitem__line">
-            <h3 class="mitem__name">Cheesecake <span class="flag flag--novita" data-i18n="m.novita">novità</span></h3>
+            <h3 class="mitem__name"><span data-i18n="m.i.cheesecake">Cheesecake</span> <span class="flag flag--novita" data-i18n="m.novita">novità</span></h3>
             <span class="mitem__lead" aria-hidden="true"></span>
             <span class="mitem__price">6</span>
           </div>
@@ -654,7 +723,7 @@
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Traminer</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">22</span></div></article>
       </div>
 
-      <h3 class="mgroup" style="margin-top:34px;" data-i18n="m.g.rossi">Rossi</h3>
+      <h3 class="mgroup" data-i18n="m.g.rossi">Rossi</h3>
       <div class="mlist mlist--due">
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Aglianico</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">19</span></div></article>
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Montepulciano d'Abruzzo</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">20</span></div></article>
@@ -665,12 +734,12 @@
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Sangiovese</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">18</span></div></article>
       </div>
 
-      <h3 class="mgroup" style="margin-top:34px;" data-i18n="m.g.casa">Vino della casa</h3>
+      <h3 class="mgroup" data-i18n="m.g.casa">Vino della casa</h3>
       <div class="mlist">
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name" data-i18n="m.i.calice">Calice</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">5</span></div></article>
-        <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">1/4 lt</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">6</span></div></article>
-        <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">1/2 lt</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">8</span></div></article>
-        <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">1 lt</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">12</span></div></article>
+        <article class="mitem"><div class="mitem__line"><h4 class="mitem__name" data-i18n="m.i.q4">1/4 lt</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">6</span></div></article>
+        <article class="mitem"><div class="mitem__line"><h4 class="mitem__name" data-i18n="m.i.q2">1/2 lt</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">8</span></div></article>
+        <article class="mitem"><div class="mitem__line"><h4 class="mitem__name" data-i18n="m.i.q1">1 lt</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">12</span></div></article>
       </div>
     </div>
   </section>
@@ -690,7 +759,7 @@
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name" data-i18n="m.i.car8">Caraffa 8 lt</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">70</span></div></article>
       </div>
 
-      <h3 class="mgroup" style="margin-top:34px;" data-i18n="m.g.cocktail">Cocktail</h3>
+      <h3 class="mgroup" data-i18n="m.g.cocktail">Cocktail</h3>
       <div class="mlist mlist--due">
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Cocktail S. Pellegrino</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">3,50</span></div></article>
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Aperol spritz</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">6</span></div></article>
@@ -719,7 +788,7 @@
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Moretti 66 cl</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">3,50</span></div></article>
       </div>
 
-      <h3 class="mgroup" style="margin-top:34px;" data-i18n="m.g.spina">Alla spina</h3>
+      <h3 class="mgroup" data-i18n="m.g.spina">Alla spina</h3>
       <div class="mlist">
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name" data-i18n="m.i.chiarap">Chiara piccola</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">4,50</span></div></article>
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name" data-i18n="m.i.chiaram">Chiara media</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">5,50</span></div></article>
@@ -746,7 +815,7 @@
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Schweppes</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">3</span></div></article>
       </div>
 
-      <h3 class="mgroup" style="margin-top:34px;" data-i18n="m.g.distillati">Amari e distillati</h3>
+      <h3 class="mgroup" data-i18n="m.g.distillati">Amari e distillati</h3>
       <div class="mlist mlist--due">
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Amaro</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">4</span></div></article>
         <article class="mitem"><div class="mitem__line"><h4 class="mitem__name">Grappa</h4><span class="mitem__lead" aria-hidden="true"></span><span class="mitem__price">4</span></div></article>
@@ -771,7 +840,7 @@
         <div class="tris__board" id="trisBoard" role="group" aria-label="Tris"></div>
       </div>
       <p class="tris__status" id="trisStatus" role="status" aria-live="polite"></p>
-      <div class="cta-row" style="justify-content:center;">
+      <div class="cta-row cta-row--mid">
         <button class="btn btn--linea" type="button" id="trisAgain" hidden data-i18n="tris.again">Rigioca</button>
       </div>
     </div>
@@ -785,7 +854,7 @@
     <div class="ftr__grid">
 
       <div>
-        <img class="ftr__logo" src="assets/img/logo.png" alt="Porca Porchetta" width="512" height="512" loading="lazy">
+        <img class="ftr__logo" src="assets/img/logo-128.webp" alt="" width="128" height="128" loading="lazy" decoding="async">
         <p class="ftr__tag" data-i18n="ft.tag">
           Fraschetta in una grotta di tufo, ad Anguillara Sabazia.
         </p>
@@ -820,12 +889,12 @@
 
       <div>
         <h3 data-i18n="ft.where">Dove siamo</h3>
-        <p>
+        <p data-i18n="ft.addr">
           Via del Trivio, 31<br>
           00061 Anguillara Sabazia (RM)<br>
           <a href="tel:+390665495256">06 6549 5256</a>
         </p>
-        <h3 style="margin-top:20px;" data-i18n="ft.hours">Orari</h3>
+        <h3 data-i18n="ft.hours">Orari</h3>
         <p>
           <span data-i18n="ft.h1">Mar-Ven 17:00-23:00</span><br>
           <span data-i18n="ft.h2">Sab-Dom 11:30-14:30 · 17:00-23:00</span><br>
@@ -838,7 +907,7 @@
       <p class="ftr__note">© <span id="yr">2026</span> Porca Porchetta · <span data-i18n="ft.vat">P.IVA da inserire</span></p>
       <a class="credit" href="https://x3roautomations.it" target="_blank" rel="noopener">
         <span data-i18n="ft.credit">Sito realizzato da</span>
-        <img class="credit__logo" src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265" loading="lazy">
+        <img class="credit__logo" src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265" loading="lazy" decoding="async">
       </a>
     </div>
   </div>

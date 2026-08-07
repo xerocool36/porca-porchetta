@@ -1,3 +1,18 @@
+# Crawling stays ALLOWED on purpose while the site is un-approved.
+#
+# Indexing is suppressed by <meta name="robots" content="noindex"> on every
+# page, not here. Those two do different jobs and only one of them works:
+# Disallow blocks the fetch, so a crawler never reads the noindex, and the URL
+# can still surface in results from external links alone. Allow + noindex is the
+# combination that actually keeps a page out of the index.
+#
+# Remove the noindex meta from index.html, menu.html, prenota.html and
+# privacy.html once the owner signs off. This file needs no change.
+#
+# Note this file is inert on GitHub Pages: crawlers only read
+# https://xerocool36.github.io/robots.txt, which belongs to a different repo, so
+# the Sitemap line below is never discovered from here. It becomes live on the
+# move to a custom domain — submit the sitemap in Search Console until then.
 User-agent: *
 Allow: /
 

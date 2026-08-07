@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-i18n-page="prenota">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Spec build for a real named business that has not signed off yet. Stays out of
+     the index until the owner approves. -->
+<meta name="robots" content="noindex, nofollow">
 <title>Prenota un tavolo, Porca Porchetta ad Anguillara Sabazia</title>
 <meta name="description" content="Prenota un tavolo nella grotta di tufo di Porca Porchetta, ad Anguillara Sabazia: scegli il giorno, l'orario e quante siete. Conferma via email con il codice per annullare.">
 <link rel="canonical" href="https://xerocool36.github.io/porca-porchetta/prenota.html">
@@ -14,17 +17,18 @@
 <meta property="og:image" content="https://xerocool36.github.io/porca-porchetta/assets/img/cave-dining.webp">
 <meta property="og:url" content="https://xerocool36.github.io/porca-porchetta/prenota.html">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#F2F2F0">
+<meta name="theme-color" content="#F4EEE2">
 
 <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/img/logo-180.png">
 <link rel="manifest" href="site.webmanifest">
 
 <link rel="preload" href="assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/bevan-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="has-dock">
-<a class="u-skip" href="#main">Salta al contenuto</a>
+<a class="u-skip" href="#main" data-i18n="skip">Salta al contenuto</a>
 
 <!-- same inline sprite as the rest of the site: no external requests, and the
      marks inherit currentColor -->
@@ -54,30 +58,36 @@
   </symbol>
 </svg>
 
-<!-- The IT/EN toggle is deliberately absent here. The booking flow is Italian
-     only: every label, error and confirmation email is in Italian, and a
-     half translated form is worse than one honest language. -->
+<!-- The booking widget itself is Italian only: every label, error and
+     confirmation email is written in Italian and js/booking.js carries no
+     dictionary. The toggle still belongs here, because dropping it dead-ends
+     an English visitor at the conversion step with no way back to the rest of
+     the site. The page chrome switches, and the note above the form says
+     plainly that the form does not. -->
 <header class="hdr">
   <div class="hdr__inner">
     <a href="index.html" aria-label="Porca Porchetta">
-      <img class="hdr__logo" src="assets/img/logo.png" alt="Porca Porchetta, fraschetta" width="512" height="512">
+      <img class="hdr__logo" src="assets/img/logo-128.webp" alt="" width="128" height="128" decoding="async">
     </a>
     <span class="hdr__spacer"></span>
-    <a class="hdr__link" href="menu.html">Menù</a>
+    <a class="hdr__link" href="menu.html" data-i18n="nav.menu">Menù</a>
     <a class="hdr__link hdr__link--cta" href="tel:+390665495256">06 6549 5256</a>
+    <div class="lang" role="group" aria-label="Lingua / Language">
+      <button class="lang__btn" type="button" data-lang="it" aria-pressed="true"><span>IT</span></button>
+      <button class="lang__btn" type="button" data-lang="en" aria-pressed="false"><span>EN</span></button>
+    </div>
   </div>
 </header>
 
 <main id="main">
 
 <!-- ============================= INTRO ============================= -->
-<section class="band band--tight band--white" style="padding-block:52px 44px;">
+<section class="prenota__intro">
   <div class="wrap">
-    <hr class="rule">
-    <h1 class="head__title t-display">Prenota nella grotta</h1>
-    <p class="head__sub">
+    <h1 class="head__title t-display" data-i18n="pn.title">Prenota nella grotta</h1>
+    <p class="head__sub" data-i18n="pn.sub">
       Scegli il giorno, l'ora e quante siete. La conferma arriva via email con
-      il codice: se cambia qualcosa, si annulla da lì in un tocco.
+      il codice: se cambia qualcosa, la prenotazione si annulla da lì.
     </p>
   </div>
 </section>
@@ -88,6 +98,13 @@
     <div class="prenota__grid">
 
       <div>
+        <!-- The widget below is Italian only. Said once, in both languages,
+             above the first field rather than discovered halfway down it. -->
+        <p class="alert alert--info" data-i18n="pn.langnote">
+          Il modulo di prenotazione è in italiano. Per prenotare a voce, il
+          numero è <a href="tel:+390665495256">06 6549 5256</a>.
+        </p>
+
         <!-- Mount point for js/booking.js. The id is the contract: the widget
              replaces everything inside as soon as the script runs, so what is
              written here is the no-JavaScript fallback. -->
@@ -102,50 +119,64 @@
           </div>
         </div>
 
-        <div class="card" style="margin-top:20px;">
-          <p class="label">Buono a sapersi</p>
-          <p>
+        <div class="card">
+          <p class="label" data-i18n="pn.good">Buono a sapersi</p>
+          <p data-i18n="pn.g1">
             <strong>Teniamo il tavolo per una quindicina di minuti.</strong>
-            Se fai tardi, chiamaci e lo spostiamo.
+            Se sei in ritardo, chiamaci e lo spostiamo.
           </p>
-          <p>
-            <strong>Siete più di otto?</strong> Quei tavoli li sistemiamo a mano:
-            chiamaci al <a href="tel:+390665495256">06 6549 5256</a> e ce ne
-            occupiamo noi.
+          <p data-i18n="pn.g2">
+            <strong>Per gruppi di più di otto persone</strong> i tavoli li
+            prepariamo a mano: il numero è
+            <a href="tel:+390665495256">06 6549 5256</a>.
           </p>
-          <p>
+          <p data-i18n="pn.g3">
             <strong>Il lunedì siamo chiusi.</strong> Da martedì a venerdì solo la
             sera, sabato e domenica anche a pranzo.
           </p>
         </div>
       </div>
 
-      <!-- The live summary lives out here, outside the widget's mount point, so
-           it is never inside the DOM the widget throws away and rebuilds.
-           booking.js writes into the [data-r] cells. -->
-      <aside class="riepilogo" id="pp-riepilogo">
-        <h2>Il tuo tavolo</h2>
-        <div class="riepilogo__row">
-          <span class="riepilogo__k">Giorno</span>
-          <span class="riepilogo__v" data-r="date">Da scegliere</span>
+      <div>
+        <!-- cave-dining.webp has been this page's og:image since it was
+             written and was never on the page: the booking step looked like a
+             white card and a black card on grey, for a restaurant that is a
+             cave. -->
+        <div class="prenota__shot">
+          <img src="assets/img/cave-dining.webp"
+               srcset="assets/img/cave-dining-520.webp 520w, assets/img/cave-dining.webp 900w"
+               sizes="(min-width: 980px) 34vw, 100vw"
+               alt="Una sala scavata nel tufo, apparecchiata"
+               width="900" height="1200" loading="lazy" decoding="async">
         </div>
-        <div class="riepilogo__row">
-          <span class="riepilogo__k">Orario</span>
-          <span class="riepilogo__v" data-r="time">Da scegliere</span>
-        </div>
-        <div class="riepilogo__row">
-          <span class="riepilogo__k">Persone</span>
-          <span class="riepilogo__v" data-r="party">2 persone</span>
-        </div>
-        <div class="riepilogo__row">
-          <span class="riepilogo__k">A nome di</span>
-          <span class="riepilogo__v" data-r="name">Da compilare</span>
-        </div>
-        <p class="riepilogo__note">
-          Tutti gli orari sono ora di Roma.<br>
-          Via del Trivio 31, Anguillara Sabazia. Sessanta coperti scavati nel tufo.
-        </p>
-      </aside>
+
+        <!-- The live summary lives out here, outside the widget's mount point, so
+             it is never inside the DOM the widget throws away and rebuilds.
+             booking.js writes into the [data-r] cells. -->
+        <aside class="riepilogo" id="pp-riepilogo">
+          <h2 data-i18n="pn.sum">Il tuo tavolo</h2>
+          <div class="riepilogo__row">
+            <span class="riepilogo__k" data-i18n="pn.day">Giorno</span>
+            <span class="riepilogo__v" data-r="date">Da scegliere</span>
+          </div>
+          <div class="riepilogo__row">
+            <span class="riepilogo__k" data-i18n="pn.time">Orario</span>
+            <span class="riepilogo__v" data-r="time">Da scegliere</span>
+          </div>
+          <div class="riepilogo__row">
+            <span class="riepilogo__k" data-i18n="pn.people">Persone</span>
+            <span class="riepilogo__v" data-r="party">2 persone</span>
+          </div>
+          <div class="riepilogo__row">
+            <span class="riepilogo__k" data-i18n="pn.who">A nome di</span>
+            <span class="riepilogo__v" data-r="name">Da compilare</span>
+          </div>
+          <p class="riepilogo__note" data-i18n="pn.note">
+            Tutti gli orari sono ora di Roma.<br>
+            Via del Trivio 31, Anguillara Sabazia. Sessanta coperti scavati nel tufo.
+          </p>
+        </aside>
+      </div>
 
     </div>
   </div>
@@ -159,8 +190,8 @@
     <div class="ftr__grid">
 
       <div>
-        <img class="ftr__logo" src="assets/img/logo.png" alt="Porca Porchetta" width="512" height="512" loading="lazy">
-        <p class="ftr__tag">
+        <img class="ftr__logo" src="assets/img/logo-128.webp" alt="" width="128" height="128" loading="lazy" decoding="async">
+        <p class="ftr__tag" data-i18n="ft.tag">
           Fraschetta in una grotta di tufo, ad Anguillara Sabazia.
         </p>
         <ul class="social">
@@ -183,37 +214,37 @@
       </div>
 
       <div>
-        <h3>Il locale</h3>
+        <h3 data-i18n="ft.nav">Il locale</h3>
         <ul class="ftr__nav">
-          <li><a href="menu.html">Menù</a></li>
-          <li><a href="prenota.html" aria-current="page">Prenota</a></li>
-          <li><a href="index.html#dove">Orari</a></li>
-          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="menu.html" data-i18n="nav.menu">Menù</a></li>
+          <li><a href="prenota.html" aria-current="page" data-i18n="nav.book">Prenota</a></li>
+          <li><a href="index.html#dove" data-i18n="ft.hours">Orari</a></li>
+          <li><a href="privacy.html" data-i18n="ft.privacy">Privacy</a></li>
         </ul>
       </div>
 
       <div>
-        <h3>Dove siamo</h3>
-        <p>
+        <h3 data-i18n="ft.where">Dove siamo</h3>
+        <p data-i18n="ft.addrmail">
           Via del Trivio, 31<br>
           00061 Anguillara Sabazia (RM)<br>
           <a href="tel:+390665495256">06 6549 5256</a><br>
           <a href="mailto:Porcaporchetta2025@gmail.com">Porcaporchetta2025@gmail.com</a>
         </p>
-        <h3 style="margin-top:22px;">Orari</h3>
+        <h3 data-i18n="ft.hours">Orari</h3>
         <p>
-          Mar-Ven 17:00-23:00<br>
-          Sab-Dom 11:30-14:30 · 17:00-23:00<br>
-          <span class="ftr__closed">Lunedì chiuso</span>
+          <span data-i18n="ft.h1">Mar-Ven 17:00-23:00</span><br>
+          <span data-i18n="ft.h2">Sab-Dom 11:30-14:30 · 17:00-23:00</span><br>
+          <span class="ftr__closed" data-i18n="ft.h3">Lunedì chiuso</span>
         </p>
       </div>
     </div>
 
     <div class="ftr__base">
-      <p class="ftr__note">© <span id="yr">2026</span> Porca Porchetta · P.IVA da inserire</p>
+      <p class="ftr__note">© <span id="yr">2026</span> Porca Porchetta · <span data-i18n="ft.vat">P.IVA da inserire</span></p>
       <a class="credit" href="https://x3roautomations.it" target="_blank" rel="noopener">
-        <span>Sito realizzato da</span>
-        <img class="credit__logo" src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265" loading="lazy">
+        <span data-i18n="ft.credit">Sito realizzato da</span>
+        <img class="credit__logo" src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265" loading="lazy" decoding="async">
       </a>
     </div>
   </div>
@@ -223,27 +254,24 @@
 <nav class="dock" aria-label="Azioni rapide">
   <a class="btn btn--vino" href="tel:+390665495256">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tel"></use></svg>
-    <span>Chiama</span>
+    <span data-i18n="cta.call">Chiama</span>
   </a>
   <a class="btn btn--ghost" href="menu.html">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-menu"></use></svg>
-    <span>Menù</span>
+    <span data-i18n="nav.menu">Menù</span>
   </a>
   <a class="btn btn--ghost" href="https://www.google.com/maps/dir/?api=1&amp;destination=Porca%20Porchetta%20Via%20del%20Trivio%2031%20Anguillara%20Sabazia" target="_blank" rel="noopener">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pin"></use></svg>
-    <span>Indicazioni</span>
+    <span data-i18n="cta.dir">Indicazioni</span>
   </a>
 </nav>
 
+<script src="js/i18n.js"></script>
 <script src="js/main.js"></script>
-<script>
-window.PORCA_BOOKING_CONFIG = {
-  functionsUrl: "https://wednfenmftdlywrglhgj.supabase.co/functions/v1",
-  anonKey: "PASTE_ANON_KEY",
-  turnstileSiteKey: "",
-  privacyUrl: "privacy.html"
-};
-</script>
+<!-- Config first, then the widget. Both external: the CSP is script-src 'self'
+     with no 'unsafe-inline', so an inline config block would be dropped and the
+     form would never appear. -->
+<script defer src="js/booking-config.js"></script>
 <script defer src="js/booking.js"></script>
 </body>
 </html>

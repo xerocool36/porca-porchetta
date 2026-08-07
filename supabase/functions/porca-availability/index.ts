@@ -20,6 +20,11 @@
  * A closed day comes back as closed:true with services:[] — that is how Monday
  * arrives, because the seed has no service_windows row for dow = 1 at all.
  *
+ * Half-day closures arrive as closed:false with closed_band:'pranzo' | 'cena'
+ * and only the surviving service in `services`. When the shut band happens to be
+ * the only service that weekday runs, the database reports closed:true instead,
+ * so a caller that ignores closed_band still never offers an unbookable day.
+ *
  * Deployed with verify_jwt = false.
  */
 
@@ -44,7 +49,16 @@ const LABEL = 'porca-availability';
 const DEFAULT_PARTY = 2;
 const MIN_PARTY = 1;
 const MAX_PARTY = 10;
-const DEFAULT_WINDOW_DAYS = 13;
+/**
+ * Span requested when the caller names no `to`. This is deliberately NOT the
+ * booking horizon — porca.availability() already clamps the range to
+ * `rome_today + settings.horizon_days`, so asking for the transport cap and
+ * letting the database cut it down keeps `horizon_days` the only place the
+ * window is decided. The previous value here was 13, which silently truncated
+ * the strip to a fortnight no matter what the owner had set, and no message
+ * anywhere said so.
+ */
+const DEFAULT_WINDOW_DAYS = 30;
 const MAX_WINDOW_DAYS = 30;
 
 /**
@@ -85,6 +99,15 @@ export interface AvailabilityDay {
   closed: boolean;
   utc_offset: string;
   note: string | null;
+  /**
+   * Which service is shut on this date: null = none, or the whole day is closed
+   * (`closed` already says which). 'pranzo' or 'cena' means only that service is
+   * gone and the other one is still listed in `services`.
+   *
+   * Public on purpose — it is not occupancy, it is opening hours, and without it
+   * a half-closed Saturday looks like an ordinary open day with fewer slots.
+   */
+  closed_band: string | null;
   services: AvailabilityService[];
 }
 
@@ -99,6 +122,11 @@ export interface AvailabilityPayload {
   max_party: number;
   accepting: boolean;
   turn_minutes: number;
+  /**
+   * porca.settings.horizon_days — how far ahead online booking is offered. Echoed
+   * so the widget can size its day strip from the setting instead of a constant.
+   */
+  horizon_days: number;
   party: number;
   days: AvailabilityDay[];
 }
@@ -153,7 +181,9 @@ function resolveRange(body: Record<string, unknown>): Range {
 Deno.serve(async (req: Request): Promise<Response> => {
   const cors = evaluateCors(req);
   if (req.method === 'OPTIONS') return preflightResponse(cors);
-  if (cors.rejected) return fail('origin_not_allowed', 403);
+  // Refused, but READABLE: refusalHeaders echoes the unlisted origin so the page
+  // can show "Origine non consentita" instead of a bare network error. See cors.ts.
+  if (cors.rejected) return fail('origin_not_allowed', 403, cors.refusalHeaders);
   if (req.method !== 'POST') return fail('method_not_allowed', 405, cors.headers);
 
   const parsed = await readJsonBody(req, 4096);

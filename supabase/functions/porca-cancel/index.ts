@@ -105,7 +105,9 @@ function buildOwnerEmail(code: string, freed: number) {
 Deno.serve(async (req: Request): Promise<Response> => {
   const cors = evaluateCors(req);
   if (req.method === 'OPTIONS') return preflightResponse(cors);
-  if (cors.rejected) return fail('origin_not_allowed', 403);
+  // Refused, but READABLE: refusalHeaders echoes the unlisted origin so the page
+  // can show "Origine non consentita" instead of a bare network error. See cors.ts.
+  if (cors.rejected) return fail('origin_not_allowed', 403, cors.refusalHeaders);
   if (req.method !== 'POST') return fail('method_not_allowed', 405, cors.headers);
 
   const parsed = await readJsonBody(req, MAX_BODY_BYTES);

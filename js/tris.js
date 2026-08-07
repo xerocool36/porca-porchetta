@@ -37,8 +37,24 @@
   var over = false;
   var lastKey = 'tris.turn';
 
-  function t(key) {
-    return (window.PP_I18N && window.PP_I18N.t) ? window.PP_I18N.t(key) : key;
+  /* PP_I18N.t() answers with the key itself when the key is missing, which as a
+     visible label would read "tris.cell". `fb` is the Italian to fall back to
+     until js/i18n.js carries the key. */
+  function t(key, fb) {
+    var v = (window.PP_I18N && window.PP_I18N.t) ? window.PP_I18N.t(key) : key;
+    return (v === key && fb != null) ? fb : v;
+  }
+
+  /* The cell labels were hardcoded Italian and never re-read on a language
+     switch, so a screen-reader user reading the page in English heard "Casella
+     uno" for the whole game. Built here, re-applied on pp:lang. */
+  function cellLabel(i) {
+    var base = t('tris.cell', 'Casella') + ' ' + (i + 1);
+    return grid[i] ? base + ': ' + grid[i].toUpperCase() : base;
+  }
+
+  function relabel() {
+    for (var i = 0; i < 9; i++) cells[i].setAttribute('aria-label', cellLabel(i));
   }
 
   function build() {
@@ -49,7 +65,7 @@
       b.type = 'button';
       b.className = 'tris__cell';
       b.dataset.i = String(i);
-      b.setAttribute('aria-label', 'Casella ' + (i + 1));
+      b.setAttribute('aria-label', cellLabel(i));
       b.addEventListener('click', onPlay);
       board.appendChild(b);
       cells.push(b);
@@ -79,7 +95,7 @@
     cells[i].innerHTML = MARK[who];
     cells[i].dataset.p = who;
     cells[i].disabled = true;
-    cells[i].setAttribute('aria-label', 'Casella ' + (i + 1) + ': ' + who.toUpperCase());
+    cells[i].setAttribute('aria-label', cellLabel(i));
   }
 
   function lockAll() {
@@ -124,6 +140,13 @@
     var i = Number(e.currentTarget.dataset.i);
     if (grid[i]) return;
 
+    // Disabling the element that has focus hands focus back to <body>, and
+    // re-enabling it later does not give it back. A keyboard player was thrown
+    // to the top of menu.html after every single move and had to Tab down
+    // through the header, the category rail and ten sections to play again.
+    // Remember whether we were the ones holding focus, and where.
+    var hadFocus = (document.activeElement === cells[i]);
+
     place(i, 'x');
 
     var res = winner(grid);
@@ -144,6 +167,15 @@
       // hand the free cells back
       for (var k = 0; k < 9; k++) if (!grid[k]) cells[k].disabled = false;
 
+      // ...and hand focus back with them: the played cell is gone as a target,
+      // so land on the next free one, scanning forward and then wrapping.
+      if (hadFocus) {
+        for (var s = 1; s <= 9; s++) {
+          var n = (i + s) % 9;
+          if (!cells[n].disabled) { cells[n].focus(); break; }
+        }
+      }
+
       lastKey = 'tris.turn';
       status.textContent = t(lastKey);
     }, 320);
@@ -158,7 +190,7 @@
       cells[i].innerHTML = '';
       cells[i].dataset.p = '';
       cells[i].disabled = false;
-      cells[i].setAttribute('aria-label', 'Casella ' + (i + 1));
+      cells[i].setAttribute('aria-label', cellLabel(i));
     }
     status.textContent = t(lastKey);
     if (again) again.hidden = true;
@@ -172,8 +204,10 @@
     board.querySelector('.tris__cell').focus();
   });
 
-  /* keep the status line in the current language, finished game included */
+  /* keep the status line AND the cell labels in the current language, finished
+     game included — the labels used to stay Italian forever after a switch */
   document.addEventListener('pp:lang', function () {
     status.textContent = t(lastKey);
+    relabel();
   });
 })();

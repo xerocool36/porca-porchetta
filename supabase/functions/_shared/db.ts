@@ -22,6 +22,22 @@ export interface SqlClient {
     strings: TemplateStringsArray,
     ...values: readonly unknown[]
   ): Promise<T>;
+  /**
+   * Bind a value as a json parameter.
+   *
+   * REQUIRED for anything jsonb, and the reason this member exists at all.
+   * Interpolating a value directly lets postgres.js guess, and it guesses
+   * differently per shape: a plain object becomes json, an array becomes a
+   * Postgres ARRAY, and a pre-stringified object becomes a json *string* —
+   * encoded twice, so the function receives jsonb_typeof = 'string' and every
+   * `<> 'object'` / `<> 'array'` guard fires. `sql.json()` is the only spelling
+   * that means the same thing for all three.
+   *
+   * Do not delete this again: without it the only spelling left is
+   * `JSON.stringify(x)`, which is exactly the double-encoding bug, and it takes
+   * out admin_settings() and admin_windows() — i.e. the whole back office.
+   */
+  json(value: unknown): unknown;
   end(options?: { timeout?: number }): Promise<void>;
 }
 

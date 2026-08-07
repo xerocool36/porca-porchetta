@@ -3,15 +3,21 @@
  *
  * Order of operations, and the order matters:
  *   1. CORS allowlist check
- *   2. body size cap + hard field validation (e-mail AND phone are BOTH required)
- *   3. honeypot (`company`) — fake success, nothing written
- *   4. Cloudflare Turnstile verification (skipped when TURNSTILE_SECRET is unset)
- *   5. per-IP rate limit through porca.rate_hit()
- *   6. porca.book() — the single source of truth for capacity
+ *   2. body size cap + OUTER-BOUND field validation (e-mail AND phone are BOTH required)
+ *   3. honeypot (`company` / `pp_note_2`) — fake success, nothing written
+ *   4. Cloudflare Turnstile verification — OFF for this site, see verifyTurnstile()
+ *   5. per-IP rate limit through porca.rate_hit() — the bot defence that IS on
+ *   6. porca.book() — the single source of truth for capacity AND for the party cap
  *   7. guest confirmation e-mail, then the owner notice — NEITHER may fail the booking
  *
  * Overbooking is prevented inside the database function (advisory lock on the
  * service date + peak-covers check), not here.
+ *
+ * Step 2 validates SHAPE and outer bounds only. Every policy threshold the owner
+ * can change from the console — max_party, the phone floor, capacity, lead time,
+ * horizon — belongs to porca.book(), which formats the Italian message from the
+ * live setting. Mirroring one of them here means raising it in the console
+ * changes nothing.
  *
  * Deployed with verify_jwt = false.
  */
@@ -78,15 +84,27 @@ const SITE_URL = (Deno.env.get('PORCA_SITE_URL') ??
   'https://xerocool36.github.io/porca-porchetta').replace(/\/+$/, '');
 
 /**
- * Hard online party cap, owner-confirmed. The database is the real authority
- * (porca.settings.max_party = 8, enforced inside porca.book()); this constant
- * refuses the same thing one layer earlier so an oversized party never even
- * takes a database round-trip. Bigger tables phone the fraschetta directly.
+ * OUTER BOUND, not the party cap.
+ *
+ * The real cap is porca.settings.max_party (8 today), enforced inside
+ * porca.book(), which formats its own message from that setting. This constant
+ * only matches the column's own guard (`party between 1 and 40`) so an absurd
+ * number never takes a database round-trip.
+ *
+ * KEEP IT >= settings.max_party AND DO NOT MIRROR THE SETTING HERE. It sat at 8
+ * and would have quietly refused every party the owner had just been given the
+ * console to allow: raising max_party in Impostazioni would have changed
+ * nothing, because the Edge refused before the database was ever consulted.
+ * A sister booking system shipped exactly that bug.
  */
-const MAX_PARTY_ONLINE = 8;
+const MAX_PARTY_ONLINE = 40;
 
-/** Minimum digits in a phone number once +, spaces and separators are stripped. */
-const MIN_PHONE_DIGITS = 8;
+/**
+ * Outer bound again, not the real floor. porca.book() refuses anything under 8
+ * digits with `invalid_phone` and owns that number; this only rejects a value
+ * with no digits at all, which cannot be a phone number under any rule.
+ */
+const MIN_PHONE_DIGITS = 1;
 
 /**
  * Rate limit per hashed IP. porca.rate_hit(ip_hash, max_hour, max_day) — both
@@ -206,11 +224,27 @@ function validate(body: Record<string, unknown>): Validation {
 /* Bot defences                                                                */
 /* -------------------------------------------------------------------------- */
 
-/** True when the hidden `company` field was filled in — i.e. a bot. */
+/**
+ * Names the hidden decoy field may arrive under.
+ *
+ * `company` is the original name and is being retired: it maps to the standard
+ * browser autofill token `organization`, so a real guest whose autofill filled
+ * it in silently got the decoy branch — ok:true, a plausible PP- code, a working
+ * .ics, and no table. `pp_note_2` is the replacement, chosen because no autofill
+ * heuristic recognises it.
+ *
+ * BOTH are accepted during the handover so neither side can break the other. Drop
+ * 'company' once prenota.html no longer renders it.
+ */
+const HONEYPOT_FIELDS = ['company', 'pp_note_2'] as const;
+
+/** True when any hidden decoy field was filled in — i.e. a bot. */
 function honeypotTripped(body: Record<string, unknown>): boolean {
-  const value = body.company;
-  if (value === undefined || value === null) return false;
-  return asString(value).length > 0;
+  return HONEYPOT_FIELDS.some((field) => {
+    const value = body[field];
+    if (value === undefined || value === null) return false;
+    return asString(value).length > 0;
+  });
 }
 
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -223,19 +257,41 @@ function decoyCode(): string {
 
 /**
  * Verify the Turnstile token. Fails closed on a network error or a bad token.
- * With TURNSTILE_SECRET unset the check is skipped so local development works —
- * that path logs loudly, because in production it is a hole.
+ *
+ * TURNSTILE IS DELIBERATELY OFF FOR THIS SITE — decided, not forgotten.
+ * The site's stated design value is zero third-party requests, so prenota.html
+ * does not load challenges.cloudflare.com, `window.turnstile` is always
+ * undefined and every request carries `token: ''`. The protection in its place
+ * is the per-IP rate limit (5/hour, 20/24h) applied below in step 5.
+ *
+ * That makes TURNSTILE_SECRET a LOADED GUN: the moment it is set, this function
+ * starts fail-closing on the empty token every client sends and 100% of bookings
+ * return 403 `captcha_failed`. Leave it unset. If it ever must be turned on, the
+ * client side has to be wired up FIRST — see the loud log below and the
+ * "Turnstile" section of functions/README.md.
  */
 async function verifyTurnstile(token: string, ip: string): Promise<boolean> {
   const secret = Deno.env.get('TURNSTILE_SECRET');
   if (!secret) {
-    console.warn(
-      `[${LABEL}] TURNSTILE_SECRET is not set — CAPTCHA verification is DISABLED. ` +
-        'This is acceptable only in local development.',
+    // Expected on this site. Kept at log level `info`, not `warn`: an alarm that
+    // fires on the intended configuration is an alarm nobody reads.
+    console.log(
+      `[${LABEL}] TURNSTILE_SECRET not set — CAPTCHA off by design; ` +
+        'the per-IP rate limit is the bot defence here.',
     );
     return true;
   }
-  if (!token) return false;
+  if (!token) {
+    console.error(
+      `[${LABEL}] TURNSTILE_SECRET IS SET BUT THE REQUEST CARRIED NO TOKEN — refusing. ` +
+        'If this is every request, the secret was set without wiring up the client: ' +
+        'prenota.html must load https://challenges.cloudflare.com/turnstile/v0/api.js ' +
+        'and js/booking-config.js must carry a non-empty turnstileSiteKey, or the form ' +
+        'will keep sending an empty token and EVERY booking will fail. ' +
+        'To restore service immediately: unset TURNSTILE_SECRET.',
+    );
+    return false;
+  }
 
   const form = new URLSearchParams({ secret, response: token });
   if (ip && ip !== 'unknown') form.set('remoteip', ip);
@@ -400,7 +456,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // 1 — CORS
   const cors = evaluateCors(req);
   if (req.method === 'OPTIONS') return preflightResponse(cors);
-  if (cors.rejected) return fail('origin_not_allowed', 403);
+  // Refused, but READABLE: refusalHeaders echoes the unlisted origin so the page
+  // can show "Origine non consentita" instead of a bare network error. See cors.ts.
+  if (cors.rejected) return fail('origin_not_allowed', 403, cors.refusalHeaders);
   if (req.method !== 'POST') return fail('method_not_allowed', 405, cors.headers);
 
   // 2 — body + validation
@@ -434,7 +492,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (check.field === 'email') return fail('invalid_email', 400, cors.headers, { field: 'email' });
     if (check.field === 'phone') return fail('invalid_phone', 400, cors.headers, { field: 'phone' });
     if (check.field === 'party_too_large') {
-      return fail('party_too_large', 400, cors.headers, { max_party: MAX_PARTY_ONLINE });
+      // NOT `max_party`: that name belongs to porca.settings, and this number is
+      // the column's outer bound. The widget reads the real cap from the
+      // availability payload, which comes from the setting.
+      return fail('party_too_large', 400, cors.headers, { max_party_online: MAX_PARTY_ONLINE });
     }
     return fail('invalid_body', 400, cors.headers, { field: check.field });
   }

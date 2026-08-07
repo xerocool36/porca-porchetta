@@ -28,8 +28,13 @@
     var root = document.documentElement;
     var bar = document.querySelector('.hdr');
     var rail = document.querySelector('.cats');
+    var dock = document.querySelector('.dock');
     if (bar) root.style.setProperty('--bar-h', Math.round(bar.offsetHeight) + 'px');
     if (rail) root.style.setProperty('--rail-h', Math.round(rail.offsetHeight) + 'px');
+    /* The dock is 67px plus env(safe-area-inset-bottom), which is 34px on a
+       notched iPhone: a hard coded 76px reserve buries the last line of the
+       footer under it. Measured, like the other two. */
+    if (dock) root.style.setProperty('--dock-h', Math.round(dock.offsetHeight) + 'px');
   }
 
   function watchSize() {
@@ -38,8 +43,10 @@
       var ro = new ResizeObserver(measure);
       var bar = document.querySelector('.hdr');
       var rail = document.querySelector('.cats');
+      var dock = document.querySelector('.dock');
       if (bar) ro.observe(bar);
       if (rail) ro.observe(rail);
+      if (dock) ro.observe(dock);
     } else {
       var t;
       window.addEventListener('resize', function () {
@@ -50,12 +57,13 @@
   }
 
   /* ---------------------------------------------------------------------
-     Reveals. Blocks marked .rev fade up once; photo frames marked .ph get
-     their fallback unfurl here when the browser has no view() timeline.
-     Siblings stagger so a grid does not pop all at once.
+     Reveals. Section heads marked .rev fade up once, and each .targa swings
+     into place once. Photographs are not in this set any more: they settle
+     against the scroll position in CSS where the browser has view(), and
+     otherwise simply appear. Siblings stagger so a group does not pop at once.
      --------------------------------------------------------------------- */
   function reveals() {
-    var items = document.querySelectorAll('.rev, .ph');
+    var items = document.querySelectorAll('.rev, .targa');
     if (!items.length) return;
 
     if (!hasIO || reduce.matches) {
@@ -69,7 +77,7 @@
         var el = e.target;
         var sibs = el.parentNode ? el.parentNode.querySelectorAll(':scope > .rev') : [];
         var idx = Array.prototype.indexOf.call(sibs, el);
-        el.style.setProperty('--d', (idx > 0 ? idx * 90 : 0) + 'ms');
+        el.style.setProperty('--d', (idx > 0 ? idx * 70 : 0) + 'ms');
         el.classList.add('is-in');
         io.unobserve(el);
       });
@@ -78,23 +86,10 @@
     for (var j = 0; j < items.length; j++) io.observe(items[j]);
   }
 
-  /* ---------------------------------------------------------------------
-     Header state. Solid plate once the hero has left the top of the screen.
-     A one pixel sentinel is watched instead of the scroll position.
-     --------------------------------------------------------------------- */
-  function barState() {
-    var bar = document.querySelector('.hdr--over');
-    var hero = document.querySelector('.hero');
-    if (!bar || !hero) return;
-
-    if (!hasIO) { bar.classList.add('is-stuck'); return; }
-
-    var io = new IntersectionObserver(function (entries) {
-      bar.classList.toggle('is-stuck', !entries[0].isIntersecting);
-    }, { rootMargin: '-72px 0px 0px 0px', threshold: 0 });
-
-    io.observe(hero);
-  }
+  /* The header used to float transparent over a full bleed photographic hero
+     and swap to a solid plate past it, watched with an IntersectionObserver
+     sentinel. The hero is a light typographic panel now, so the bar is simply
+     solid from the first pixel and there is no state left to manage. */
 
   /* ---------------------------------------------------------------------
      The sticky chapter. The photograph is held by CSS position:sticky; this
@@ -123,47 +118,11 @@
   }
 
   /* ---------------------------------------------------------------------
-     The three facts count up once. The final value is already in the markup,
-     so with no JavaScript, no IntersectionObserver or reduced motion on, the
-     numbers are simply there.
-     --------------------------------------------------------------------- */
-  function counters() {
-    var nums = document.querySelectorAll('[data-count]');
-    if (!nums.length || !hasIO || reduce.matches) return;
-
-    function run(el) {
-      var target = parseInt(el.getAttribute('data-count'), 10);
-      if (isNaN(target)) return;
-      var suffix = el.getAttribute('data-suffix') || '';
-      var dur = 900;
-      var t0 = null;
-
-      function frame(ts) {
-        if (t0 === null) t0 = ts;
-        var p = Math.min((ts - t0) / dur, 1);
-        var eased = 1 - Math.pow(1 - p, 3);
-        el.textContent = Math.round(target * eased) + suffix;
-        if (p < 1) window.requestAnimationFrame(frame);
-      }
-
-      el.textContent = '0' + suffix;
-      window.requestAnimationFrame(frame);
-    }
-
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        run(e.target);
-        io.unobserve(e.target);
-      });
-    }, { threshold: 0.6 });
-
-    for (var i = 0; i < nums.length; i++) io.observe(nums[i]);
-  }
-
-  /* ---------------------------------------------------------------------
-     Menu page: highlight the category whose section is on screen, and keep
-     that chip scrolled into view in the rail.
+     Menu page: highlight the category whose section is on screen, keep that
+     chip scrolled into view in the rail, and slide the indicator bar under
+     it. The bar is one element driven by two custom properties, so the state
+     moves continuously instead of a filled pill jumping between chips that
+     can be 400px apart inside a scroller.
      --------------------------------------------------------------------- */
   function spy() {
     var rail = document.getElementById('cats');
@@ -171,6 +130,7 @@
 
     var links = rail.querySelectorAll('.cats__link');
     var inner = rail.querySelector('.cats__inner');
+    var bar = rail.querySelector('.cats__bar');
     var map = {};
     var watched = [];
 
@@ -190,6 +150,10 @@
         if (!a) return;
         links.forEach(function (l) { l.classList.remove('is-on'); });
         a.classList.add('is-on');
+        if (bar) {
+          bar.style.setProperty('--x', a.offsetLeft + 'px');
+          bar.style.setProperty('--w', a.offsetWidth);
+        }
         if (inner) {
           var want = a.offsetLeft - (inner.clientWidth - a.offsetWidth) / 2;
           inner.scrollTo({ left: Math.max(want, 0), behavior: reduce.matches ? 'auto' : 'smooth' });
@@ -217,9 +181,7 @@
   function init() {
     watchSize();
     reveals();
-    barState();
     chapter();
-    counters();
     spy();
     today();
     year();

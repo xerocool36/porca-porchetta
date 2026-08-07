@@ -5,7 +5,7 @@
  *
  * MOUNT — the dedicated page is prenota.html
  *   <div id="porca-prenota"></div>
- *   <script>window.PORCA_BOOKING_CONFIG = { functionsUrl: "...", anonKey: "..." };</script>
+ *   <script defer src="js/booking-config.js"></script>   // PORCA_BOOKING_CONFIG
  *   <script defer src="js/booking.js"></script>
  *
  *   With functionsUrl or anonKey missing — or with the anonKey still on its
@@ -53,8 +53,16 @@
   var PRIVACY = CFG.privacyUrl || '';          // '' = no privacy page yet
   var ROME = 'Europe/Rome';
 
-  var DAYS_SHOWN = 14;                          // date strip length
+  // Both of these are PRE-RESPONSE DEFAULTS ONLY. The database owns the real
+  // numbers — porca.settings.horizon_days and porca.settings.max_party — and the
+  // moment porca-availability answers, its values win, upward as well as
+  // downward. A client-side clamp here would mean raising max_party to 10 in the
+  // admin console changed nothing on the page, which is the sort of silent
+  // no-op nobody ever debugs.
+  var DAYS_SHOWN = 14;                          // date strip length, until told
   var MAX_PARTY = 8;                            // owner-confirmed online cap
+  var MIN_FILL_MS = 1500;                       // no human fills this form faster
+  var HP_FIELD = 'pp_note_2';                   // honeypot: see the note at fs4
   var TEL_HREF = '+390665495256';
   var TEL_TEXT = '06 6549 5256';
 
@@ -73,7 +81,9 @@
     people: 'Quante persone',
     you: 'I tuoi dati',
     service: 'Servizio',
-    party_more: 'Per gruppi oltre 8 persone chiamaci al',
+    // Split, not baked: the cap is whatever porca.settings.max_party says today.
+    party_more_pre: 'Per gruppi oltre',
+    party_more_mid: 'persone chiamaci al',
     party_more_end: '— li gestiamo direttamente noi.',
     full: 'esaurito',
     closed: 'chiuso',
@@ -112,8 +122,10 @@
     cancel_404: 'Non troviamo nessuna prenotazione con questo codice e queste 4 cifre. Controlla l’email di conferma, oppure chiamaci al',
     phone_only: 'Le prenotazioni online sono momentaneamente sospese. Chiamaci al',
     call_now: 'Chiama ' + TEL_TEXT,
+    retry: 'Riprova',
     err_generic: 'Qualcosa non ha funzionato. Riprova, oppure chiamaci al',
     err_network: 'Connessione assente. Controlla la rete e riprova.',
+    err_too_fast: 'Aspetta un istante e premi di nuovo Conferma.',
     err_slot: 'Scegli un orario.',
     err_name: 'Scrivi nome e cognome.',
     err_email: 'Serve un indirizzo email valido: ti mandiamo lì la conferma.',
@@ -161,7 +173,8 @@
     flash: null,     // message to surface after a re-render
     f: { name: '', email: '', phone: '', notes: '', consent: false },
     mounted: false,  // the day strip is only centred once
-    refocus: null    // selector to restore focus to after a re-render
+    refocus: null,   // selector to restore focus to after a re-render
+    t0: null         // when the form first appeared — see MIN_FILL_MS
   };
 
   /* ------------------------------------------------- date & time helpers */
@@ -218,9 +231,16 @@
     }).then(function (r) {
       return r.json()
         .catch(function () { return { ok: false, error: 'server_error' }; })
-        .then(function (j) { j.status = r.status; return j; });
+        // httpStatus, NOT status. `status` is a real column on porca.bookings
+        // ('confirmed' | 'cancelled' | 'noshow' | 'seated') and the day the book
+        // endpoint echoes it back, assigning the HTTP code over it would render
+        // every request as a confirmation — code, calendar file and all — for a
+        // table that is nothing of the sort. This is not hypothetical: a sister
+        // booking system grew a 'pending' state and shipped exactly that bug.
+        // Do not rename this back.
+        .then(function (j) { j.httpStatus = r.status; return j; });
     }).catch(function () {
-      return { ok: false, error: 'network', status: 0 };
+      return { ok: false, error: 'network', httpStatus: 0 };
     });
   }
 
@@ -253,9 +273,37 @@
 
   function scrollBehavior() { return prefersReduced() ? 'auto' : 'smooth'; }
 
+  var painted = false;   // has the widget swapped its contents at least once?
+
   function shell(node) {
     while (root.firstChild) root.removeChild(root.firstChild);
     root.appendChild(node);
+    painted = true;
+  }
+
+  /* ------------------------------------------------------- live region */
+
+  // A live region has to be sitting in the document BEFORE its text changes.
+  // Every screen this widget paints is built off-DOM and inserted already
+  // populated, so a role="status" on the inserted node announces nothing at all
+  // in NVDA or JAWS — the confirmation screen, code and date included, went out
+  // silent. One persistent region, outside #porca-prenota so shell() cannot
+  // throw it away, written to after each swap.
+  var LIVE = null;
+
+  function announce(msg) {
+    if (!msg) return;
+    if (!LIVE) {
+      LIVE = el('p', 'u-sr');
+      LIVE.setAttribute('role', 'status');
+      LIVE.setAttribute('aria-live', 'polite');
+      LIVE.setAttribute('aria-atomic', 'true');
+      (root.parentNode || document.body).appendChild(LIVE);
+    }
+    // Clear first, then write on the next tick: the same string twice in a row
+    // is otherwise a no-op change and is never spoken.
+    LIVE.textContent = '';
+    window.setTimeout(function () { LIVE.textContent = msg; }, 60);
   }
 
   function fieldset(n, label) {
@@ -272,7 +320,16 @@
   function setRecap(k, v) {
     if (!RIEP) return;
     var node = RIEP.querySelector('[data-r="' + k + '"]');
-    if (node) node.textContent = v || '—';
+    if (!node) return;
+    // The markup ships a real Italian placeholder in every value cell ("Da
+    // scegliere", "Da compilare"). syncRecap() runs on the very first render,
+    // when the time and the name are still empty, so writing an em-dash here
+    // replaced four sentences with four dashes — which is what a screen reader
+    // then reads out. Keep the placeholder instead. data-empty is the contract;
+    // if the attribute has not landed yet we snapshot the shipped text once,
+    // before anything has had a chance to overwrite it.
+    if (node.dataset.empty == null) node.dataset.empty = (node.textContent || '').trim();
+    node.textContent = v || node.dataset.empty || '';
   }
 
   function syncRecap() {
@@ -293,11 +350,16 @@
       // porca-availability sends no `ok` field on success — the presence of
       // `days` is the signal.
       if (!r || !r.days || !r.days.length) {
-        renderFatal();
+        renderFatal(r && r.error === 'network');
         return;
       }
       S.meta = r;
-      S.days = r.days.slice(0, DAYS_SHOWN);
+      // The database decides how far ahead it will take a booking
+      // (porca.settings.horizon_days); a shorter number hard-coded here would
+      // hide days porca-book would happily accept. Honour the payload when it
+      // names the horizon, fall back to the strip length only until it does.
+      var shown = (+r.horizon_days > 0) ? +r.horizon_days : DAYS_SHOWN;
+      S.days = r.days.slice(0, shown);
 
       if (r.accepting === false) { renderPhoneOnly(); return; }
 
@@ -363,11 +425,12 @@
 
   function renderLoading() {
     var w = el('div');
-    var p = el('p', 'hint', T.loading);
-    p.setAttribute('role', 'status');
-    w.appendChild(p);
+    // No role="status" on this node: it is inserted already populated, which
+    // announces nothing. announce() below owns the speech.
+    w.appendChild(el('p', 'hint', T.loading));
     for (var i = 0; i < 4; i++) w.appendChild(el('div', 'skel'));
     shell(w);
+    announce(T.loading);
   }
 
   function renderPhoneOnly() {
@@ -378,21 +441,44 @@
     b.href = 'tel:' + TEL_HREF;
     row.appendChild(b);
     w.appendChild(row);
+    var announceIt = painted;   // a state change, not the first paint
     shell(w);
+    // On first paint the card IS the page and the guest will read it on the way
+    // down; announcing then would just say the same thing twice. Reaching this
+    // screen mid-flow, though, is a change nobody would otherwise be told about.
+    if (announceIt) announce(T.phone_only + ' ' + TEL_TEXT + '.');
   }
 
-  function renderFatal() {
+  // A dropped connection, a 429 or a 500 used to leave the guest on a dead end:
+  // an apology, a phone number, and no way back except reloading the page — on a
+  // phone, in a tufo cave, which is precisely where this gets used. The retry
+  // button re-asks the same endpoint; the network slug, which was being computed
+  // and then thrown away, now picks the message that is actually true.
+  function renderFatal(isNetwork) {
     var w = el('div');
     var p = el('p', 'alert alert--err');
     p.setAttribute('role', 'alert');
-    withTel(p, T.err_generic);
+    if (isNetwork) p.textContent = T.err_network;
+    else withTel(p, T.err_generic);
     w.appendChild(p);
+
     var row = el('div', 'cta-row');
-    var b = el('a', 'btn btn--vino', T.call_now);
+    var again = el('button', 'btn btn--vino', T.retry);
+    again.type = 'button';
+    again.setAttribute('data-retry', '');
+    row.appendChild(again);
+    var b = el('a', 'btn btn--linea', T.call_now);
     b.href = 'tel:' + TEL_HREF;
     row.appendChild(b);
     w.appendChild(row);
+
     shell(w);
+    // Only when the guest asked for this screen — a failure on first paint must
+    // not drag focus off the top of the page into the middle of it.
+    if (S.refocus === '[data-retry]') {
+      S.refocus = null;
+      if (again.isConnected) { try { again.focus({ preventScroll: true }); } catch (e) { /* noop */ } }
+    }
   }
 
   function fieldRow(id, name, label, type, opts) {
@@ -468,6 +554,7 @@
       b.appendChild(el('span', null, d.closed ? T.closed : monShort(d.date)));
       strip.appendChild(b);
     });
+    rove(strip);
     fs1.appendChild(strip);
     form.appendChild(fs1);
 
@@ -517,6 +604,7 @@
           b.appendChild(el('span', null, sl.ok ? '' : T.full));
           grid.appendChild(b);
         });
+        rove(grid);
         fs2.appendChild(grid);
 
         if (otherZone && S.time && day) {
@@ -536,7 +624,9 @@
     var party = el('div', 'chips');
     party.setAttribute('role', 'group');
     party.setAttribute('aria-label', T.people);
-    var maxP = Math.min((S.meta && S.meta.max_party) || MAX_PARTY, MAX_PARTY);
+    // The server's number, not ours. MAX_PARTY only covers the render that
+    // happens before porca-availability has answered.
+    var maxP = (S.meta && S.meta.max_party) || MAX_PARTY;
     for (var n = 1; n <= maxP; n++) {
       var pb = el('button', 'chip', String(n));
       pb.type = 'button';
@@ -544,9 +634,12 @@
       pb.setAttribute('aria-pressed', String(n === S.party));
       party.appendChild(pb);
     }
+    rove(party);
     fs3.appendChild(party);
     var callout = el('p', 'alert alert--info');
-    callout.appendChild(document.createTextNode(T.party_more + ' '));
+    // ...and the prose says the same number the buttons do, always.
+    callout.appendChild(document.createTextNode(
+      T.party_more_pre + ' ' + maxP + ' ' + T.party_more_mid + ' '));
     callout.appendChild(telLink());
     callout.appendChild(document.createTextNode(' ' + T.party_more_end));
     fs3.appendChild(callout);
@@ -565,12 +658,20 @@
 
     // Honeypot — off-screen via .hp, not display:none (some bots skip hidden
     // inputs, and filling this one is exactly the signal we want).
+    //
+    // The name is NOT "company" any more, and must never go back to being a word
+    // a browser recognises. `company` maps onto the `organization` autofill
+    // token: Safari and Chrome fill it from the address book, password managers
+    // fill it too, and autocomplete="off" is advisory at best. A guest whose
+    // autofill touched this field tripped porca-book's decoy branch and got
+    // ok:true, a real-looking PP-XXXXX and a working .ics — for a table that was
+    // never written. A fake confirmation is worse than no booking form at all.
     var hp = el('div', 'hp');
     hp.setAttribute('aria-hidden', 'true');
-    var hpLab = el('label', null, 'Azienda');
+    var hpLab = el('label', null, 'Non compilare');
     var hpIn = el('input');
     hpIn.type = 'text';
-    hpIn.name = 'company';
+    hpIn.name = HP_FIELD;
     hpIn.tabIndex = -1;
     hpIn.autocomplete = 'off';
     hpLab.appendChild(hpIn);
@@ -635,6 +736,10 @@
 
     shell(form);
 
+    // Time-to-fill baseline: set once, when the form first appears, not on every
+    // chip tap. See submitBooking().
+    if (S.t0 == null) S.t0 = Date.now();
+
     if (S.flash) { showErr(form, S.flash); S.flash = null; }
     syncSubmit(form);
     syncRecap();
@@ -650,7 +755,8 @@
     var b = S.booking;
     var day = { date: b.service_date, utc_offset: b.utc_offset };
     var w = el('div', 'done');
-    w.setAttribute('role', 'status');
+    // Deliberately no role="status" here — see announce(). This node is built
+    // off-DOM and inserted already full, which announces nothing.
 
     w.appendChild(el('p', 'label', T.done_k));
     w.appendChild(el('h2', 'done__t', T.done_h));
@@ -698,6 +804,11 @@
 
     shell(w);
     syncRecap();
+    announce(
+      T.done_k + '. ' + T.code + ' ' + b.code + '. ' +
+      dayLong(b.service_date) + ', ' + b.slot_time + ', ' +
+      b.party + (b.party === 1 ? ' persona' : ' persone') + '.'
+    );
   }
 
   function renderCancel(prefill) {
@@ -766,9 +877,8 @@
 
   function renderCancelDone() {
     var w = el('div');
-    var p = el('p', 'alert alert--ok', T.cancel_done);
-    p.setAttribute('role', 'status');
-    w.appendChild(p);
+    // No role="status": inserted already populated. announce() speaks instead.
+    w.appendChild(el('p', 'alert alert--ok', T.cancel_done));
     var row = el('div', 'cta-row');
     var again = el('button', 'btn btn--vino', T.another);
     again.type = 'button';
@@ -776,6 +886,7 @@
     row.appendChild(again);
     w.appendChild(row);
     shell(w);
+    announce(T.cancel_done);
   }
 
   /* ------------------------------------------------------------- events */
@@ -807,10 +918,16 @@
       return;
     }
     if (target.hasAttribute('data-time')) {
+      var firstPick = !S.time;
       S.time = target.getAttribute('data-time');
       S.refocus = '[data-time="' + S.time + '"]';
       render();
-      focusDetails();
+      focusDetails(firstPick);
+      return;
+    }
+    if (target.hasAttribute('data-retry')) {
+      S.refocus = '[data-retry]';
+      loadAvailability(true);
       return;
     }
     if (target.hasAttribute('data-open-cancel')) { snapshotFields(); renderCancel(); return; }
@@ -825,6 +942,7 @@
       // Fresh start, and nothing of the previous guest left on a shared screen.
       S.booking = null;
       S.time = null;
+      S.t0 = null;
       S.f = { name: '', email: '', phone: '', notes: '', consent: false };
       syncRecap();
       loadAvailability();
@@ -873,9 +991,25 @@
     else submitBooking(form);
   });
 
-  function focusDetails() {
+  // Focus moves to the form ONCE — the first time an hour is picked and steps
+  // 01–03 actually hold an answer. Doing it on every slot tap was hostile: a
+  // keyboard user changing their mind about the hour landed in #pp-name and had
+  // to Shift+Tab back out through the whole party row to reach the grid again,
+  // and on iOS the programmatic focus counts as a user gesture, so re-tapping a
+  // time threw the soft keyboard up and reflowed the page under the thumb.
+  // Every later pick just brings the fieldset into view and leaves focus alone.
+  function focusDetails(firstPick) {
     var f = root.querySelector('#pp-name');
-    if (f && !f.value) f.focus({ preventScroll: true });
+    if (!f) return;
+    var fs = (f.closest && f.closest('.fieldset')) || f;
+    var complete = !!(S.date && S.time && S.party);
+
+    if (firstPick && complete && !f.value) {
+      f.focus({ preventScroll: true });
+      fs.scrollIntoView({ block: 'nearest', behavior: scrollBehavior() });
+      return;
+    }
+    fs.scrollIntoView({ block: 'nearest', behavior: scrollBehavior() });
   }
 
   // Re-rendering the whole widget throws focus back to <body>; keyboard users
@@ -884,8 +1018,61 @@
     if (!S.refocus) return;
     var node = root.querySelector(S.refocus);
     S.refocus = null;
+    // The control they pressed can legitimately be gone — a retry that
+    // succeeded, a chip that a new payload removed. Land on the first thing in
+    // the widget rather than dumping them at the top of the document.
+    if (!node) node = root.querySelector('.chips button:not([disabled])');
     if (node) { try { node.focus({ preventScroll: true }); } catch (e) { node.focus(); } }
   }
+
+  /* --------------------------------------------------- roving tabindex */
+
+  // Fourteen days, two sittings, a dozen hours and eight party sizes are
+  // thirty-odd tab stops between the top of the form and the name field. These
+  // are single-choice groups, so they get one tab stop each and arrow keys move
+  // inside them. aria-pressed is untouched: it still carries both the selection
+  // announcement and the selected styling, and pressing Enter or Space still
+  // chooses — arrows only move focus.
+  function roveItems(box) {
+    return Array.prototype.filter.call(
+      box.querySelectorAll('button'),
+      function (b) { return !b.disabled; }
+    );
+  }
+
+  function rove(box) {
+    box.setAttribute('data-rove', '');
+    var items = roveItems(box);
+    if (!items.length) return;
+    var cur = items.filter(function (b) {
+      return b.getAttribute('aria-pressed') === 'true';
+    })[0] || items[0];
+    items.forEach(function (b) { b.tabIndex = (b === cur) ? 0 : -1; });
+  }
+
+  root.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k !== 'ArrowRight' && k !== 'ArrowLeft' && k !== 'ArrowDown' &&
+        k !== 'ArrowUp' && k !== 'Home' && k !== 'End') return;
+    var box = e.target.closest && e.target.closest('[data-rove]');
+    if (!box) return;
+    var items = roveItems(box);
+    var i = items.indexOf(e.target);
+    if (i < 0) return;
+
+    var n;
+    if (k === 'Home') n = 0;
+    else if (k === 'End') n = items.length - 1;
+    else if (k === 'ArrowRight' || k === 'ArrowDown') n = (i + 1) % items.length;
+    else n = (i - 1 + items.length) % items.length;
+
+    e.preventDefault();
+    items.forEach(function (b) { b.tabIndex = (b === items[n]) ? 0 : -1; });
+    try { items[n].focus({ preventScroll: true }); } catch (e2) { items[n].focus(); }
+    // Keep the day strip scrolled to whatever now has focus, without dragging
+    // the page: the strip scrolls horizontally on its own.
+    items[n].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
 
   function centreSelectedDay() {
     var strip = root.querySelector('.chips--scroll');
@@ -987,8 +1174,19 @@
     if ((phone.match(/\d/g) || []).length < 8) return fieldErr(form, 'phone', T.err_phone, true);
     if (!d.get('consent')) return fieldErr(form, 'consent', T.err_consent, true);
 
+    // Time to fill. The submit button only unlocks once an hour is chosen and
+    // four fields are filled, so a human cannot reach this line in under a
+    // second and a half; a script reaches it in fifty milliseconds. Refuse
+    // locally rather than send — the one thing this must never do is hand back
+    // a plausible confirmation, which is exactly what the server's decoy branch
+    // would do. The second press is late by definition, so a real guest who
+    // somehow tripped it is one click from booking.
+    var elapsed = S.t0 == null ? MIN_FILL_MS : (Date.now() - S.t0);
+    if (elapsed < MIN_FILL_MS) return showErr(form, T.err_too_fast);
+
     var tf = form.querySelector('[name="cf-turnstile-response"]');
     var token = tf ? tf.value : '';
+    var hp = (d.get(HP_FIELD) || '').toString();
 
     busy(form, true, T.submit);
 
@@ -1002,7 +1200,12 @@
       notes: (d.get('notes') || '').toString().trim(),
       consent: true,
       token: token,
-      company: (d.get('company') || '').toString()
+      elapsed_ms: elapsed,
+      // Sent under both names on purpose, so the rename can land here and in
+      // porca-book independently without a window where the trap is off.
+      // Delete `company` once porca-book reads pp_note_2.
+      pp_note_2: hp,
+      company: hp
     }).then(function (r) {
       busy(form, false, T.submit);
 
@@ -1080,7 +1283,7 @@
         return;
       }
       if (r.error === 'network') return showErr(form, T.err_network);
-      if (r.error === 'not_found' || r.status === 404) {
+      if (r.error === 'not_found' || r.httpStatus === 404) {
         return showErr(form, r.message || T.cancel_404, !r.message);
       }
       if (r.error === 'rate_limited') return showErr(form, r.message || T.err_rate);
@@ -1089,6 +1292,16 @@
   }
 
   /* ----------------------------------------------------------------- ics */
+
+  // RFC 5545 §3.3.11: inside a TEXT value a comma is a list separator, a
+  // semicolon separates parameters and a backslash escapes. Unescaped, the
+  // address "Via del Trivio 31, 00061 Anguillara Sabazia RM" is three LOCATION
+  // values to a strict parser, and the guest's calendar shows a fragment.
+  function icsText(s) {
+    return String(s == null ? '' : s)
+      .replace(/([\\;,])/g, '\\$1')
+      .replace(/\r?\n/g, '\\n');
+  }
 
   function icsStamp(iso) {
     // iso is a real instant from the server; render it as UTC basic format.
@@ -1104,13 +1317,13 @@
       'VERSION:2.0',
       'PRODID:-//Porca Porchetta//Prenotazioni//IT',
       'BEGIN:VEVENT',
-      'UID:' + b.code + '@porcaporchetta',
+      'UID:' + icsText(b.code) + '@porcaporchetta',
       'DTSTAMP:' + icsStamp(new Date().toISOString()),
       'DTSTART:' + icsStamp(b.starts_at),
       b.ends_at ? 'DTEND:' + icsStamp(b.ends_at) : '',
-      'SUMMARY:Porca Porchetta — tavolo per ' + b.party,
-      'LOCATION:Via del Trivio 31, 00061 Anguillara Sabazia RM',
-      'DESCRIPTION:Codice prenotazione ' + b.code + '. Tel ' + TEL_TEXT + '.',
+      'SUMMARY:' + icsText('Porca Porchetta — tavolo per ' + b.party),
+      'LOCATION:' + icsText('Via del Trivio 31, 00061 Anguillara Sabazia RM'),
+      'DESCRIPTION:' + icsText('Codice prenotazione ' + b.code + '. Tel ' + TEL_TEXT + '.'),
       'END:VEVENT',
       'END:VCALENDAR'
     ].filter(Boolean);

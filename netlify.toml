@@ -14,9 +14,25 @@
 # CSP that forbids every form destination breaks the no-JavaScript path and any
 # future plain <form> on the site. 'self' still blocks exfiltration off-origin.
 #
-# If Turnstile is ever switched on, script-src and frame-src will also need
-# https://challenges.cloudflare.com — today the site makes no third-party
-# request at all and the CSP says so.
+# frame-src names www.google.com for the map embed on index.html. Without it the
+# directive falls back to default-src 'self' and the map is blocked — the iframe
+# renders as an empty box with a console error and nothing else.
+#
+# script-src and style-src stay at 'self' with no 'unsafe-inline'. That is load
+# bearing, not tidiness: prenota.html collects name, email, phone and consent, so
+# an inline-script escape hatch there is worth more to an attacker than anywhere
+# else on the site. It is also why the booking config lives in
+# js/booking-config.js rather than in an inline <script> — with 'unsafe-inline'
+# absent, an inline config block is silently dropped, window.PORCA_BOOKING_CONFIG
+# never exists, and booking.js falls back to the phone-only card. That failure is
+# indistinguishable from a deliberate suspension, so nobody notices it.
+#
+# Turnstile is deliberately OFF: the site makes no third-party request at all and
+# the CSP says so. The rate limiter in porca-book (5/hour, 20/24h per IP) is the
+# protection. Switching Turnstile on means adding https://challenges.cloudflare.com
+# to BOTH script-src and frame-src, loading the script in prenota.html, and
+# setting turnstileSiteKey — porca-book is fail-closed on an empty token, so
+# setting TURNSTILE_SECRET on its own refuses every booking.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -24,7 +40,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=()"
-    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self' https://wednfenmftdlywrglhgj.supabase.co; form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+    Content-Security-Policy = "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self' https://wednfenmftdlywrglhgj.supabase.co; frame-src https://www.google.com; form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
 
 # Fingerprint-free assets: cache hard, they are replaced by name on redeploy.
 [[headers]]

@@ -8,12 +8,16 @@
  * exposed through PostgREST.
  *
  * POST { action, ... }
- *   day         { from?: date, to?: date }        -> porca.admin_day()
- *   set_status  { id: uuid, status: text }        -> porca.admin_set_status()
- *   block       { date: date, note?, on? }        -> porca.admin_block()
- *   settings    { patch: object }                 -> porca.admin_settings()
- *   windows     { rows: array }                   -> porca.admin_windows()
+ *   day         { from?: date, to?: date }            -> porca.admin_day()
+ *   set_status  { id: uuid, status: text }            -> porca.admin_set_status()
+ *   block       { date: date, note?, on?, band? }     -> porca.admin_block()
+ *   settings    { patch: object }                     -> porca.admin_settings()
+ *   windows     { rows: array }                       -> porca.admin_windows()
  * Anything else is a 400. There is no default branch that acts.
+ *
+ * `band` on `block` is OPTIONAL. Omitted, null or "" all mean the whole day, so a
+ * console that predates half-day closures keeps working unchanged; "pranzo" or
+ * "cena" shuts one service and leaves the other bookable.
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
@@ -43,6 +47,13 @@ const ACTIONS: ReadonlySet<string> = new Set<AdminAction>([
   'windows',
 ]);
 
+/**
+ * The services a closure can shut on its own. Mirrors porca.closures_band_chk;
+ * the empty string is the console's way of saying "whole day" from a <select>,
+ * and is sent on as SQL NULL.
+ */
+const BANDS: ReadonlySet<string> = new Set(['pranzo', 'cena']);
+
 /** Resolve the caller's user id from the bearer token, or null. */
 async function authenticate(req: Request): Promise<string | null> {
   const header = req.headers.get('authorization') ?? '';
@@ -67,7 +78,9 @@ async function authenticate(req: Request): Promise<string | null> {
 Deno.serve(async (req: Request): Promise<Response> => {
   const cors = evaluateCors(req);
   if (req.method === 'OPTIONS') return preflightResponse(cors);
-  if (cors.rejected) return fail('origin_not_allowed', 403);
+  // Refused, but READABLE: refusalHeaders echoes the unlisted origin so the page
+  // can show "Origine non consentita" instead of a bare network error. See cors.ts.
+  if (cors.rejected) return fail('origin_not_allowed', 403, cors.refusalHeaders);
   if (req.method !== 'POST') return fail('method_not_allowed', 405, cors.headers);
 
   let userId: string | null;
@@ -129,8 +142,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
         const note = asString(body.note);
         if (note.length > 200) return fail('invalid_body', 400, cors.headers, { field: 'note' });
         const on = body.on === undefined ? true : body.on === true;
+        // Absent / null / "" all mean the whole day. A bandless call keeps its
+        // original meaning, so the console does not have to change to keep working.
+        const band = asString(body.band);
+        if (band && !BANDS.has(band)) {
+          return fail('invalid_body', 400, cors.headers, { field: 'band' });
+        }
         const rows = await sql<{ data: unknown }[]>`
-          select porca.admin_block(${body.date}::date, ${note || null}::text, ${on}::boolean) as data
+          select porca.admin_block(
+            ${body.date}::date, ${note || null}::text, ${on}::boolean, ${band || null}::text
+          ) as data
         `;
         return json({ ok: true, action, data: rows[0]?.data ?? null }, 200, cors.headers);
       }
@@ -140,8 +161,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
         if (patch === null || typeof patch !== 'object' || Array.isArray(patch)) {
           return fail('invalid_body', 400, cors.headers, { field: 'patch' });
         }
+        // sql.json(), NOT JSON.stringify(): postgres.js serialises the value
+        // itself, so stringifying here encodes it twice and the function receives
+        // a jsonb *string*. jsonb_typeof() then reads 'string', the `<> 'object'`
+        // guard fires, and every settings save comes back `bad_patch`.
         const rows = await sql<{ data: unknown }[]>`
-          select porca.admin_settings(${JSON.stringify(patch)}::jsonb) as data
+          select porca.admin_settings(${sql.json(patch)}::jsonb) as data
         `;
         return json({ ok: true, action, data: rows[0]?.data ?? null }, 200, cors.headers);
       }
@@ -151,8 +176,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
         if (!Array.isArray(windowRows)) {
           return fail('invalid_body', 400, cors.headers, { field: 'rows' });
         }
+        // Same trap as `settings`, and worse for an array: interpolated directly,
+        // postgres.js would bind a Postgres ARRAY rather than json.
         const rows = await sql<{ data: unknown }[]>`
-          select porca.admin_windows(${JSON.stringify(windowRows)}::jsonb) as data
+          select porca.admin_windows(${sql.json(windowRows)}::jsonb) as data
         `;
         return json({ ok: true, action, data: rows[0]?.data ?? null }, 200, cors.headers);
       }

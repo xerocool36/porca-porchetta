@@ -1,25 +1,28 @@
 /* ==========================================================================
    Porca Porchetta, fraschetta ad Anguillara Sabazia
-   Direction: "Travertino".
+   Direction: "La grotta".
 
-   Cool stone rather than plaster and wood. The venue is a tufo cave under the
-   old town, so the page is built to get out of the way of the photographs of
-   it: neutral stone greys, one red accent, a 2px corner everywhere, and a lot
-   of white space. Editorial, wide measure, no decorative shape making.
+   The romanità is pulled out of their own walls rather than invented: Bevan,
+   a heavy Clarendon slab, is the letterform of the painted insegne and the
+   enamel plates hanging in their alley; the neutral ramp is sampled off the
+   tufo, the travertino and the terrazzo in their own photographs; the accent
+   is the bottle green of their board and the oxblood of the round targhe.
 
    Rules held throughout
-   - photography is rectangular and full bleed, never masked into a shape
-   - one accent (rosso) on the whole page: CTAs, prices, rules, nothing else
-   - one corner radius: 2px, no exceptions
+   - photography is rectangular and full bleed, or round when it is quoting a
+     targa; it is never masked into an arbitrary shape
+   - Bevan is display only and never runs below --fs-500, where it turns to mud
+   - oxblood is a data colour: prices, and the word "chiuso". Nothing else
+   - one corner radius, 2px, no exceptions
    - motion is entrance, scroll driven reveal and hover only; the scrollbar is
      never hijacked and nothing loops forever
    - no build step, no dependencies, no third party requests
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. Font. Geist, self hosted, latin + latin-ext subsets, variable weight.
-   One family for the whole site: display is the same face at large scale and
-   tight tracking. No serif anywhere.
+   1. Fonts, self hosted, latin + latin-ext subsets.
+   Geist carries body, UI, labels and prices across its whole axis.
+   Bevan carries display only: one weight, no italic, no small caps.
    -------------------------------------------------------------------------- */
 @font-face {
   font-family: 'Geist';
@@ -42,34 +45,102 @@
                  U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
+@font-face {
+  font-family: 'Bevan';
+  src: url('../assets/fonts/bevan-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Bevan';
+  src: url('../assets/fonts/bevan-latin-ext.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+                 U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
+                 U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 /* --------------------------------------------------------------------------
    2. Tokens
    -------------------------------------------------------------------------- */
 :root {
   color-scheme: light;
 
-  /* stone: cool to neutral, never warm */
-  --stone-900: #2E2C29;
-  --stone-700: #4A4742;
-  --stone-500: #6E6A63;
-  --stone-300: #A8A49C;
-  --stone-150: #E4E4E1;
-  --stone-050: #F2F2F0;
-  --white:     #FFFFFF;
+  --ff-display: 'Bevan', Georgia, 'Times New Roman', serif;
+  --ff-body:    'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  /* the single accent */
-  --rosso:     #C0392B;
-  --rosso-700: #A2301F;
+  /* Type. Seven steps, a ratio, and nothing hand picked outside them.
+     html stays at the browser default, so 1rem is 16px and every value below
+     means what it says. */
+  --fs-100: 0.75rem;                                       /* 12  labels        */
+  --fs-200: 0.875rem;                                      /* 14  captions      */
+  --fs-300: 1.0625rem;                                     /* 17  body          */
+  --fs-400: clamp(1.1875rem, 1.13rem + 0.24vw, 1.375rem);  /* 19>22 lede        */
+  --fs-500: clamp(1.375rem, 1.16rem + 0.86vw, 2rem);       /* 22>32 h3          */
+  --fs-600: clamp(1.75rem, 1.24rem + 2.06vw, 3.25rem);     /* 28>52 h2          */
+  /* The h1 sets in a half-page column, not across the page, and Bevan runs
+     about 40% wider than a grotesque at the same size: "scavata nel tufo"
+     measures 637px at 96px, against 605px of column. 96px wrapped the line to
+     four rows and pushed the primary CTA below the fold on a 1440x900 laptop.
+     64px is the largest size that keeps it to two rows. */
+  --fs-700: clamp(2.5rem, 1.2rem + 3.4vw, 4rem);           /* 40>64 h1          */
 
-  --ink:     var(--stone-900);
-  --ink-2:   var(--stone-700);
-  --ink-3:   var(--stone-500);
+  --lh-display: 0.94;
+  --lh-title:   1.12;
+  --lh-lede:    1.48;
+  --lh-body:    1.62;
+
+  --tr-display: -0.018em;
+  --tr-title:   -0.008em;
+  --tr-body:    -0.004em;
+  --tr-caps:     0.16em;
+
+  --m-display: 15ch;
+  --m-lede:    46ch;
+  --m-body:    64ch;
+  --m-caption: 40ch;
+
+  /* tufo, travertino, terrazzo: whitewashed walls and floor. Hue held
+     70deg-86deg the whole way down, chroma peaking in the mid tones, which is
+     what a real stone ramp does and what every photograph on this site is. */
+  --tufo-050: #F4EEE2;   /* page ground        */
+  --tufo-100: #E6DECD;   /* alternate band     */
+  --tufo-200: #CFC3AC;   /* image placeholder  */
+  --tufo-300: #A6977E;   /* muted on dark      */
+  --tufo-500: #6A5D4E;   /* muted on light     */
+  --tufo-700: #4A4137;   /* secondary text     */
+
+  /* the cave */
+  --cave-900: #231D16;   /* ink, dark panels   */
+  --cave-950: #15110C;   /* the grotta chapter */
+
+  /* accent: their own board */
+  --insegna:     #124334; /* CTAs, links, focus on light  */
+  --insegna-lit: #2EA07F; /* dark grounds only            */
+
+  /* data colour: the enamel plates. Prices, and the word chiuso. */
+  --oxblood: #7A2A2E;
+
+  /* material tints. Decoration, and type only on --cave-950. */
+  --cotto: #9A6B45;      /* the brick vault    */
+  --gold:  #C9B98F;      /* the lit doorway    */
+
+  --ink:   var(--cave-900);
+  --ink-2: var(--tufo-700);
+  --ink-3: var(--tufo-500);
+
+  --focus: var(--insegna);
 
   /* hairlines */
-  --line:    rgba(46, 44, 41, .14);
-  --line-2:  rgba(46, 44, 41, .28);
-  --line-d:  rgba(255, 255, 255, .18);
-  --line-d2: rgba(255, 255, 255, .34);
+  --line:   rgba(35, 29, 22, .16);
+  --line-2: rgba(35, 29, 22, .30);
+  --line-d: rgba(244, 238, 226, .20);
 
   /* form: one corner, everywhere */
   --r: 2px;
@@ -78,17 +149,17 @@
   --gut:  20px;
   --band: 84px;
   --maxw: 1240px;
-  --bar-h: 64px;    /* measured at runtime by js/main.js */
-  --rail-h: 0px;    /* menu page category rail, same */
+  --bar-h:  64px;   /* measured at runtime by js/main.js */
+  --rail-h:  0px;   /* menu page category rail, same */
+  --dock-h: 76px;   /* thumb zone dock, same */
 
   /* motion */
-  --ease: cubic-bezier(.16, 1, .3, 1);
+  --ease:      cubic-bezier(.16, 1, .3, 1);
+  --ease-out:  cubic-bezier(.32, .72, 0, 1);
+  --ease-swing:cubic-bezier(.34, 1.3, .64, 1);
   --t-fast: .28s;
   --t-mid:  .5s;
   --t-slow: .8s;
-
-  /* elevation is almost never used: stone does not float */
-  --lift: 0 1px 2px rgba(46, 44, 41, .05), 0 18px 40px -28px rgba(46, 44, 41, .35);
 }
 
 @media (min-width: 900px) {
@@ -110,13 +181,13 @@ html {
 
 body {
   margin: 0;
-  background: var(--stone-050);
+  background: var(--tufo-050);
   color: var(--ink);
-  font-family: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  font-size: 17px;
+  font-family: var(--ff-body);
+  font-size: var(--fs-300);
   font-weight: 400;
-  line-height: 1.65;
-  letter-spacing: -0.004em;
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   /* clip, not hidden: hidden on body turns the page into a scroll container
@@ -127,7 +198,7 @@ body {
 img, svg, video { display: block; max-width: 100%; }
 img { height: auto; }
 
-h1, h2, h3, h4 { margin: 0; font-weight: 500; letter-spacing: -0.02em; }
+h1, h2, h3, h4 { margin: 0; font-weight: 600; line-height: var(--lh-title); letter-spacing: var(--tr-title); }
 p { margin: 0 0 1em; }
 p:last-child { margin-bottom: 0; }
 ul, ol { margin: 0; padding: 0; list-style: none; }
@@ -135,13 +206,16 @@ a { color: inherit; }
 button, input, select, textarea { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
 
-::selection { background: var(--rosso); color: var(--white); }
+::selection { background: var(--insegna); color: var(--tufo-050); }
 
+/* One ring, two grounds. #124334 is 9.68:1 on the page ground; #2EA07F is
+   5.12:1 on the cave. Both clear SC 1.4.11 with room to spare. */
 :focus-visible {
-  outline: 2px solid var(--rosso);
+  outline: 2px solid var(--focus);
   outline-offset: 3px;
   border-radius: var(--r);
 }
+.on-dark, .ftr, .chapter, .offer, .riepilogo { --focus: var(--insegna-lit); }
 
 .u-skip {
   position: absolute;
@@ -149,8 +223,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   top: 0;
   z-index: 100;
   padding: 12px 18px;
-  background: var(--rosso);
-  color: var(--white);
+  background: var(--insegna);
+  color: var(--tufo-050);
   font-weight: 600;
   text-decoration: none;
   border-radius: var(--r);
@@ -176,28 +250,27 @@ button, input, select, textarea { font: inherit; color: inherit; }
    4. Type
    -------------------------------------------------------------------------- */
 .t-display {
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.02;
+  font-family: var(--ff-display);
+  font-weight: 400;
+  letter-spacing: var(--tr-display);
+  line-height: var(--lh-display);
 }
 
-/* the one small uppercase label on the site: the hero locale line */
 .eyebrow {
   margin: 0 0 20px;
-  font-size: .75rem;
+  font-size: var(--fs-100);
   font-weight: 500;
-  letter-spacing: .16em;
+  letter-spacing: var(--tr-caps);
   text-transform: uppercase;
-  color: var(--stone-500);
+  color: var(--ink-3);
 }
 
 .t-lede {
-  font-size: 1.08rem;
-  line-height: 1.68;
+  font-size: var(--fs-400);
+  line-height: var(--lh-lede);
   color: var(--ink-2);
-  max-width: 60ch;
+  max-width: var(--m-lede);
 }
-@media (min-width: 900px) { .t-lede { font-size: 1.15rem; } }
 
 /* --------------------------------------------------------------------------
    5. Layout
@@ -216,43 +289,80 @@ button, input, select, textarea { font: inherit; color: inherit; }
   scroll-margin-top: calc(var(--bar-h) + 8px);
 }
 .band--tight { padding-block: calc(var(--band) * .62); }
-.band--panel { background: var(--stone-150); }
-.band--white { background: var(--white); }
-.band--dark  { background: var(--stone-900); color: var(--white); }
-.band--dark .t-lede { color: var(--stone-300); }
+.band--panel { background: var(--tufo-100); }
 
 /* section head, always stacked: headline on top, body under it */
 .head { max-width: 46rem; margin-bottom: 52px; }
 .head--mid { margin-inline: auto; text-align: center; }
+.head--flush { margin-bottom: 0; }
 .head__title {
-  font-size: clamp(2rem, 4.8vw, 3.1rem);
-  line-height: 1.05;
+  font-size: var(--fs-600);
   margin-bottom: 18px;
+  /* --m-display is the hero's measure; a section head is already held by
+     .head's 46rem and clamping it again wrapped every h2 to three lines */
 }
+.head--mid .head__title { margin-inline: auto; }
 .head__sub {
-  font-size: 1.06rem;
-  line-height: 1.7;
+  font-size: var(--fs-400);
+  line-height: var(--lh-lede);
   color: var(--ink-2);
-  max-width: 56ch;
+  max-width: var(--m-lede);
 }
 .head--mid .head__sub { margin-inline: auto; }
-.band--dark .head__sub { color: var(--stone-300); }
 
-/* the accent rule that marks the start of a chapter */
-.rule {
-  height: 2px;
-  width: 56px;
-  background: var(--rosso);
-  border: 0;
-  margin: 0 0 26px;
-  transform-origin: left center;
+/* --------------------------------------------------------------------------
+   5b. La targa.
+   Their own hand made enamel plates, hung on a chain in the alley under the
+   jasmine (assets/img/insegne.webp). It is the one piece of graphic language
+   the venue already owns, so it is the page's structural device instead of a
+   generic coloured dash. Used only where the venue is talking, never as
+   decoration on an informational heading.
+   -------------------------------------------------------------------------- */
+.targa { display: flex; justify-content: center; margin: 0 0 40px; }
+.head:not(.head--mid) .targa { justify-content: flex-start; }
+
+.targa__ring {
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  width: clamp(176px, 21vw, 232px);
+  aspect-ratio: 1;
+  padding: 18px;
+  border-radius: 50%;
+  background: var(--oxblood);
+  box-shadow: inset 0 0 0 3px var(--tufo-050), inset 0 0 0 5px var(--oxblood);
+  color: var(--tufo-050);
+  text-align: center;
+  transform: rotate(-3.5deg);
+  transition: transform .42s var(--ease-swing);
 }
-.head--mid .rule { margin-inline: auto; transform-origin: center; }
+.band--panel .targa__ring,
+.mband--alt .targa__ring {
+  box-shadow: inset 0 0 0 3px var(--tufo-100), inset 0 0 0 5px var(--oxblood);
+}
+.targa:hover .targa__ring,
+.targa:focus-within .targa__ring { transform: rotate(1.5deg); }
+
+.targa__t {
+  font-size: var(--fs-100);
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  opacity: .78;
+}
+.targa__b {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  /* the Bevan floor is --fs-500; the ring is sized around it, not the other
+     way round, or the slab silts up */
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  line-height: 1.06;
+  text-transform: uppercase;
+  letter-spacing: .01em;
+}
 
 /* --------------------------------------------------------------------------
    6. Buttons
-   Primary is rosso with white text on every ground. On a photograph or on the
-   dark chapter it gains a 1px light ring so the control edge stays readable.
    -------------------------------------------------------------------------- */
 .btn {
   display: inline-flex;
@@ -263,8 +373,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 14px 28px;
   border: 1px solid transparent;
   border-radius: var(--r);
-  font-size: .95rem;
-  font-weight: 500;
+  font-size: var(--fs-200);
+  font-weight: 600;
   letter-spacing: 0;
   text-decoration: none;
   text-align: center;
@@ -277,37 +387,30 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .btn:active { transform: translateY(1px); }
 
-.btn--vino {                       /* primary */
-  background: var(--rosso);
-  border-color: var(--rosso);
-  color: var(--white);
+.btn--vino {                       /* primary: their board green */
+  background: var(--insegna);
+  border-color: var(--insegna);
+  color: var(--tufo-050);
 }
-.btn--vino:hover { background: var(--rosso-700); border-color: var(--rosso-700); }
+.btn--vino:hover { background: #0C2E24; border-color: #0C2E24; }
 
 .btn--linea {                      /* secondary on light */
   background: transparent;
   color: var(--ink);
-  border-color: var(--stone-500);
+  border-color: var(--tufo-500);
 }
-.btn--linea:hover { background: var(--stone-900); border-color: var(--stone-900); color: var(--stone-050); }
+.btn--linea:hover { background: var(--cave-900); border-color: var(--cave-900); color: var(--tufo-050); }
 
-.btn--ghost {                      /* secondary on a photograph or on dark */
+.btn--ghost {                      /* secondary on dark */
   background: transparent;
-  color: var(--white);
-  border-color: rgba(255, 255, 255, .6);
+  color: var(--tufo-050);
+  border-color: rgba(244, 238, 226, .6);
 }
-.btn--ghost:hover { background: rgba(255, 255, 255, .14); border-color: var(--white); }
-
-.btn--solid {                      /* primary alternative on dark: white plate */
-  background: var(--white);
-  border-color: var(--white);
-  color: var(--stone-900);
-}
-.btn--solid:hover { background: var(--stone-150); border-color: var(--stone-150); }
+.btn--ghost:hover { background: rgba(244, 238, 226, .14); border-color: var(--tufo-050); }
 
 .btn--wide { width: 100%; }
 
-.on-dark .btn--vino { box-shadow: 0 0 0 1px rgba(255, 255, 255, .38); }
+.on-dark .btn--vino { box-shadow: 0 0 0 1px rgba(244, 238, 226, .38); }
 
 .btn[disabled], .btn[aria-disabled='true'] {
   opacity: .45;
@@ -330,25 +433,22 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 0;
   border: 0;
   background: none;
-  color: var(--rosso);
-  font-size: .95rem;
-  font-weight: 500;
+  color: var(--insegna);
+  font-size: var(--fs-200);
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 4px;
   text-decoration-thickness: 1px;
   cursor: pointer;
   transition: color var(--t-fast) var(--ease);
 }
-.linkish:hover { color: var(--rosso-700); }
+.linkish:hover { color: #0C2E24; }
 @media (pointer: coarse), (max-width: 900px) {
   .linkish { min-height: 44px; }
 }
 
 /* --------------------------------------------------------------------------
    7. Header bar
-   Over the hero it is transparent with white type; once the hero has left the
-   screen (IntersectionObserver sentinel, never a scroll listener) it becomes a
-   solid stone plate with a hairline.
    -------------------------------------------------------------------------- */
 .hdr {
   position: sticky;
@@ -359,7 +459,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   gap: 10px;
   min-height: var(--bar-h);
   padding: 10px var(--gut);
-  background: var(--stone-050);
+  background: var(--tufo-050);
   border-bottom: 1px solid var(--line);
   color: var(--ink);
 }
@@ -375,151 +475,137 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .hdr__spacer { flex: 1; }
 
 .hdr__link {
-  padding: 9px 14px;
+  padding: 11px 14px;
   border-radius: var(--r);
-  font-size: .92rem;
-  font-weight: 500;
+  font-size: var(--fs-200);
+  font-weight: 600;
   text-decoration: none;
   transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
-.hdr__link:hover { background: rgba(46, 44, 41, .07); }
+.hdr__link:hover { background: rgba(35, 29, 22, .07); }
 .hdr__link--cta {
-  background: var(--rosso);
-  color: var(--white);
+  background: var(--insegna);
+  color: var(--tufo-050);
 }
-.hdr__link--cta:hover { background: var(--rosso-700); }
+.hdr__link--cta:hover { background: #0C2E24; }
 
-/* the transparent state, only on the landing page */
-.hdr--over {
-  position: fixed;
-  left: 0; right: 0;
-  background: transparent;
-  border-bottom-color: transparent;
-  color: var(--white);
-  transition: background-color var(--t-mid) var(--ease),
-              border-color var(--t-mid) var(--ease),
-              color var(--t-mid) var(--ease);
-}
-.hdr--over .hdr__link:hover { background: rgba(255, 255, 255, .16); }
-.hdr--over.is-stuck {
-  background: var(--stone-050);
-  border-bottom-color: var(--line);
-  color: var(--ink);
-}
-.hdr--over.is-stuck .hdr__link:hover { background: rgba(46, 44, 41, .07); }
+/* Sticky, always solid: the hero is a light typographic panel now, so there is
+   no photograph for the bar to float over and no transparent state to manage.
+   The .hdr--over / .is-stuck pair is gone with it. */
 
 .lang {
   display: flex;
   flex: none;
-  border: 1px solid currentColor;
+  border: 1px solid var(--tufo-500);
   border-radius: var(--r);
   overflow: hidden;
-  opacity: .85;
 }
 .lang__btn {
-  min-width: 40px;
-  min-height: 36px;
-  padding: 0 9px;
+  /* 44px minimum, like every other control on the site */
+  min-width: 46px;
+  min-height: 44px;
+  padding: 0 10px;
   border: 0;
   background: transparent;
   color: inherit;
-  font-size: .76rem;
-  font-weight: 500;
+  font-size: var(--fs-100);
+  font-weight: 600;
   letter-spacing: .06em;
   cursor: pointer;
   transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
 }
-.lang__btn[aria-pressed='true'] { background: currentColor; }
-.lang__btn[aria-pressed='true'] > span { color: var(--stone-050); }
-.hdr--over:not(.is-stuck) .lang__btn[aria-pressed='true'] > span { color: var(--stone-900); }
+.lang__btn[aria-pressed='true'] { background: var(--cave-900); }
+.lang__btn[aria-pressed='true'] > span { color: var(--tufo-050); }
 
 /* Narrow phones: logo, Menù, Prenota and a two button toggle do not fit on one
    row. Menù is the middle action in the dock, so it is the one that goes. */
 @media (max-width: 470px) {
-  .hdr { gap: 8px; padding-inline: 14px; }
+  .hdr { gap: 6px; padding-inline: 14px; }
   .hdr__logo { width: 38px; height: 38px; }
-  .hdr__link { padding: 9px 11px; font-size: .86rem; }
+  .hdr__link { padding: 11px 12px; }
   .hdr__link:not(.hdr__link--cta) { display: none; }
-  .lang__btn { min-width: 34px; padding: 0 7px; }
+  .lang__btn { min-width: 44px; padding: 0 6px; }
 }
 
 /* --------------------------------------------------------------------------
-   8. Hero. Full bleed rectangle, no mask, no shape.
+   8. Hero. Split, not overlaid.
+   sala-roma.webp is 1400x1867 portrait: full bleed behind centred type it was
+   cropped to a 19%-66% band on every desktop, which deleted the painted ROMA
+   sign the alt text describes. A portrait photograph belongs in a portrait
+   container, so the type gets its own ground and the picture gets its own
+   column. Nothing needs a scrim or a text shadow any more.
    -------------------------------------------------------------------------- */
 .hero {
-  position: relative;
   min-height: 100vh;
   min-height: 100svh;
-  display: flex;
-  align-items: flex-end;
-  overflow: hidden;
-  background: var(--stone-900);
-  color: var(--white);
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+  background: var(--tufo-050);
+  color: var(--cave-900);
   isolation: isolate;
 }
 
+.hero__type {
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 44px var(--gut) 48px;
+}
 .hero__frame {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  overflow: hidden;
-}
-.hero__frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 36%;
-}
-
-/* the photograph is bright in the middle exactly where the headline sits, so
-   the scrim carries a second pass under the type block */
-.hero__scrim {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(to bottom,
-      rgba(24, 23, 21, .60) 0%,
-      rgba(24, 23, 21, .26) 26%,
-      rgba(24, 23, 21, .62) 62%,
-      rgba(24, 23, 21, .92) 100%),
-    radial-gradient(120% 62% at 50% 100%, rgba(24, 23, 21, .55), transparent 70%);
-}
-
-.hero__inner {
+  grid-row: 1;
   position: relative;
-  text-align: center;
-  padding-top: calc(var(--bar-h) + 40px);
-  padding-bottom: clamp(64px, 11vh, 116px);
-  text-shadow: 0 1px 26px rgba(20, 19, 17, .5);
+  overflow: hidden;
+  min-height: 52svh;
+  background: var(--tufo-200);
 }
-.hero .eyebrow { color: rgba(255, 255, 255, .88); }
+/* the painted ROMA sign is in the top 7% of the plate and the brick vault in
+   the next 16%: on a phone the frame is a short wide band, so the crop is
+   pinned near the top or the sign the alt text describes is lost again */
+.hero__frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 8%; }
+
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: minmax(0, 52fr) minmax(0, 48fr);
+    grid-template-rows: 1fr;
+  }
+  .hero__type {
+    grid-column: 1; grid-row: 1;
+    justify-content: center;
+    padding: calc(var(--bar-h) + 32px) clamp(40px, 4vw, 72px) 64px clamp(40px, 6vw, 96px);
+  }
+  .hero__frame { grid-column: 2; grid-row: 1; min-height: 100svh; }
+  /* the column is 3:4-ish, so almost the whole plate fits: no pinning needed */
+  .hero__frame img { object-position: 50% 50%; }
+}
 
 .hero__h1 {
-  font-size: clamp(2.5rem, 7.4vw, 5.4rem);
-  line-height: 1.0;
-  letter-spacing: -0.02em;
-  font-weight: 500;
-  margin: 0 auto 24px;
-  max-width: 17ch;
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: var(--fs-700);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  margin: 0 0 24px;
+  max-width: var(--m-display);
 }
 .hero__h1 .ln {
   display: block;
   overflow: hidden;
+  /* Bevan has deep descenders; the mask has to clear them or the reveal
+     shaves the tail off every g and p */
   padding-bottom: .09em;
   margin-bottom: -.09em;
 }
 .hero__h1 .ln > span { display: block; }
 
 .hero__lede {
-  margin: 0 auto;
-  max-width: 46ch;
-  font-size: clamp(1.02rem, 1.5vw, 1.2rem);
-  line-height: 1.62;
-  color: rgba(255, 255, 255, .9);
+  margin: 0;
+  max-width: var(--m-lede);
+  font-size: var(--fs-400);
+  line-height: var(--lh-lede);
+  color: var(--ink-2);
 }
-
-.hero .cta-row { justify-content: center; margin-top: 36px; }
 
 /* --------------------------------------------------------------------------
    9. Photographic frame. Rectangular, cropped by aspect-ratio, never masked.
@@ -528,70 +614,48 @@ button, input, select, textarea { font: inherit; color: inherit; }
   position: relative;
   overflow: hidden;
   border-radius: var(--r);
-  background: var(--stone-150);
+  background: var(--tufo-200);
 }
-.ph img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.ph img { width: 100%; height: 100%; object-fit: cover; }
 
 .ph__cap {
   margin-top: 16px;
   color: var(--ink-2);
+  font-size: var(--fs-200);
 }
 .ph__cap b {
   display: block;
-  font-weight: 500;
-  font-size: 1.12rem;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  font-size: var(--fs-500);
+  line-height: var(--lh-title);
+  letter-spacing: var(--tr-title);
   color: var(--ink);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
-.ph__cap span { font-size: .96rem; line-height: 1.6; display: block; max-width: 42ch; }
+.ph__cap span { display: block; line-height: 1.6; max-width: var(--m-caption); }
 
 /* --------------------------------------------------------------------------
-   10. Apertura: centred statement plus the counted facts on a hairline rail
+   10. La grotta: sticky photographic chapter, and the descent.
    -------------------------------------------------------------------------- */
-.stats {
-  display: grid;
-  grid-template-columns: 1fr;
-  border-top: 1px solid var(--line);
-  margin-top: 64px;
-}
-@media (min-width: 700px) {
-  .stats { grid-template-columns: repeat(3, 1fr); }
-}
-.stat {
-  padding: 26px 0 4px;
-  border-bottom: 1px solid var(--line);
-}
-@media (min-width: 700px) {
-  .stat { border-bottom: 0; padding: 30px 26px 6px 0; }
-  .stat + .stat { border-left: 1px solid var(--line); padding-left: 26px; }
-}
-.stat__n {
-  display: block;
-  font-size: clamp(2.4rem, 5.4vw, 3.6rem);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--rosso);
-}
-.stat__l {
-  display: block;
-  margin-top: 10px;
-  font-size: .95rem;
-  color: var(--ink-2);
-  max-width: 22ch;
-}
+/* The descent. The ground ramps from the page colour down to the cave and back
+   out again, and both ramps live entirely inside the chapter's own band
+   padding, where there is no text: you watch the floor go dark, and nothing is
+   ever read against a half-transitioned ground.
 
-/* --------------------------------------------------------------------------
-   11. La grotta: sticky photographic chapter. Pure CSS position:sticky, the
-   picture changes to match the passage being read.
-   -------------------------------------------------------------------------- */
-.chapter { background: var(--stone-900); color: var(--white); }
+   This replaces a fixed z-index:-1 veil animated on the chapter's view
+   timeline. That could only be seen through the section above it, which meant
+   it darkened that section's ground while its dark type was still on screen:
+   verified in the browser at 1440x900, and unreadable. A fixed veil under the
+   page cannot both be visible and stay out of the way. */
+.chapter {
+  background:
+    linear-gradient(to bottom,
+      var(--tufo-050) 0,
+      var(--cave-950) var(--band),
+      var(--cave-950) calc(100% - var(--band)),
+      var(--tufo-050) 100%);
+  color: var(--tufo-200);
+}
 .chapter__grid { display: grid; gap: 0; }
 
 .chapter__stage {
@@ -602,31 +666,49 @@ button, input, select, textarea { font: inherit; color: inherit; }
   margin-bottom: 34px;
   overflow: hidden;
   border-radius: var(--r);
-  background: #232220;
+  background: var(--cave-900);
 }
+/* deeper in, the light closes down on the picture itself. Scroll driven,
+   inside the dark chapter and over a photograph, so it cannot cost contrast
+   on anything readable. */
+.chapter__stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  box-shadow: inset 0 0 100px 24px var(--cave-950);
+  opacity: 0;
+}
+
 .chapter__shot {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity .7s var(--ease);
+  transform: scale(1.035);
+  /* a camera move, not a dissolve: the outgoing frame keeps drifting for
+     longer than it takes to fade, so the two never sit still on top of one
+     another */
+  transition: opacity .76s var(--ease), transform 1.1s var(--ease);
 }
-.chapter__shot.is-on { opacity: 1; }
+.chapter__shot.is-on { opacity: 1; transform: scale(1); }
 .chapter__shot img { width: 100%; height: 100%; object-fit: cover; }
 
 .chapter__text { min-width: 0; }
 .chapter__step {
   padding-block: 9vh;
-  border-top: 1px solid var(--line-d);
+  border-top: 1px solid rgba(154, 107, 69, .55);   /* cotto hairline */
 }
 .chapter__step:first-child { border-top: 0; padding-top: 0; }
 .chapter__step h3 {
-  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-size: var(--fs-500);
+  font-weight: 600;
+  color: var(--gold);
   margin-bottom: 14px;
 }
 .chapter__step p {
-  color: var(--stone-300);
-  max-width: 44ch;
-  font-size: 1.05rem;
+  color: var(--tufo-200);
+  max-width: var(--m-caption);
 }
 
 @media (min-width: 900px) {
@@ -646,8 +728,21 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .chapter__step:first-child { padding-top: 34px; }
 }
 
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    #grotta { view-timeline-name: --grotta; }
+    .chapter__stage::after {
+      animation: cave-close linear both;
+      animation-timeline: --grotta;
+      /* scroll driven timing is linear on purpose: the scroll is the easing */
+      animation-range: cover 20% cover 85%;
+    }
+    @keyframes cave-close { from { opacity: 0; } to { opacity: 1; } }
+  }
+}
+
 /* --------------------------------------------------------------------------
-   12. A tavola: asymmetric photo mosaic with one typographic cell
+   11. A tavola: asymmetric photo mosaic with one typographic cell
    -------------------------------------------------------------------------- */
 .mosaic {
   display: grid;
@@ -656,19 +751,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .mosaic__cell > .ph { aspect-ratio: 4 / 5; }
 
-/* Wide: the cells keep different widths and different picture heights, but the
-   frames flex to the row so the bottoms stay flush. Asymmetry without holes. */
 @media (min-width: 900px) {
   .mosaic { grid-template-columns: repeat(12, 1fr); gap: 56px 40px; }
   .mosaic__cell { display: flex; flex-direction: column; }
   .mosaic__cell > .ph { flex: 1 1 auto; aspect-ratio: auto; }
-  .mosaic__cell--a { grid-column: 1 / 8; }
-  .mosaic__cell--a > .ph { min-height: 430px; }
-  .mosaic__cell--b { grid-column: 8 / 13; }
-  .mosaic__cell--b > .ph { min-height: 560px; }
-  .mosaic__cell--c { grid-column: 1 / 6; }
+  .mosaic__cell--a { grid-column: 1 / 6; }
+  .mosaic__cell--a > .ph { min-height: 470px; }
+  .mosaic__cell--b { grid-column: 6 / 13; }
+  .mosaic__cell--b > .ph { min-height: 540px; }
+  .mosaic__cell--c { grid-column: 1 / 8; }
   .mosaic__cell--c > .ph { min-height: 500px; }
-  .mosaic__cell--d { grid-column: 6 / 13; }
+  .mosaic__cell--d { grid-column: 8 / 13; }
 }
 
 .plate {
@@ -677,46 +770,27 @@ button, input, select, textarea { font: inherit; color: inherit; }
   justify-content: center;
   height: 100%;
   padding: 40px 34px;
-  background: var(--stone-150);
+  background: var(--tufo-100);
   border-radius: var(--r);
 }
-.plate h3 {
-  font-size: 1.5rem;
-  margin-bottom: 18px;
-}
+.plate h3 { font-size: var(--fs-500); font-weight: 600; margin-bottom: 18px; }
 .plate__list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px 26px;
   margin-bottom: 22px;
   color: var(--ink-2);
-  font-size: 1rem;
+  font-size: var(--fs-200);
 }
-
-/* --------------------------------------------------------------------------
-   13. In caraffa: three grouped lists on hairlines, no cards, no prices
-   -------------------------------------------------------------------------- */
-.groups {
-  display: grid;
-  gap: 40px;
-  grid-template-columns: 1fr;
-}
-@media (min-width: 860px) {
-  .groups { grid-template-columns: 1.25fr 1fr 1fr; gap: 48px; }
-}
-.group { border-top: 2px solid var(--stone-900); padding-top: 20px; }
-.group h3 {
-  font-size: 1.16rem;
-  margin-bottom: 14px;
-}
-.group li {
-  padding: 7px 0;
+.plate__note {
+  margin: 0 0 22px;
+  font-size: var(--fs-200);
   color: var(--ink-2);
+  max-width: var(--m-caption);
 }
-.group li + li { border-top: 1px solid var(--line); }
 
 /* --------------------------------------------------------------------------
-   14. Split: the one image plus text section on the page
+   12. Split: the one image plus text section on the page
    -------------------------------------------------------------------------- */
 .split { display: grid; gap: 36px; align-items: center; }
 @media (min-width: 900px) {
@@ -726,23 +800,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .split .ph { aspect-ratio: 3 / 4; }
 
 /* --------------------------------------------------------------------------
-   15. Prenota band
+   13. Prenota band
    -------------------------------------------------------------------------- */
-.strip { background: var(--white); border-block: 1px solid var(--line); }
+.strip { background: var(--tufo-100); border-block: 1px solid var(--line); }
 .strip__alt {
   margin-top: 22px;
-  font-size: .95rem;
-  color: var(--ink-3);
+  font-size: var(--fs-200);
+  color: var(--ink-2);
 }
 .strip__alt a {
   color: var(--ink);
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
 /* --------------------------------------------------------------------------
-   16. Orari e contatti
+   14. Orari e contatti
    -------------------------------------------------------------------------- */
 .info { display: grid; gap: 48px; }
 @media (min-width: 900px) {
@@ -758,7 +832,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 14px 0;
   border-bottom: 1px solid var(--line);
 }
-.orari__row dt { font-weight: 500; }
+.orari__row dt { font-weight: 600; }
 .orari__row dd {
   margin: 0;
   font-variant-numeric: tabular-nums;
@@ -767,31 +841,30 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .orari__row.is-today {
   padding-left: 14px;
-  box-shadow: inset 2px 0 0 var(--rosso);
+  box-shadow: inset 2px 0 0 var(--insegna);
 }
-.orari__row.is-today dt { color: var(--rosso); }
-.orari__row.is-closed dd { color: var(--stone-300); }
+.orari__row.is-today dt { color: var(--insegna); }
+/* "Chiuso" is the most operationally important word on the site. It gets the
+   data colour at 8.27:1, not a grey at 2.22:1. */
+.orari__row.is-closed dd { color: var(--oxblood); font-weight: 600; }
 
 .addr {
   font-style: normal;
-  font-size: 1.06rem;
   line-height: 1.75;
   color: var(--ink-2);
   margin-bottom: 6px;
 }
 .addr strong {
   display: block;
-  font-size: 1.5rem;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-size: var(--fs-500);
+  font-weight: 600;
+  line-height: var(--lh-title);
+  letter-spacing: var(--tr-title);
   color: var(--ink);
   margin-bottom: 10px;
 }
 .addr a { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
 
-/* the map: a rectangle like every other picture on the page, shown at full
-   fidelity. No filter on it: it is a wayfinding tool before it is decoration,
-   and a filter would force an extra compositing layer on mobile. */
 .map {
   position: relative;
   margin-top: 56px;
@@ -799,7 +872,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--r);
-  background: var(--stone-150);
+  background: var(--tufo-200);
 }
 @media (min-width: 900px) { .map { aspect-ratio: 21 / 8; } }
 .map iframe {
@@ -812,13 +885,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* --------------------------------------------------------------------------
-   17. Footer
+   15. Footer
    -------------------------------------------------------------------------- */
 .ftr {
-  background: var(--stone-900);
-  color: var(--stone-300);
+  background: var(--cave-900);
+  color: var(--tufo-200);
   padding-block: 70px 26px;
-  font-size: .95rem;
+  font-size: var(--fs-200);
 }
 .ftr__grid { display: grid; gap: 40px; }
 @media (min-width: 780px) {
@@ -826,19 +899,21 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .ftr__logo { width: 62px; height: 62px; margin-bottom: 18px; }
 .ftr h3 {
-  font-size: .78rem;
-  font-weight: 500;
+  font-size: var(--fs-100);
+  font-weight: 600;
   letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--white);
+  color: var(--tufo-050);
   margin-bottom: 16px;
 }
+/* the second heading in a footer column, which always follows a paragraph */
+.ftr p + h3 { margin-top: 22px; }
 .ftr__tag { max-width: 30ch; margin-bottom: 20px; }
 .ftr a { text-decoration: none; }
 .ftr__nav li + li { margin-top: 10px; }
 .ftr__nav a { transition: color var(--t-fast) var(--ease); }
-.ftr__nav a:hover, .ftr p a:hover { color: var(--white); }
-.ftr__closed { color: rgba(255, 255, 255, .45); }
+.ftr__nav a:hover, .ftr p a:hover { color: var(--tufo-050); }
+.ftr__closed { color: rgba(244, 238, 226, .70); }   /* 6.7:1 */
 
 .social { display: flex; gap: 10px; }
 .social__a {
@@ -846,14 +921,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   place-items: center;
   width: 44px;
   height: 44px;
-  border: 1px solid var(--line-d);
+  border: 1px solid rgba(244, 238, 226, .34);
   border-radius: var(--r);
-  color: var(--stone-300);
+  color: var(--tufo-200);
   transition: color var(--t-fast) var(--ease),
               border-color var(--t-fast) var(--ease),
               background-color var(--t-fast) var(--ease);
 }
-.social__a:hover { color: var(--stone-900); border-color: var(--white); background: var(--white); }
+.social__a:hover { color: var(--cave-900); border-color: var(--tufo-050); background: var(--tufo-050); }
 
 .ftr__base {
   display: flex;
@@ -864,21 +939,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
   margin-top: 54px;
   padding-top: 22px;
   border-top: 1px solid var(--line-d);
-  font-size: .82rem;
+  font-size: var(--fs-100);
 }
-.ftr__note { margin: 0; color: rgba(255, 255, 255, .48); }
+.ftr__note { margin: 0; color: rgba(244, 238, 226, .72); }   /* 7.0:1 */
 .credit {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: rgba(255, 255, 255, .48);
+  color: rgba(244, 238, 226, .72);
   transition: color var(--t-fast) var(--ease);
 }
-.credit:hover { color: var(--white); }
-.credit__logo { width: 58px; height: auto; opacity: .75; }
+.credit:hover { color: var(--tufo-050); }
+.credit__logo { width: 58px; height: auto; opacity: .8; }
 
 /* --------------------------------------------------------------------------
-   18. Dock: persistent thumb zone actions on small screens
+   16. Dock: persistent thumb zone actions on small screens.
+   Its height is measured at runtime (js/main.js) because env(safe-area-inset)
+   adds 34px on a notched iPhone and a hard coded reserve buries the footer.
    -------------------------------------------------------------------------- */
 .dock {
   position: fixed;
@@ -888,7 +965,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
   padding: 9px var(--gut) calc(9px + env(safe-area-inset-bottom));
-  background: rgba(242, 242, 240, .95);
+  background: rgba(244, 238, 226, .95);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--line);
 }
@@ -896,30 +973,30 @@ button, input, select, textarea { font: inherit; color: inherit; }
   min-height: 48px;
   padding: 10px 6px;
   gap: 7px;
-  font-size: .82rem;
+  font-size: var(--fs-100);
   white-space: nowrap;
 }
-.dock .btn--ghost { color: var(--ink); border-color: var(--stone-500); }
-.dock .btn--ghost:hover { background: rgba(46, 44, 41, .07); border-color: var(--stone-900); }
+.dock .btn--ghost { color: var(--ink); border-color: var(--tufo-500); }
+.dock .btn--ghost:hover { background: rgba(35, 29, 22, .07); border-color: var(--cave-900); }
 .dock .ic { width: 1.02em; height: 1.02em; }
 @media (max-width: 370px) {
   .dock { gap: 6px; padding-inline: 12px; }
-  .dock .btn { font-size: .74rem; gap: 5px; }
+  .dock .btn { gap: 5px; }
 }
 @media (min-width: 900px) { .dock { display: none; } }
 
-body.has-dock { padding-bottom: 76px; }
+body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 @media (min-width: 900px) { body.has-dock { padding-bottom: 0; } }
 
 /* --------------------------------------------------------------------------
-   19. Menu page
+   17. Menu page
    -------------------------------------------------------------------------- */
-.menupage { background: var(--stone-050); }
+.menupage { background: var(--tufo-050); }
 
 .mhdr {
-  background: var(--white);
+  background: var(--tufo-100);
   border-bottom: 1px solid var(--line);
-  padding: 0 var(--gut) 48px;
+  padding: 0 var(--gut) 44px;
   text-align: center;
 }
 .mhdr__bar {
@@ -936,33 +1013,38 @@ body.has-dock { padding-bottom: 76px; }
   place-items: center;
   width: 44px;
   height: 44px;
-  border: 1px solid var(--line-2);
+  border: 1px solid var(--tufo-500);
   border-radius: var(--r);
   color: var(--ink);
   transition: border-color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease);
 }
-.mhdr__back:hover { border-color: var(--stone-900); background: rgba(46, 44, 41, .06); }
+.mhdr__back:hover { border-color: var(--cave-900); background: rgba(35, 29, 22, .06); }
 .mhdr__logo { width: 48px; height: 48px; margin-inline: auto; }
-.mhdr__title {
-  font-size: clamp(2rem, 6.5vw, 3rem);
-  margin-top: 34px;
-}
+.mhdr__title { font-size: var(--fs-600); margin-top: 30px; }
 .mhdr__sub {
   margin-top: 12px;
-  font-size: .95rem;
-  color: var(--ink-3);
+  font-size: var(--fs-200);
+  color: var(--ink-2);
 }
 
-/* sticky category rail, offset by the measured bar height */
+/* sticky category rail. Eleven chips, about three of them visible on a phone,
+   with the scrollbar hidden: without an edge fade there is no signal at all
+   that eight more categories exist, and a guest at the table reads the first
+   three and assumes that is the menu. */
 .cats {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(242, 242, 240, .96);
+  background: rgba(244, 238, 226, .96);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 34px), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 34px), transparent 100%);
 }
+@media (min-width: 900px) { .cats { -webkit-mask-image: none; mask-image: none; } }
+
 .cats__inner {
+  position: relative;
   display: flex;
   gap: 4px;
   max-width: var(--maxw);
@@ -973,52 +1055,100 @@ body.has-dock { padding-bottom: 76px; }
   -webkit-overflow-scrolling: touch;
 }
 .cats__inner::-webkit-scrollbar { display: none; }
+
 .cats__link {
   flex: none;
-  padding: 9px 14px;
+  padding: 11px 14px;
   border: 1px solid transparent;
   border-radius: var(--r);
-  font-size: .88rem;
+  font-size: var(--fs-200);
   font-weight: 500;
   white-space: nowrap;
   text-decoration: none;
   color: var(--ink-3);
-  transition: background-color var(--t-fast) var(--ease),
-              color var(--t-fast) var(--ease),
-              border-color var(--t-fast) var(--ease);
+  transition: color var(--t-fast) var(--ease);
 }
-.cats__link:hover { border-color: var(--line-2); color: var(--ink); }
-.cats__link.is-on { background: var(--stone-900); border-color: var(--stone-900); color: var(--stone-050); }
+.cats__link:hover { color: var(--ink); }
+/* the state is carried by the sliding bar below, so the chip itself only
+   changes colour and weight: no black pill jumping 400px across a scroller */
+.cats__link.is-on { color: var(--insegna); font-weight: 600; }
 
+.cats__bar {
+  position: absolute;
+  left: 0;
+  bottom: 4px;
+  height: 2px;
+  width: 1px;
+  background: var(--insegna);
+  transform-origin: left center;
+  transform: translateX(var(--x, 0)) scaleX(var(--w, 0));
+  transition: transform .32s var(--ease-out);
+  pointer-events: none;
+}
+
+/* Rhythm. Eleven identical 56px slabs read as one undifferentiated list; the
+   sections people actually sit and read get room, the reference lists do not. */
 .mband {
-  padding-block: 56px;
+  padding-block: 44px;
   border-bottom: 1px solid var(--line);
   scroll-margin-top: calc(var(--rail-h) + 6px);
 }
+#m-taglieri, #m-panini, #m-vini { padding-block: 72px 64px; }
+#m-contorni, #m-bimbi, #m-bibite { padding-block: 36px; }
 .mband:last-of-type { border-bottom: 0; }
-.mband--alt { background: var(--white); }
+.mband--alt { background: var(--tufo-100); }
 
 .mband__head { margin-bottom: 30px; }
-.mband__title {
-  font-size: clamp(1.6rem, 4.6vw, 2.2rem);
-}
+.mband__title { font-size: var(--fs-600); }
 .mband__hint {
   margin-top: 10px;
-  font-size: .98rem;
-  color: var(--ink-3);
+  font-size: var(--fs-200);
+  color: var(--ink-2);
   max-width: 54ch;
 }
 
-/* a sub group inside a menu section: a plain sub heading, not an eyebrow */
+/* Dalla cucina: the eight cropped dish photographs, round, because the round
+   plate is this venue's own graphic form (see .targa). A menu page about food
+   with no food on it is the one thing a QR menu cannot get away with. */
+.dischi {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px 12px;
+  margin: 0 0 34px;
+}
+@media (min-width: 760px) { .dischi { grid-template-columns: repeat(8, 1fr); gap: 18px; } }
+.disco { margin: 0; }
+.disco img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+  background: var(--tufo-200);
+}
+@media (min-width: 760px) {
+  .disco img { box-shadow: 0 0 0 3px var(--tufo-050), 0 0 0 4px var(--line); }
+  .mband--alt .disco img { box-shadow: 0 0 0 3px var(--tufo-100), 0 0 0 4px var(--line); }
+}
+.disco figcaption {
+  margin-top: 8px;
+  text-align: center;
+  font-size: var(--fs-100);
+  line-height: 1.3;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* a sub group inside a menu section */
 .mgroup {
   margin: 0 0 12px;
   padding-bottom: 10px;
-  border-bottom: 2px solid var(--stone-900);
-  font-size: 1.02rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  border-bottom: 2px solid var(--cave-900);
+  font-size: var(--fs-300);
+  font-weight: 600;
   color: var(--ink);
 }
+.mlist + .mgroup, .ptable + .mgroup { margin-top: 34px; }
 
 .mlist { display: grid; }
 @media (min-width: 880px) {
@@ -1026,34 +1156,30 @@ body.has-dock { padding-bottom: 76px; }
 }
 
 .mitem { padding: 12px 0; border-bottom: 1px solid var(--line); }
-.mitem__line {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-.mitem__name { font-weight: 500; font-size: 1rem; letter-spacing: -0.01em; }
+.mitem__line { display: flex; align-items: baseline; gap: 8px; }
+.mitem__name { font-weight: 500; font-size: var(--fs-300); }
 .mitem__lead {
   flex: 1;
-  border-bottom: 1px dotted var(--stone-300);
+  border-bottom: 1px dotted var(--line-2);
   transform: translateY(-4px);
   min-width: 16px;
 }
 .mitem__price {
-  font-weight: 500;
-  font-size: 1.02rem;
-  color: var(--rosso);
+  font-weight: 700;
+  font-size: var(--fs-300);
+  color: var(--oxblood);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .mitem__desc {
   margin: 5px 0 0;
-  font-size: .92rem;
+  font-size: var(--fs-200);
   line-height: 1.55;
   color: var(--ink-3);
   max-width: 48ch;
 }
 .mitem__note {
-  font-size: .8rem;
+  font-size: var(--fs-100);
   color: var(--ink-3);
   white-space: nowrap;
 }
@@ -1062,44 +1188,57 @@ body.has-dock { padding-bottom: 76px; }
   display: inline-block;
   margin-left: 8px;
   padding: 2px 8px;
-  border: 1px solid var(--rosso);
+  border: 1px solid var(--oxblood);
   border-radius: var(--r);
-  font-size: .68rem;
-  font-weight: 500;
+  font-size: var(--fs-100);
+  font-weight: 600;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--rosso);
+  color: var(--oxblood);
   vertical-align: .1em;
 }
-.flag--novita { border-color: var(--stone-500); color: var(--stone-500); }
+.flag--novita { border-color: var(--insegna); color: var(--insegna); }
 
 /* the maxi tagliere offer */
 .offer {
   margin-top: 34px;
   padding: 30px 28px;
-  background: var(--stone-900);
-  color: var(--white);
+  background: var(--cave-900);
+  color: var(--tufo-200);
   border-radius: var(--r);
 }
 .offer__eyebrow {
-  font-size: .72rem;
-  font-weight: 500;
-  letter-spacing: .16em;
+  font-size: var(--fs-100);
+  font-weight: 600;
+  letter-spacing: var(--tr-caps);
   text-transform: uppercase;
-  color: var(--stone-300);
+  color: var(--gold);
   margin-bottom: 10px;
 }
-.offer__t { font-size: 1.6rem; margin-bottom: 4px; }
-.offer__min { font-size: .9rem; color: var(--stone-300); margin-bottom: 22px; }
+.offer__t {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: var(--fs-500);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  color: var(--tufo-050);
+  margin-bottom: 6px;
+}
+.offer__min { font-size: var(--fs-200); color: var(--tufo-300); margin-bottom: 22px; }
 .offer__opt { padding: 18px 0; border-top: 1px solid var(--line-d); }
-.offer__opt p { margin: 0 0 8px; color: rgba(255, 255, 255, .88); font-size: .98rem; }
-.offer__pp { font-size: 1.35rem; font-weight: 500; letter-spacing: -0.02em; }
+.offer__opt p { margin: 0 0 8px; color: var(--tufo-200); font-size: var(--fs-200); }
+.offer__pp {
+  font-size: var(--fs-500);
+  font-weight: 700;
+  color: var(--tufo-050);
+  font-variant-numeric: tabular-nums;
+}
 .offer__pp small {
-  font-size: .74rem;
+  font-size: var(--fs-100);
   font-weight: 400;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--stone-300);
+  color: var(--tufo-300);
   margin-left: 8px;
 }
 
@@ -1112,12 +1251,12 @@ body.has-dock { padding-bottom: 76px; }
 }
 .ptable__h {
   padding-bottom: 10px;
-  border-bottom: 2px solid var(--stone-900);
-  font-size: .74rem;
-  font-weight: 500;
+  border-bottom: 2px solid var(--cave-900);
+  font-size: var(--fs-100);
+  font-weight: 600;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
   text-align: right;
 }
 .ptable__h:first-child { text-align: left; }
@@ -1129,8 +1268,8 @@ body.has-dock { padding-bottom: 76px; }
 .ptable__p {
   padding: 12px 0;
   border-bottom: 1px solid var(--line);
-  color: var(--rosso);
-  font-weight: 500;
+  color: var(--oxblood);
+  font-weight: 700;
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -1138,20 +1277,20 @@ body.has-dock { padding-bottom: 76px; }
 
 .mnote {
   margin-top: 22px;
-  font-size: .92rem;
+  font-size: var(--fs-200);
   line-height: 1.6;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 .mnote--box {
   padding: 18px 20px;
-  border-left: 2px solid var(--rosso);
-  background: var(--white);
+  border-left: 2px solid var(--insegna);
+  background: var(--tufo-100);
   border-radius: 0 var(--r) var(--r) 0;
 }
-.mband--alt .mnote--box { background: var(--stone-050); }
+.mband--alt .mnote--box { background: var(--tufo-050); }
 
 /* --------------------------------------------------------------------------
-   20. Forms. Every class below is rendered by js/booking.js, which owns no
+   18. Forms. Every class below is rendered by js/booking.js, which owns no
    stylesheet of its own: the names are a contract, do not rename them.
    -------------------------------------------------------------------------- */
 .field { margin-bottom: 20px; }
@@ -1159,13 +1298,13 @@ body.has-dock { padding-bottom: 76px; }
 .label {
   display: block;
   margin-bottom: 8px;
-  font-size: .8rem;
-  font-weight: 500;
+  font-size: var(--fs-100);
+  font-weight: 600;
   letter-spacing: .1em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
-.label .req { color: var(--rosso); }
+.label .req { color: var(--oxblood); }
 
 .input,
 .select,
@@ -1177,40 +1316,40 @@ body.has-dock { padding-bottom: 76px; }
   font-size: 16px;
   line-height: 1.5;
   color: var(--ink);
-  background: var(--white);
-  border: 1px solid var(--stone-500);
+  background: var(--tufo-050);
+  border: 1px solid var(--tufo-500);
   border-radius: var(--r);
   transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
   appearance: none;
 }
 .textarea { min-height: 108px; resize: vertical; }
-.input::placeholder, .textarea::placeholder { color: var(--stone-500); }
+.input::placeholder, .textarea::placeholder { color: var(--tufo-500); }
 
-.input:hover, .select:hover, .textarea:hover { border-color: var(--stone-900); }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--cave-900); }
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
-  border-color: var(--rosso);
-  box-shadow: inset 0 0 0 1px var(--rosso);
+  border-color: var(--insegna);
+  box-shadow: inset 0 0 0 1px var(--insegna);
 }
 .input[aria-invalid='true'],
 .textarea[aria-invalid='true'] {
-  border-color: var(--rosso);
-  box-shadow: inset 0 0 0 1px var(--rosso);
+  border-color: var(--oxblood);
+  box-shadow: inset 0 0 0 1px var(--oxblood);
 }
 
 .ferr {
   display: block;
   margin-top: 7px;
-  font-size: .86rem;
-  font-weight: 500;
-  color: var(--rosso);
+  font-size: var(--fs-200);
+  font-weight: 600;
+  color: var(--oxblood);
 }
 .ferr:empty { display: none; }
 
 .hint {
   display: block;
   margin-top: 7px;
-  font-size: .86rem;
+  font-size: var(--fs-200);
   color: var(--ink-3);
 }
 
@@ -1218,7 +1357,7 @@ body.has-dock { padding-bottom: 76px; }
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  font-size: .95rem;
+  font-size: var(--fs-200);
   line-height: 1.55;
   color: var(--ink-2);
   cursor: pointer;
@@ -1228,7 +1367,7 @@ body.has-dock { padding-bottom: 76px; }
   width: 22px;
   height: 22px;
   margin: 1px 0 0;
-  accent-color: var(--rosso);
+  accent-color: var(--insegna);
   cursor: pointer;
 }
 
@@ -1241,22 +1380,24 @@ body.has-dock { padding-bottom: 76px; }
   margin-bottom: 18px;
   padding: 0 0 12px;
   border-bottom: 1px solid var(--line);
-  font-size: 1.1rem;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-size: var(--fs-500);
+  font-weight: 600;
+  line-height: var(--lh-title);
+  letter-spacing: var(--tr-title);
   color: var(--ink);
 }
 .legend__n {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   flex: none;
   border-radius: var(--r);
-  background: var(--stone-900);
-  color: var(--white);
-  font-size: .78rem;
-  font-weight: 500;
+  background: var(--insegna);
+  color: var(--tufo-050);
+  font-family: var(--ff-body);
+  font-size: var(--fs-100);
+  font-weight: 700;
 }
 
 /* honeypot: off screen rather than display:none, some bots skip hidden inputs
@@ -1285,27 +1426,29 @@ body.has-dock { padding-bottom: 76px; }
   flex: none;
   min-height: 48px;
   padding: 9px 16px;
-  border: 1px solid var(--line-2);
+  /* the primary control surface of the booking flow: the edge has to clear
+     3:1 against the card it sits on, which a 28% black hairline does not */
+  border: 1px solid var(--tufo-500);
   border-radius: var(--r);
-  background: var(--white);
+  background: var(--tufo-050);
   color: var(--ink);
-  font-size: .93rem;
-  font-weight: 500;
+  font-size: var(--fs-200);
+  font-weight: 600;
   cursor: pointer;
   text-align: center;
   transition: border-color var(--t-fast) var(--ease),
               background-color var(--t-fast) var(--ease),
               color var(--t-fast) var(--ease);
 }
-.chip:hover:not([disabled]) { border-color: var(--stone-900); }
+.chip:hover:not([disabled]) { border-color: var(--cave-900); }
 .chip[aria-pressed='true'],
 .chip.is-on {
-  background: var(--stone-900);
-  border-color: var(--stone-900);
-  color: var(--white);
+  background: var(--insegna);
+  border-color: var(--insegna);
+  color: var(--tufo-050);
 }
 .chip[disabled] {
-  opacity: .4;
+  opacity: .5;
   cursor: not-allowed;
   text-decoration: line-through;
 }
@@ -1317,9 +1460,9 @@ body.has-dock { padding-bottom: 76px; }
   padding: 9px 12px;
   line-height: 1.2;
 }
-.chip--day b { font-weight: 500; font-size: 1.12rem; letter-spacing: -0.02em; }
-.chip--day span { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; opacity: .75; }
-.chip--day.is-closed { opacity: .35; }
+.chip--day b { font-weight: 700; font-size: var(--fs-300); }
+.chip--day span { font-size: var(--fs-100); letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+.chip--day.is-closed { opacity: .45; }
 
 /* a time slot is a two line chip: the hour, and the sold out marker under it.
    The second line always renders so a row of slots stays level. */
@@ -1327,85 +1470,106 @@ body.has-dock { padding-bottom: 76px; }
 .chip--ora span { min-height: .95em; }
 
 /* --------------------------------------------------------------------------
-   21. Prenota page
+   19. Prenota page
    -------------------------------------------------------------------------- */
-.prenota { background: var(--stone-050); padding-block: 52px 84px; }
+.prenota { background: var(--tufo-050); padding-block: 46px 84px; }
 .prenota__grid { display: grid; gap: 34px; align-items: start; }
 @media (min-width: 980px) {
-  .prenota__grid { grid-template-columns: 1.5fr 1fr; gap: 56px; }
+  .prenota__grid { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 56px; }
 }
+
+/* the room, above the summary, so the card reads as a caption to a place
+   rather than a black box floating on grey. It scrolls; the summary under it
+   is the thing worth pinning, and two sticky siblings in one column would
+   simply paint over each other. */
+.prenota__shot {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: var(--r);
+  margin-bottom: 20px;
+  background: var(--tufo-200);
+}
+.prenota__shot img { width: 100%; height: 100%; object-fit: cover; }
+@media (min-width: 980px) { .prenota__shot { aspect-ratio: 3 / 4; } }
+
+.prenota__intro { padding-block: 44px 36px; }
 
 .card {
   padding: 26px 22px;
-  background: var(--white);
+  background: var(--tufo-100);
   border: 1px solid var(--line);
   border-radius: var(--r);
 }
 @media (min-width: 860px) { .card { padding: 36px 34px; } }
+.card + .card { margin-top: 20px; }
 
 .riepilogo {
   position: sticky;
   top: calc(var(--bar-h) + 22px);
   padding: 26px 24px;
-  background: var(--stone-900);
-  color: var(--white);
+  background: var(--cave-900);
+  color: var(--tufo-200);
   border-radius: var(--r);
 }
-.riepilogo h2 { font-size: 1.2rem; margin-bottom: 20px; }
+.riepilogo h2 { font-size: var(--fs-500); color: var(--tufo-050); margin-bottom: 20px; }
 .riepilogo__row {
   display: flex;
   justify-content: space-between;
   gap: 16px;
   padding: 12px 0;
   border-bottom: 1px solid var(--line-d);
-  font-size: .95rem;
+  font-size: var(--fs-200);
 }
 .riepilogo__row:last-of-type { border-bottom: 0; }
-.riepilogo__k { color: var(--stone-300); }
-.riepilogo__v { font-weight: 500; text-align: right; }
+.riepilogo__k { color: var(--tufo-300); }
+.riepilogo__v { font-weight: 600; text-align: right; color: var(--tufo-050); }
 .riepilogo__note {
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px solid var(--line-d);
-  font-size: .86rem;
+  font-size: var(--fs-100);
   line-height: 1.6;
-  color: var(--stone-300);
+  color: var(--tufo-300);
 }
 
 /* status boxes */
 .alert {
   padding: 15px 17px;
   border-radius: var(--r);
-  font-size: .95rem;
+  font-size: var(--fs-200);
   line-height: 1.55;
   margin-bottom: 20px;
-  border-left: 2px solid var(--stone-500);
-  background: var(--stone-150);
+  border-left: 2px solid var(--tufo-500);
+  background: var(--tufo-050);
   color: var(--ink-2);
 }
-.alert--err { border-left-color: var(--rosso); color: #8E2A1E; background: rgba(192, 57, 43, .07); }
-.alert--ok  { border-left-color: var(--stone-900); color: var(--ink); background: var(--stone-150); }
-.alert--info{ border-left-color: var(--stone-500); color: var(--ink-2); background: var(--stone-150); }
+.alert--err  { border-left-color: var(--oxblood); color: var(--oxblood); background: rgba(122, 42, 46, .07); }
+.alert--ok   { border-left-color: var(--insegna); color: var(--ink); background: rgba(18, 67, 52, .08); }
+.alert--info { border-left-color: var(--tufo-500); color: var(--ink-2); background: var(--tufo-050); }
 
 /* the confirmed booking card */
 .done { text-align: center; padding: 12px 0 4px; }
 .done__t {
-  font-size: clamp(1.6rem, 5vw, 2.05rem);
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: var(--fs-500);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
   margin-bottom: 12px;
 }
 .done__code {
   display: inline-block;
   margin: 16px 0 20px;
   padding: 13px 24px;
-  border: 1px solid var(--stone-900);
+  border: 1px solid var(--cave-900);
   border-radius: var(--r);
-  font-size: 1.6rem;
-  font-weight: 500;
+  font-size: var(--fs-500);
+  font-weight: 700;
   letter-spacing: .1em;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
-.done__when { font-size: 1.06rem; font-weight: 500; margin-bottom: 6px; }
+.done__when { font-size: var(--fs-400); font-weight: 600; margin-bottom: 6px; }
 .done .cta-row { justify-content: center; }
 
 /* skeleton while availability loads */
@@ -1413,9 +1577,9 @@ body.has-dock { padding-bottom: 76px; }
   height: 52px;
   border-radius: var(--r);
   background: linear-gradient(100deg,
-    rgba(46, 44, 41, .06) 30%,
-    rgba(46, 44, 41, .13) 50%,
-    rgba(46, 44, 41, .06) 70%);
+    rgba(35, 29, 22, .06) 30%,
+    rgba(35, 29, 22, .14) 50%,
+    rgba(35, 29, 22, .06) 70%);
   background-size: 220% 100%;
   animation: shimmer 1.3s linear infinite;
 }
@@ -1433,13 +1597,13 @@ body.has-dock { padding-bottom: 76px; }
 }
 
 /* --------------------------------------------------------------------------
-   22. Tris. Printed on their real paper placemats, so it stays.
+   20. Tris. Printed on their real paper placemats, so it stays.
    -------------------------------------------------------------------------- */
 .tris__mat {
   max-width: 330px;
   margin: 0 auto;
   padding: 22px;
-  background: var(--white);
+  background: var(--tufo-100);
   border: 1px solid var(--line);
   border-radius: var(--r);
 }
@@ -1447,58 +1611,56 @@ body.has-dock { padding-bottom: 76px; }
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
-  background: var(--stone-300);
-  border: 1px solid var(--stone-300);
+  background: var(--tufo-300);
+  border: 1px solid var(--tufo-300);
 }
 .tris__cell {
   aspect-ratio: 1;
   display: grid;
   place-items: center;
   border: 0;
-  background: var(--white);
+  background: var(--tufo-050);
   cursor: pointer;
   transition: background-color var(--t-fast) var(--ease);
 }
-.tris__cell:hover:not([disabled]) { background: var(--stone-150); }
+.tris__cell:hover:not([disabled]) { background: var(--tufo-100); }
 .tris__cell[disabled] { cursor: default; }
-.tris__cell.is-win { background: rgba(192, 57, 43, .12); }
+.tris__cell.is-win { background: rgba(122, 42, 46, .14); }
 .mk { width: 60%; height: 60%; }
 .mk__p { fill: none; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
-.tris__cell[data-p='x'] .mk__p { stroke: var(--rosso); }
-.tris__cell[data-p='o'] .mk__p { stroke: var(--stone-900); }
+.tris__cell[data-p='x'] .mk__p { stroke: var(--oxblood); }
+.tris__cell[data-p='o'] .mk__p { stroke: var(--insegna); }
 .tris__status {
   margin-top: 18px;
   text-align: center;
-  font-weight: 500;
+  font-weight: 600;
   min-height: 1.6em;
 }
 
 /* --------------------------------------------------------------------------
-   23. Informativa. The only long prose page, so it gets its own measure.
+   21. Informativa. The only long prose page, so it gets its own measure.
    -------------------------------------------------------------------------- */
 .doc {
-  max-width: 68ch;
-  font-size: 1.02rem;
+  max-width: var(--m-body);
   line-height: 1.78;
   color: var(--ink-2);
 }
 .doc h2 {
   margin: 46px 0 14px;
-  font-size: 1.38rem;
-  line-height: 1.25;
+  font-size: var(--fs-500);
   color: var(--ink);
 }
 .doc h2:first-of-type { margin-top: 32px; }
-.doc h3 { margin: 28px 0 8px; font-size: 1.04rem; color: var(--ink); }
+.doc h3 { margin: 28px 0 8px; font-size: var(--fs-400); color: var(--ink); }
 .doc p { margin: 0 0 15px; }
-.doc strong { color: var(--ink); font-weight: 500; }
-.doc a { color: var(--rosso); text-decoration: underline; text-underline-offset: 4px; }
-.doc a:hover { color: var(--rosso-700); }
+.doc strong { color: var(--ink); font-weight: 600; }
+.doc a { color: var(--insegna); text-decoration: underline; text-underline-offset: 4px; }
+.doc a:hover { color: #0C2E24; }
 .doc ul { margin: 0 0 18px; padding-left: 22px; list-style: disc; }
 .doc li { margin-bottom: 8px; }
 .doc__date {
-  font-size: .78rem;
-  font-weight: 500;
+  font-size: var(--fs-100);
+  font-weight: 600;
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--ink-3);
@@ -1506,106 +1668,139 @@ body.has-dock { padding-bottom: 76px; }
 .doc__box {
   margin-top: 38px;
   padding: 22px 24px;
-  background: var(--white);
-  border-left: 2px solid var(--rosso);
+  background: var(--tufo-100);
+  border-left: 2px solid var(--insegna);
   border-radius: 0 var(--r) var(--r) 0;
-  font-size: .98rem;
+  font-size: var(--fs-200);
 }
 
+/* --------------------------------------------------------------------------
+   22. 404. Pages serves this file for unknown URLs at any depth, so the page
+   carries <base href="/porca-porchetta/"> and can then use this stylesheet
+   like every other page. (It used to inline its own <style>, which the CSP in
+   netlify.toml blocks outright under style-src 'self'.)
+   -------------------------------------------------------------------------- */
+.e404 {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 48px var(--gut);
+}
+.e404__box { max-width: 34rem; }
+.e404__logo { width: 62px; height: 62px; margin: 0 0 32px; }
+.e404__n {
+  font-size: var(--fs-100);
+  font-weight: 600;
+  letter-spacing: var(--tr-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 0 0 14px;
+}
+.e404__t {
+  font-family: var(--ff-display);
+  font-weight: 400;
+  font-size: var(--fs-600);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  margin: 0 0 16px;
+  max-width: var(--m-display);
+}
+.e404__lede { margin: 0 0 34px; color: var(--ink-2); max-width: var(--m-lede); font-size: var(--fs-400); }
+
 /* ==========================================================================
-   24. MOTION
-   Dial 7. Six effects, each with a job:
-     a. hero photograph settles in on load          storytelling
-     b. hero headline arrives line by line          hierarchy
-     c. scroll reveal on blocks                     hierarchy
-     d. photographs unfurl at reading pace          storytelling
-     e. hover on a photograph, caption rule draws   feedback
-     f. header changes state past the hero          state transition
-   The counted facts and the sticky chapter crossfade are driven from
-   js/main.js with IntersectionObserver. There is no scroll listener anywhere.
-   Everything below is disabled by the reduced motion block at the end.
+   23. MOTION
+   Five effects, each with a job:
+     a. hero headline arrives line by line             hierarchy
+     b. the descent: the page goes dark into the cave  storytelling
+     c. the sticky chapter reads as a camera move      storytelling
+     d. section heads fade up                          hierarchy
+     e. the targa swings, the rail indicator slides    feedback
+   No scroll listener anywhere: IntersectionObserver in js/main.js and CSS
+   scroll driven animation where the browser has it. Everything below is
+   disabled by the reduced motion block at the end.
    ========================================================================== */
 
-/* a + b: entrance, only on the landing hero, once, on load */
+/* a: entrance, only on the landing hero, once, on load */
 @media (prefers-reduced-motion: no-preference) {
-  .js-anim .hero__frame img {
-    animation: hero-settle 1.8s var(--ease) both;
-  }
+  .js-anim .hero__frame img { animation: hero-settle 1.8s var(--ease) both; }
   @keyframes hero-settle {
-    from { transform: scale(1.09); }
+    from { transform: scale(1.07); }
     to   { transform: scale(1); }
   }
 
   .js-anim .hero__h1 .ln > span {
     animation: line-up 1s var(--ease) both;
-    animation-delay: calc(.12s + var(--i, 0) * .11s);
+    animation-delay: .12s;
   }
+  .js-anim .hero__h1 .ln:nth-child(2) > span { animation-delay: .23s; }
+  .js-anim .hero__h1 .ln:nth-child(3) > span { animation-delay: .34s; }
   @keyframes line-up {
     from { transform: translateY(105%); }
     to   { transform: translateY(0); }
   }
 
-  .js-anim .hero__inner > .eyebrow,
-  .js-anim .hero__inner > .hero__lede,
-  .js-anim .hero__inner > .cta-row {
+  .js-anim .hero__type > .eyebrow,
+  .js-anim .hero__type > .hero__lede,
+  .js-anim .hero__type > .cta-row {
     animation: soft-up .9s var(--ease) both;
   }
-  .js-anim .hero__inner > .eyebrow    { animation-delay: .05s; }
-  .js-anim .hero__inner > .hero__lede { animation-delay: .42s; }
-  .js-anim .hero__inner > .cta-row    { animation-delay: .54s; }
+  .js-anim .hero__type > .eyebrow    { animation-delay: .05s; }
+  .js-anim .hero__type > .hero__lede { animation-delay: .42s; }
+  .js-anim .hero__type > .cta-row    { animation-delay: .54s; }
   @keyframes soft-up {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: none; }
   }
 }
 
-/* c: scroll reveal. The class is added by IntersectionObserver, once. */
+/* d: scroll reveal, on section heads only. Four mosaic photographs each
+   independently zooming and fading is decoration, so the scale is gone and
+   the frames are not in the reveal set any more. */
 .js-anim .rev {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity var(--t-slow) var(--ease), transform var(--t-slow) var(--ease);
+  transform: translateY(18px);
+  transition: opacity .62s var(--ease), transform .62s var(--ease);
   transition-delay: var(--d, 0ms);
 }
 .js-anim .rev.is-in { opacity: 1; transform: none; }
 
-/* the accent rule draws in with the block it belongs to */
-.js-anim .rev .rule { transform: scaleX(0); transition: transform .9s var(--ease) 120ms; }
-.js-anim .rev.is-in .rule { transform: scaleX(1); }
+/* e: the targa is a physical object on a chain, so it is the one place an
+   overshoot is honest */
+.js-anim .targa__ring { transform: rotate(-8deg); opacity: 0; transition: none; }
+.js-anim .targa.is-in .targa__ring {
+  transform: rotate(-3.5deg);
+  opacity: 1;
+  transition: transform .62s var(--ease-swing), opacity .4s linear;
+}
+.js-anim .targa.is-in:hover .targa__ring,
+.js-anim .targa.is-in:focus-within .targa__ring {
+  transform: rotate(1.5deg);
+  transition: transform .42s var(--ease-swing);
+}
 
-/* d: photographs. Where the browser has scroll driven animation the picture
-   unfurls against the scroll position and costs no JavaScript at all. Where it
-   does not, the same move runs off the IntersectionObserver class. */
+/* the photographs settle against the scroll position where the browser has
+   scroll driven animation, and cost no JavaScript at all. They never start
+   faded: the moment the guest first sees the tagliere is not the moment to
+   show it at half opacity. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .ph img {
       animation: ph-in linear both;
       animation-timeline: view();
-      animation-range: entry 4% cover 38%;
+      animation-range: entry 12% cover 30%;
     }
     @keyframes ph-in {
-      from { transform: scale(1.12); opacity: .5; }
-      to   { transform: scale(1); opacity: 1; }
+      from { transform: scale(1.06); }
+      to   { transform: scale(1); }
     }
-    /* the hero and the sticky chapter run their own timing */
-    .hero__frame img, .chapter__shot img { animation: none; }
+    .hero__frame img, .chapter__shot img, .disco img, .prenota__shot img { animation: none; }
   }
-}
-@supports not (animation-timeline: view()) {
-  .js-anim .ph img {
-    transform: scale(1.1);
-    opacity: .5;
-    transition: transform 1.1s var(--ease), opacity .9s var(--ease);
-  }
-  .js-anim .ph.is-in img { transform: scale(1); opacity: 1; }
-  .js-anim .hero__frame img, .js-anim .chapter__shot img { transform: none; opacity: 1; }
 }
 
-/* e: hover. Pointer devices only, and slow enough to read as material. */
+/* hover. Pointer devices only, and slow enough to read as material. */
 @media (hover: hover) and (pointer: fine) {
   .mosaic__cell .ph img,
-  .split .ph img {
-    transition: transform .7s var(--ease);
-  }
+  .split .ph img { transition: transform .7s var(--ease); }
   .mosaic__cell:hover .ph img,
   .split:hover .ph img { transform: scale(1.035); }
 
@@ -1617,7 +1812,7 @@ body.has-dock { padding-bottom: 76px; }
     bottom: -6px;
     width: 100%;
     height: 2px;
-    background: var(--rosso);
+    background: var(--insegna);
     transform: scaleX(0);
     transform-origin: left center;
     transition: transform .5s var(--ease);
@@ -1626,9 +1821,9 @@ body.has-dock { padding-bottom: 76px; }
 }
 
 /* --------------------------------------------------------------------------
-   25. Reduced motion. Everything above genuinely stops: no entrance, no scroll
-   driven animation, no hover scale, no crossfade delay. Nothing is merely
-   shortened.
+   24. Reduced motion. Everything above genuinely stops: no entrance, no scroll
+   driven animation, no hover scale, no crossfade, no swing. Nothing is merely
+   shortened, and every page stays fully composed and readable.
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -1640,21 +1835,33 @@ body.has-dock { padding-bottom: 76px; }
   .js-anim .ph img,
   .hero__frame img,
   .hero__h1 .ln > span,
-  .hero__inner > * {
+  .hero__type > * {
     opacity: 1 !important;
     transform: none !important;
   }
-  .js-anim .rev .rule { transform: none !important; }
-  .skel { background: rgba(46, 44, 41, .09); }
+  /* the light never closes down; the chapter keeps its ground and its ramps,
+     so the descent is still there, it just does not move */
+  .chapter__stage::after { opacity: 0 !important; }
+  /* the targa stops swinging and stops tilting; it takes the gold ring
+     instead, so it is still marked as an object rather than a heading */
+  .targa__ring, .js-anim .targa__ring, .js-anim .targa.is-in .targa__ring {
+    transform: none !important;
+    opacity: 1 !important;
+    box-shadow: inset 0 0 0 3px var(--gold), inset 0 0 0 5px var(--oxblood);
+  }
+  .chapter__shot { transition: none; }
+  .cats__bar { transition: none; }
+  .skel { background: rgba(35, 29, 22, .09); }
 }
 
 /* --------------------------------------------------------------------------
-   26. Print. The menu is the page people actually print.
+   25. Print. The menu is the page people actually print.
    -------------------------------------------------------------------------- */
 @media print {
-  .hdr, .dock, .cats, .lang, .hero, .strip, .tris, .btn, .chapter { display: none !important; }
+  .hdr, .dock, .cats, .lang, .hero, .strip, .tris, .btn, .chapter,
+  .dischi, .targa { display: none !important; }
   body, .menupage, .mband, .mband--alt { background: #fff !important; color: #000 !important; }
-  .mband { break-inside: avoid; border-bottom: 1px solid #ccc; }
+  .mband { break-inside: avoid; border-bottom: 1px solid #ccc; padding-block: 24px !important; }
   .mitem__price, .ptable__p { color: #000 !important; }
   .offer { background: #fff !important; color: #000 !important; border: 1px solid #000; }
   .offer__t, .offer__pp, .offer__eyebrow, .offer__min { color: #000 !important; }

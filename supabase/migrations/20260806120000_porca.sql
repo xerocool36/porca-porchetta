@@ -2,11 +2,11 @@
 -- 20260806120000_porca.sql  —  Porca Porchetta (Via del Trivio 31, Anguillara Sabazia)
 --                              booking engine
 --
--- Ported from the x3ro shared booking engine already running for the other restaurant
--- tenants in this Supabase project (the lineage starts with Mythos). Same security
--- model, same no-overbook mechanism, different tenant: everything lives in schema
--- `porca`. Nothing outside that schema is created, altered or referenced, except a
--- read-only FK to auth.users(id) for the admin allow-list.
+-- Built on the x3ro self-hosted booking engine, already proven in production
+-- elsewhere. Everything lives in schema `porca`. Nothing outside that schema is
+-- created, altered or referenced, except a read-only FK to auth.users(id) for the
+-- admin allow-list — so this migration is portable as-is to a dedicated Supabase
+-- project when the site moves to the owner's own account.
 --
 -- APPLY AS ONE TRANSACTION, e.g.
 --     psql -v ON_ERROR_STOP=1 -1 -f 20260806120000_porca.sql "$SUPABASE_DB_URL"
@@ -73,8 +73,20 @@
 --      "no active window for this dow" as closed. Do not add an inactive row instead.
 --   4. Booking codes carry the PP- prefix, unique to this tenant.
 --   5. max_party is 8 (upstream used 6). Above that the guests phone the fraschetta on
---      06 6549 5256 and the house places them by hand.
+--      06 6549 5256 and the house places them by hand. That number lives ONLY in
+--      porca.settings.max_party: porca.book() is the single place that refuses an
+--      oversized party, and the Edge Function must not duplicate the threshold.
 --   6. The advisory-lock namespace is 'porca:' — see SHARED DATABASE above.
+--   7. CLOSURES CARRY A BAND. The engine this is built on could only shut a whole day. This
+--      venue runs TWO services at the weekend, so "chiuso a pranzo sabato, aperto a
+--      cena" has to be expressible or the owner ends up closing the whole Saturday.
+--      porca.closures.band is null (= the whole day) or the name of ONE service:
+--      'pranzo' or 'cena'. The band is matched against service_windows.service and
+--      bookings.service — not against a clock threshold — so it cannot drift when
+--      the owner moves the hours from the console.
+--      A 'giornata' window is only ever shut by a whole-day closure; admin_block()
+--      refuses a banded closure on a date whose weekday runs one, rather than
+--      silently doing nothing (see porca.admin_block).
 --
 --   Kept from upstream, unchanged and on purpose:
 --   * Guest e-mail is REQUIRED, not optional. porca.book() refuses a missing or
@@ -114,11 +126,28 @@ alter default privileges in schema porca revoke all on sequences from public;
 -- capacity_seats: 60 — CONFIRMED BY THE OWNER. It stays a settings row rather than a
 -- constant so the console can change it (Impostazioni → Posti in sala) without a
 -- migration; nothing in the code hard-codes 60.
+--
+-- OPEN QUESTION FOR THE OWNER — the 120-minute turn against the lunch close.
+--   Every last_seating in the seed is pulled back so a 90-minute turn ends exactly at
+--   closing (see SEED at the foot of this file). A party over small_party_max (4) gets
+--   turn_minutes_large instead, and at lunch that overruns:
+--       pranzo  last seating 13:00 + 120' = 15:00   vs a 14:30 close  (30' over)
+--       cena    last seating 21:30 + 120' = 23:30   vs a 23:00 close  (30' over)
+--   Capacity maths is unaffected — peak_covers() only ever compares bookings with each
+--   other, never with the closing time — so nothing is overbooked. What happens is that
+--   the house seats a 5+ top at 13:00 that legitimately sits past closing.
+--   NOT CHANGED HERE ON PURPOSE. The three ways out are all the owner's call:
+--     (a) accept it (a fraschetta at 15:00 on a Saturday is not a crisis),
+--     (b) pull the large-party last seating back — needs a per-turn last_seating,
+--         which service_windows does not have today, or
+--     (c) drop turn_minutes_large to 90 and treat every table the same.
+--   Put it to the owner before go-live; do not silently pick one.
 create table if not exists porca.settings (
   id                 boolean     primary key default true check (id),
   capacity_seats     int         not null default 60,   -- peak simultaneous covers allowed
   turn_minutes_small int         not null default 90,   -- party <= small_party_max
-  turn_minutes_large int         not null default 120,  -- party >  small_party_max
+  turn_minutes_large int         not null default 120,  -- party >  small_party_max; see the
+                                                        -- OPEN QUESTION note above
   small_party_max    int         not null default 4,
   max_party          int         not null default 8,    -- above this: phone the fraschetta
   lead_minutes       int         not null default 60,   -- no online booking inside this window
@@ -137,21 +166,44 @@ create table if not exists porca.settings (
 create table if not exists porca.service_windows (
   id            int         generated always as identity primary key,
   dow           int         not null check (dow between 0 and 6),   -- 0 = Sunday
-  service       text        not null check (service in ('giornata','pranzo','cena')),
+  service       text        not null,
   opens         time        not null,
   last_seating  time        not null,
   slot_minutes  int         not null default 30 check (slot_minutes in (15,30)),
   active        boolean     not null default true,
+  -- Named for the same reason as bookings_status_chk below: this file openly
+  -- anticipates the service list changing (see 'giornata' in the header), and a
+  -- later migration must be able to drop this constraint BY NAME rather than by
+  -- pattern-matching a body Postgres has rewritten.
+  constraint service_windows_service_chk
+    check (service in ('giornata','pranzo','cena')),
   constraint service_windows_dow_service_key unique (dow, service),
   constraint service_windows_order_chk check (opens < last_seating)
 );
 
 -- closures ---------------------------------------------------------------------------
+-- One row per closed DATE. `band` says how much of that date is shut:
+--     null      the whole day — every service
+--     'pranzo'  lunch only; dinner stays bookable
+--     'cena'    dinner only; lunch stays bookable
+--
+-- The band is a SERVICE NAME, matched against service_windows.service and
+-- bookings.service. It is deliberately not a clock threshold: the owner can move the
+-- hours from the console and a banded closure keeps meaning the same thing.
+--
+-- The primary key stays the date, so the two bands can never contradict each other:
+-- closing the second half of a day is an UPDATE to band = null (whole day), not a
+-- second row that nobody would think to delete.
 create table if not exists porca.closures (
   d          date        primary key,
+  band       text,       -- null = whole day; else the one service that is shut
   note       text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint closures_band_chk check (band is null or band in ('pranzo','cena'))
 );
+
+comment on column porca.closures.band is
+  $c$Which service is shut on this date: null = the whole day, else 'pranzo' or 'cena'. Matched against service_windows.service / bookings.service, never against a clock time.$c$;
 
 -- bookings ---------------------------------------------------------------------------
 -- phone_tail is a plain column, NOT a generated column: gdpr_purge() must be able to
@@ -166,7 +218,7 @@ create table if not exists porca.bookings (
   code          text        not null,
   service_date  date        not null,   -- Rome-local calendar date of the meal
   slot_time     time        not null,   -- Rome-local wall time of the seating
-  service       text        not null check (service in ('giornata','pranzo','cena')),
+  service       text        not null,   -- see bookings_service_chk below
   starts_at     timestamptz not null,
   ends_at       timestamptz not null,   -- starts_at + turn_minutes(party)
   party         int         not null check (party between 1 and 40),
@@ -175,12 +227,27 @@ create table if not exists porca.bookings (
   phone_tail    text        not null,   -- last 4 digits; guest self-cancel secret
   email         text,
   notes         text,
-  status        text        not null default 'confirmed'
-                            check (status in ('confirmed','cancelled','noshow','seated')),
+  status        text        not null default 'confirmed',
   source        text        not null default 'web',
   created_at    timestamptz not null default now(),
   cancelled_at  timestamptz,
   anonymized_at timestamptz,
+  -- NAMED ON PURPOSE. An anonymous `check (...)` here would be stored as
+  -- bookings_status_check with the body rewritten to `status = ANY (ARRAY[...])` —
+  -- note that the rewritten text does NOT contain the word "in". A later migration
+  -- that tries to drop it by matching pg_get_constraintdef() against '%status%in%'
+  -- finds nothing, drops nothing, and adds its permissive replacement ALONGSIDE the
+  -- old strict one; every insert carrying a new status then raises inside the
+  -- function and surfaces to the widget as a bare 500. That happened on a sister
+  -- booking system and cost a migration to unpick. Naming it costs nothing while
+  -- the table is empty and makes `drop constraint bookings_status_chk` exact.
+  constraint bookings_status_chk
+    check (status in ('confirmed','cancelled','noshow','seated')),
+  -- Named for the same reason: closures.band and admin_block() both match on this
+  -- value, so the day the owner collapses the schedule into 'giornata' this list is
+  -- what a follow-up migration has to touch.
+  constraint bookings_service_chk
+    check (service in ('giornata','pranzo','cena')),
   constraint bookings_code_key unique (code),
   constraint bookings_span_chk check (ends_at > starts_at),
   constraint bookings_email_required_chk check (email is not null or anonymized_at is not null)
@@ -471,7 +538,13 @@ comment on function porca.peak_covers(timestamptz, timestamptz, uuid) is
 -- pathological horizon setting cannot turn this into a year-long scan). p_from is
 -- clamped forward to rome_today: past days are never bookable anyway.
 -- Closed day = no active service_windows row for that dow (this is how Monday is
--- closed), or a row in closures; it returns closed:true, services:[] and the note.
+-- closed), or a WHOLE-DAY row in closures (band is null); it returns closed:true,
+-- services:[] and the note.
+-- A BANDED closure (band = 'pranzo' or 'cena') drops just that service from the day and
+-- leaves the other one bookable. Every day carries `closed_band` so the widget and the
+-- console can say which half is shut; when the band happens to remove the only service
+-- the weekday runs (e.g. 'cena' on a Tuesday, which has no lunch), the day is reported
+-- closed:true rather than open-with-nothing-in-it.
 -- Every day carries utc_offset (the Europe/Rome offset ON THAT DATE, '+HH:MM'), computed
 -- per day because the range can cross a DST transition. The browser combines it with a
 -- slot time to get an unambiguous instant. See porca.rome_offset().
@@ -502,6 +575,7 @@ declare
   v_d        date;
   v_dow      int;
   v_note     text;
+  v_band     text;
   v_closed   boolean;
   v_i        int;
   v_n        int;
@@ -525,8 +599,11 @@ begin
   for v_d in select v_from + g from generate_series(0, greatest(v_to - v_from, -1)) g loop
     v_dow  := extract(dow from v_d)::int;   -- 0 = Sunday, matches service_windows.dow
     v_note := null;
-    select c.note into v_note from porca.closures c where c.d = v_d;
-    v_closed := found;
+    v_band := null;
+    select c.note, c.band into v_note, v_band from porca.closures c where c.d = v_d;
+    -- Only a whole-day closure (band is null) shuts the date outright; a banded one
+    -- removes a single service further down.
+    v_closed := found and v_band is null;
 
     if not exists (select 1 from porca.service_windows sw
                     where sw.dow = v_dow and sw.active) then
@@ -537,13 +614,19 @@ begin
       v_days := v_days || jsonb_build_array(jsonb_build_object(
         'date', v_d::text, 'dow', v_dow, 'closed', true,
         'utc_offset', porca.rome_offset(v_d),
-        'note', v_note, 'services', '[]'::jsonb));
+        'note', v_note, 'closed_band', v_band, 'services', '[]'::jsonb));
       continue;
     end if;
 
+    -- v_band here is either null (no closure row at all — a whole-day closure already
+    -- took the `continue` above) or the one service that is shut. Dropping the whole
+    -- window is exact: the band IS a service name, not a clock threshold. A 'giornata'
+    -- window is never removed by a band — admin_block() refuses to create one against
+    -- a weekday that runs 'giornata', so this branch cannot silently do nothing.
     v_services := '[]'::jsonb;
     for w in select * from porca.service_windows sw
               where sw.dow = v_dow and sw.active
+                and (v_band is null or sw.service <> v_band)
               order by sw.opens loop
       v_slots := '[]'::jsonb;
       v_n := floor(extract(epoch from (w.last_seating - w.opens)) / 60.0 / w.slot_minutes)::int;
@@ -569,10 +652,21 @@ begin
         'service', w.service, 'slots', v_slots));
     end loop;
 
+    -- A band can empty the day entirely — 'cena' on a Tuesday, which runs no lunch.
+    -- Report that as closed rather than as an open day with nothing bookable in it.
+    if not exists (select 1 from jsonb_array_elements(v_services) e
+                    where jsonb_array_length(e->'slots') > 0) then
+      v_days := v_days || jsonb_build_array(jsonb_build_object(
+        'date', v_d::text, 'dow', v_dow, 'closed', true,
+        'utc_offset', porca.rome_offset(v_d),
+        'note', v_note, 'closed_band', v_band, 'services', '[]'::jsonb));
+      continue;
+    end if;
+
     v_days := v_days || jsonb_build_array(jsonb_build_object(
       'date', v_d::text, 'dow', v_dow, 'closed', false,
       'utc_offset', porca.rome_offset(v_d),
-      'note', v_note, 'services', v_services));
+      'note', v_note, 'closed_band', v_band, 'services', v_services));
   end loop;
 
   return jsonb_build_object(
@@ -582,6 +676,13 @@ begin
     'max_party',    s.max_party,
     'accepting',    s.accepting,
     'turn_minutes', v_turn,
+    -- How far ahead the house takes online bookings. The widget renders exactly
+    -- this many days rather than a constant of its own: a hard-coded strip length
+    -- in JavaScript silently hides dates porca.book() would happily accept, and
+    -- the guest has no way to tell the difference between "closed" and "not
+    -- offered". The setting is the single authority; this field is how the client
+    -- learns it.
+    'horizon_days', s.horizon_days,
     'party',        v_party,
     'days',         v_days);
 end;
@@ -652,6 +753,7 @@ declare
   v_digits text;
   v_tail   text;
   v_dow    int;
+  v_cband  text;
   v_turn   int;
   v_starts timestamptz;
   v_ends   timestamptz;
@@ -742,9 +844,16 @@ begin
       'message', format('Per gruppi oltre %s persone chiamaci al 06 6549 5256 — li gestiamo direttamente noi.', s.max_party));
   end if;
 
-  if exists (select 1 from porca.closures c where c.d = p_date) then
+  -- Closures cover the whole date (band is null) or ONE service. A banded closure must
+  -- refuse only the bookings for that service — the other half of the day stays open.
+  -- `w.service` is the service derived from the matched window, never the caller's.
+  select c.band into v_cband from porca.closures c where c.d = p_date;
+  if found and (v_cband is null or v_cband = w.service) then
     return jsonb_build_object('ok', false, 'error', 'closed',
-      'message', 'Siamo chiusi in questa data.');
+      'message', case v_cband
+                   when 'pranzo' then 'A pranzo siamo chiusi in questa data.'
+                   when 'cena'   then 'A cena siamo chiusi in questa data.'
+                   else 'Siamo chiusi in questa data.' end);
   end if;
 
   if p_date > v_today + s.horizon_days then
@@ -759,7 +868,7 @@ begin
 
   if v_starts <= now() + (s.lead_minutes || ' minutes')::interval then
     return jsonb_build_object('ok', false, 'error', 'too_late',
-      'message', 'Questo orario non e piu prenotabile online. Chiamaci allo 06 6549 5256.');
+      'message', 'Questo orario non è più prenotabile online. Chiamaci allo 06 6549 5256.');
   end if;
 
   -- Digits-only duplicate pre-check: catches the formatting variants the unique index
@@ -769,13 +878,13 @@ begin
                 and b.status = 'confirmed'
                 and regexp_replace(b.phone, '[^0-9]', '', 'g') = v_digits) then
     return jsonb_build_object('ok', false, 'error', 'duplicate',
-      'message', 'Risulta gia una prenotazione con questo numero per questa data.');
+      'message', 'Risulta già una prenotazione con questo numero per questa data.');
   end if;
 
   v_peak := porca.peak_covers(v_starts, v_ends);
   if v_peak + p_party > s.capacity_seats then
     return jsonb_build_object('ok', false, 'error', 'full',
-      'message', 'Non ci sono piu posti per questo orario. Prova con un altro orario.',
+      'message', 'Non ci sono più posti per questo orario. Prova con un altro orario.',
       'remaining', greatest(s.capacity_seats - v_peak, 0));
   end if;
 
@@ -802,7 +911,7 @@ begin
       if v_con is distinct from 'bookings_code_key' then
         -- bookings_phone_day_uniq (or any future one): same number, same day.
         return jsonb_build_object('ok', false, 'error', 'duplicate',
-          'message', 'Risulta gia una prenotazione con questo numero per questa data.');
+          'message', 'Risulta già una prenotazione con questo numero per questa data.');
       end if;
       v_id := null;   -- code collision: loop and draw another
     end;
@@ -915,6 +1024,7 @@ declare
   v_d        date;
   v_dow      int;
   v_note     text;
+  v_band     text;
   v_closed   boolean;
   v_bookings jsonb;
   v_totals   jsonb;
@@ -930,8 +1040,11 @@ begin
   for v_d in select v_from + g from generate_series(0, greatest(v_to - v_from, -1)) g loop
     v_dow  := extract(dow from v_d)::int;
     v_note := null;
-    select c.note into v_note from porca.closures c where c.d = v_d;
-    v_closed := found;
+    v_band := null;
+    select c.note, c.band into v_note, v_band from porca.closures c where c.d = v_d;
+    -- Only a whole-day closure (band is null) marks the day closed; a banded one is
+    -- reported through closed_band so the console can say which service is shut.
+    v_closed := found and v_band is null;
     if not exists (select 1 from porca.service_windows sw
                     where sw.dow = v_dow and sw.active) then
       v_closed := true;
@@ -975,6 +1088,7 @@ begin
 
     v_days := v_days || jsonb_build_array(jsonb_build_object(
       'date', v_d::text, 'dow', v_dow, 'closed', v_closed, 'note', v_note,
+      'closed_band', v_band,
       'peak', v_peak, 'capacity', s.capacity_seats,
       'totals', v_totals, 'bookings', v_bookings));
   end loop;
@@ -995,7 +1109,11 @@ comment on function porca.admin_day(date, date) is
 --
 -- Moving a booking back into an occupying status ('confirmed' or 'seated') RE-RUNS the
 -- capacity check, excluding the booking itself, and refuses with `full` if the room no
--- longer fits it. The unique phone/day index is respected too (-> `duplicate`).
+-- longer fits it. It ALSO re-checks porca.closures (-> `date_closed`): a cancelled
+-- booking outlives the moment it was cancelled, and the owner may have shut that date —
+-- or just that service — in the meantime. Without the check the console could put a
+-- table back into a room nobody is staffing. The unique phone/day index is respected
+-- too (-> `duplicate`).
 -- Lock order matches book(): advisory lock on the date FIRST, then the row lock,
 -- so the two functions can never deadlock against each other.
 -- =====================================================================================
@@ -1008,10 +1126,11 @@ security definer
 set search_path = porca, pg_temp
 as $fn$
 declare
-  s      porca.settings%rowtype;
-  b      porca.bookings%rowtype;
-  v_prev text;
-  v_peak int;
+  s       porca.settings%rowtype;
+  b       porca.bookings%rowtype;
+  v_prev  text;
+  v_peak  int;
+  v_cband text;
 begin
   if p_status is null or p_status not in ('confirmed','cancelled','noshow','seated') then
     return jsonb_build_object('ok', false, 'error', 'bad_status');
@@ -1037,10 +1156,25 @@ begin
 
   if p_status in ('confirmed','seated') and v_prev not in ('confirmed','seated') then
     select * into s from porca.settings where id = true;
+
+    -- The date may have been closed while this booking sat cancelled. Re-confirming
+    -- onto a closed date (or a closed service on an otherwise open date) would seat a
+    -- table in an unstaffed room, so refuse and make the owner reopen it first.
+    -- b.service is the service stored at booking time, matched against closures.band.
+    select c.band into v_cband from porca.closures c where c.d = b.service_date;
+    if found and (v_cband is null or v_cband = b.service) then
+      return jsonb_build_object('ok', false, 'error', 'date_closed',
+        'message', case v_cband
+                     when 'pranzo' then 'Quel giorno il pranzo è chiuso: riaprilo prima di confermare.'
+                     when 'cena'   then 'Quel giorno la cena è chiusa: riaprila prima di confermare.'
+                     else 'Quella data è chiusa: riaprila prima di confermare.' end,
+        'date', b.service_date::text, 'closed_band', v_cband);
+    end if;
+
     v_peak := porca.peak_covers(b.starts_at, b.ends_at, b.id);
     if v_peak + b.party > s.capacity_seats then
       return jsonb_build_object('ok', false, 'error', 'full',
-        'message', 'Non ci sono piu posti per riattivare questa prenotazione.',
+        'message', 'Non ci sono più posti per riattivare questa prenotazione.',
         'peak', v_peak, 'party', b.party, 'capacity', s.capacity_seats);
     end if;
   end if;
@@ -1053,7 +1187,7 @@ begin
      where id = p_id;
   exception when unique_violation then
     return jsonb_build_object('ok', false, 'error', 'duplicate',
-      'message', 'Esiste gia una prenotazione confermata con questo numero per quella data.');
+      'message', 'Esiste già una prenotazione confermata con questo numero per quella data.');
   end;
 
   perform porca.audit_write('admin_set_status', jsonb_build_object(
@@ -1066,19 +1200,47 @@ end;
 $fn$;
 revoke execute on function porca.admin_set_status(uuid, text) from public;
 comment on function porca.admin_set_status(uuid, text) is
-  $c$STAFF ONLY. Change a booking status; re-confirming re-runs the peak-covers capacity check (excluding itself) and refuses with `full` if the room no longer fits.$c$;
+  $c$STAFF ONLY. Change a booking status; re-confirming re-checks porca.closures (-> date_closed) and re-runs the peak-covers capacity check excluding itself (-> full).$c$;
 
 
 -- =====================================================================================
--- 6. porca.admin_block(date, note, on) -> jsonb    [STAFF ONLY]
+-- 6. porca.admin_block(date, note, on, band) -> jsonb    [STAFF ONLY]
 --
 -- Upsert (p_on = true) or delete (p_on = false) a closures row.
+--
+-- REQUEST SHAPE — p_band is OPTIONAL and defaults to null:
+--     admin_block('2026-08-15', 'Ferragosto', true)            whole day  (band null)
+--     admin_block('2026-08-15', 'Ferragosto', true, null)      whole day
+--     admin_block('2026-08-15', 'Sagra',      true, 'pranzo')  lunch shut, dinner open
+--     admin_block('2026-08-15', null,         false)           reopen (band ignored)
+-- A three-argument call therefore keeps its old meaning exactly: close the whole day.
+-- That is deliberate — the console already ships bandless calls.
+--
+-- Reopening always deletes the whole row: there is one row per date, so "reopen" can
+-- only mean "this date is fully open again". To swap which half is shut, close it again
+-- with the other band; to close the second half as well, close it again with no band.
+--
 -- Blocking a date NEVER touches existing bookings — it reports how many committed
--- bookings that date already holds so the console can warn the operator, who then
+-- bookings the CLOSED BAND already holds so the console can warn the operator, who then
 -- decides what to do with them (each one is cancelled explicitly via admin_set_status).
+--
+-- A banded closure is REFUSED (`band_not_applicable`) when that weekday runs a
+-- 'giornata' window: one continuous service cannot be half shut by a service name, and
+-- silently accepting the closure would leave the slots bookable while the console
+-- reported success. Nothing seeds 'giornata', so this cannot fire as configured today.
 -- =====================================================================================
 
-create or replace function porca.admin_block(p_date date, p_note text, p_on boolean)
+-- Kill any 3-argument version left behind by an earlier copy of this file: with a
+-- defaulted 4th argument both signatures would match a 3-argument call and Postgres
+-- would refuse it as ambiguous.
+drop function if exists porca.admin_block(date, text, boolean);
+
+create or replace function porca.admin_block(
+  p_date date,
+  p_note text,
+  p_on   boolean,
+  p_band text default null
+)
 returns jsonb
 language plpgsql
 volatile
@@ -1088,46 +1250,67 @@ as $fn$
 declare
   v_on   boolean := coalesce(p_on, true);
   v_note text    := nullif(left(btrim(coalesce(p_note, '')), 200), '');
+  v_band text    := nullif(btrim(coalesce(p_band, '')), '');   -- '' and null both mean the whole day
   v_n    int;
   v_cov  int;
 begin
   if p_date is null then
     return jsonb_build_object('ok', false, 'error', 'bad_input');
   end if;
+  if v_band is not null and v_band not in ('pranzo','cena') then
+    return jsonb_build_object('ok', false, 'error', 'bad_band',
+      'message', 'La fascia può essere solo pranzo o cena, oppure vuota per tutto il giorno.');
+  end if;
+  if v_on and v_band is not null
+     and exists (select 1 from porca.service_windows sw
+                  where sw.dow = extract(dow from p_date)::int
+                    and sw.active and sw.service = 'giornata') then
+    return jsonb_build_object('ok', false, 'error', 'band_not_applicable',
+      'message', 'Quel giorno il servizio è continuato: si può chiudere solo tutta la giornata.');
+  end if;
 
   perform pg_advisory_xact_lock(hashtext('porca:' || p_date::text));
 
+  -- Count only what the closure actually covers, so the warning is about the service
+  -- being shut and not about the whole day.
   select count(*)::int, coalesce(sum(b.party), 0)::int
     into v_n, v_cov
     from porca.bookings b
    where b.service_date = p_date
-     and b.status in ('confirmed','seated');
+     and b.status in ('confirmed','seated')
+     and (v_band is null or b.service = v_band);
 
   if v_on then
-    insert into porca.closures (d, note) values (p_date, v_note)
-      on conflict (d) do update set note = excluded.note;
+    insert into porca.closures (d, band, note) values (p_date, v_band, v_note)
+      on conflict (d) do update set band = excluded.band, note = excluded.note;
   else
     delete from porca.closures where d = p_date;
   end if;
 
   perform porca.audit_write('admin_block', jsonb_build_object(
-    'date', p_date::text, 'blocked', v_on, 'note', v_note,
+    'date', p_date::text, 'blocked', v_on, 'band', v_band, 'note', v_note,
     'existing_bookings', v_n, 'existing_covers', v_cov));
 
   return jsonb_build_object(
     'ok', true,
     'date', p_date::text,
     'blocked', v_on,
+    'band', v_band,
     'existing_bookings', v_n,
     'existing_covers', v_cov,
     'warning', case when v_on and v_n > 0
-                    then format('Attenzione: questa data ha gia %s prenotazioni attive (%s coperti). Non sono state cancellate.', v_n, v_cov)
+                    then format('Attenzione: %s ha già %s prenotazioni attive (%s coperti). Non sono state cancellate.',
+                                case v_band
+                                  when 'pranzo' then 'il pranzo di questa data'
+                                  when 'cena'   then 'la cena di questa data'
+                                  else 'questa data' end,
+                                v_n, v_cov)
                     else null end);
 end;
 $fn$;
-revoke execute on function porca.admin_block(date, text, boolean) from public;
-comment on function porca.admin_block(date, text, boolean) is
-  $c$STAFF ONLY. Open/close a date in porca.closures. Never deletes bookings; returns how many active bookings the date already holds so the console can warn.$c$;
+revoke execute on function porca.admin_block(date, text, boolean, text) from public;
+comment on function porca.admin_block(date, text, boolean, text) is
+  $c$STAFF ONLY. Open/close a date in porca.closures — whole day (p_band null) or one service ('pranzo'/'cena'). Never deletes bookings; returns how many active bookings the closed band already holds so the console can warn.$c$;
 
 
 -- =====================================================================================
@@ -1474,11 +1657,50 @@ revoke execute on function porca.gdpr_purge() from public;
 comment on function porca.gdpr_purge() is
   $c$Anonymise PII on bookings older than 120 days, keeping aggregate columns. Returns the row count.$c$;
 
--- Enable the nightly purge later, once pg_cron is enabled on the project.
--- Run manually, NOT part of this migration:
---   create extension if not exists pg_cron;
---   select cron.schedule('porca-gdpr-purge', '40 4 * * *', $$select porca.gdpr_purge();$$);
--- To remove it:  select cron.unschedule('porca-gdpr-purge');
+-- SCHEDULE THE NIGHTLY PURGE.
+--
+-- This is not housekeeping, it is the promise printed on privacy.html: "i dati sono
+-- anonimizzati automaticamente dopo 120 giorni". A gdpr_purge() that nothing ever calls
+-- makes that statement false on a live public site, so the schedule ships WITH the
+-- function rather than as a manual step somebody remembers.
+--
+-- Guarded twice, because pg_cron may not be available on this project and a missing
+-- extension must never fail the migration:
+--   * `create extension` runs in its own block; any error degrades to a NOTICE.
+--   * the scheduling itself runs in a second block; the `cron.*` objects are only ever
+--     referenced after that succeeded (plpgsql resolves each statement lazily, on first
+--     execution, so an untaken branch never has to resolve cron.job).
+--
+-- 04:40 UTC daily — after the last dinner service has closed in Rome under either
+-- offset, and off the hour so it does not pile onto the other tenants' jobs.
+--
+-- WATCH THE OUTPUT OF `supabase db push`: if you see the "NOT scheduled" notice, either
+-- enable pg_cron (Dashboard → Database → Extensions) and re-run just this block, or have
+-- the privacy copy changed — the claim cannot stand without the job.
+--   Manual equivalent:
+--     create extension if not exists pg_cron;
+--     select cron.schedule('porca-gdpr-purge', '40 4 * * *', $$select porca.gdpr_purge();$$);
+--   To remove it:  select cron.unschedule('porca-gdpr-purge');
+do $cron$
+begin
+  begin
+    create extension if not exists pg_cron;
+  exception when others then
+    raise notice '[porca] pg_cron unavailable (%) — nightly porca.gdpr_purge() NOT scheduled. Enable pg_cron and schedule it, or soften the 120-day claim in privacy.html.', sqlerrm;
+    return;
+  end;
+
+  begin
+    if exists (select 1 from cron.job where jobname = 'porca-gdpr-purge') then
+      perform cron.unschedule('porca-gdpr-purge');
+    end if;
+    perform cron.schedule('porca-gdpr-purge', '40 4 * * *', $job$select porca.gdpr_purge();$job$);
+    raise notice '[porca] scheduled porca-gdpr-purge — daily at 04:40 UTC.';
+  exception when others then
+    raise notice '[porca] could not schedule porca-gdpr-purge (%) — run cron.schedule() by hand, or soften the 120-day claim in privacy.html.', sqlerrm;
+  end;
+end
+$cron$;
 
 
 -- =====================================================================================
@@ -1493,8 +1715,14 @@ comment on function porca.gdpr_purge() is
 -- so a 90-minute turn ends exactly at closing:
 --     pranzo  11:30 → last seating 13:00  (13:00 + 90' = 14:30)
 --     cena    17:00 → last seating 21:30  (21:30 + 90' = 23:00)
--- A party over small_party_max gets the 120-minute turn and therefore runs to 23:30 at
--- the very latest; that is the outer bound quoted in the DST note in the header.
+--
+-- THAT RECONCILES THE 90-MINUTE TURN ONLY. A party over small_party_max (4) gets
+-- turn_minutes_large = 120 and overruns closing by half an hour at BOTH services:
+--     pranzo  13:00 + 120' = 15:00  vs 14:30
+--     cena    21:30 + 120' = 23:30  vs 23:00   (also the outer bound in the DST note)
+-- Nothing is overbooked by it — see the OPEN QUESTION note on porca.settings — but the
+-- house does end up seating a 6-top at 13:00 that sits past the lunch close. Left as
+-- seeded on purpose: it is the owner's call, not a bug to fix silently.
 --
 -- 30-minute slots. Pranzo: 11:30, 12:00, 12:30, 13:00 (4 slots).
 -- Cena: 17:00 … 21:30 (10 slots).
@@ -1605,4 +1833,25 @@ $guard$;
 --    where n.nspname = 'porca'
 --      and pg_get_functiondef(p.oid) like '%hashtext(''porca:''%';
 --   -- expect: admin_block, admin_set_status, book
+--
+--   -- 7) the status CHECK must be OURS, named, and the only one on the table
+--   select conname, pg_get_constraintdef(oid)
+--     from pg_constraint
+--    where conrelid = 'porca.bookings'::regclass
+--      and contype = 'c'
+--      and pg_get_constraintdef(oid) like '%noshow%';
+--   -- expect exactly one row: bookings_status_chk. More than one = the duplicate
+--   -- constraint trap has been re-created; drop the extra by name.
+--   --
+--   -- and the closure band must accept only null / pranzo / cena
+--   select conname, pg_get_constraintdef(oid)
+--     from pg_constraint
+--    where conrelid = 'porca.closures'::regclass and conname = 'closures_band_chk';
+--
+--   -- 8) the GDPR job privacy.html promises must actually exist
+--   select jobname, schedule, command, active from cron.job
+--    where jobname = 'porca-gdpr-purge';
+--   -- expect ONE active row, '40 4 * * *'. Zero rows = pg_cron could not be scheduled
+--   -- during the migration (look for the NOTICE in the db push output): either schedule
+--   -- it by hand or have the 120-day claim in privacy.html softened.
 -- =====================================================================================

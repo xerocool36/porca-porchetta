@@ -1,0 +1,1678 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Porca Porchetta — Console prenotazioni</title>
+<link rel="icon" href="assets/img/favicon-32.png" sizes="32x32">
+
+<!-- =====================================================================
+     Porca Porchetta — console di servizio (area riservata allo staff).
+
+     SELF-CONTAINED ON PURPOSE. It shares nothing with the public site: no
+     css/style.css, no self-hosted font, no js/*.js, no build step, no CDN,
+     no third-party request of any kind. The only network calls it makes are
+     to the fraschetta's own Supabase project. It is a tool, not a showpiece:
+     the goals are "readable at arm's length on a phone behind the bar" and
+     "never lies about state".
+
+     Auth is Supabase Auth (email + password), spoken over plain fetch against
+     GoTrue — supabase-js is deliberately NOT loaded, because it only ships
+     from a CDN and this page takes no third-party script. There is no PIN and
+     there must never be one: a client-side PIN is decoration, not access
+     control. The real boundary is the porca-admin Edge Function, which
+     verifies the JWT and checks porca.admins server-side. This page holds
+     zero authority.
+
+     To grant someone access:
+       1. create the user in Supabase Auth (Dashboard -> Authentication),
+       2. insert their auth uid into porca.admins.
+        (supabase/migrations/20260806121000_seed_admin.sql does this for the
+         owner's address.)
+
+     WHAT THIS CONSOLE DOES NOT HAVE, AND WHY
+     - No "Richieste da approvare". porca has no pending state: the status
+       check is ('confirmed','cancelled','noshow','seated') and porca.book()
+       refuses a party over settings.max_party outright, telling the guest to
+       phone. There is no queue to approve, so there is no screen for one.
+     - Half-day closures ARE supported. porca.closures.band is null for the
+       whole day, or names ONE service ('pranzo' / 'cena'). The venue runs two
+       services at the weekend, so "chiuso a pranzo sabato, aperto a cena" has
+       to be expressible or the owner ends up shutting the whole Saturday.
+       admin_block takes an optional `band`; omitting it still means whole day,
+       so the bandless call shape stays valid and keeps its old meaning.
+     ===================================================================== -->
+
+<style>
+/* ------------------------------------------------------------------ reset */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body, h1, h2, h3, p, ul, figure { margin: 0; }
+ul { padding: 0; list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+
+/* ----------------------------------------------------------------- tokens */
+/* Values lifted verbatim from css/style.css — direction "Travertino":
+   cool stone, one red accent, one 2px corner. The status colours (verde /
+   ambra) are the only additions: a service tool has to say "confermata",
+   "in sala" and "annullata" at a glance, and rosso alone cannot. */
+:root {
+  color-scheme: light dark;
+
+  --bg:      #F2F2F0;   /* stone-050 */
+  --card:    #FFFFFF;
+  --sunk:    #F2F2F0;
+  --ink:     #2E2C29;   /* stone-900 */
+  --ink-2:   #4A4742;   /* stone-700 */
+  --dim:     #6E6A63;   /* stone-500 */
+  --faint:   #A8A49C;   /* stone-300 */
+  --line:    rgba(46, 44, 41, .14);
+  --line-2:  rgba(46, 44, 41, .28);
+
+  --rosso:     #C0392B;
+  --rosso-700: #A2301F;
+
+  --ok:    #2C6A46;  --ok-bg:   #E7EFE9;
+  --warn:  #7A5312;  --warn-bg: #F5EEDF;
+  --dang:  #A2301F;  --dang-bg: #F8E9E6;
+
+  --pri-fg: #FFFFFF; --pri-bg: #C0392B;
+  --btn-bg: #FFFFFF;
+
+  --r:   2px;        /* one corner radius, no exceptions */
+  --tap: 44px;
+  --pad: 14px;
+  --lift: 0 1px 2px rgba(46, 44, 41, .05), 0 18px 40px -28px rgba(46, 44, 41, .35);
+}
+
+/* The cave is dark and so is the bar at 22:30. Same stone, inverted. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:      #1B1A18;
+    --card:    #242320;
+    --sunk:    #1B1A18;
+    --ink:     #F2F2F0;
+    --ink-2:   #DAD8D3;
+    --dim:     #A8A49C;
+    --faint:   #6E6A63;
+    --line:    rgba(242, 242, 240, .16);
+    --line-2:  rgba(242, 242, 240, .30);
+
+    --rosso:     #E88276;
+    --rosso-700: #F0A79C;
+
+    --ok:   #8ACFA6;  --ok-bg:   #18301F;
+    --warn: #E8C27A;  --warn-bg: #332810;
+    --dang: #FF9E90;  --dang-bg: #3A1C18;
+
+    --pri-fg: #1A0B08; --pri-bg: #E88276;
+    --btn-bg: #2C2A26;
+    --lift: 0 1px 2px rgba(0, 0, 0, .5);
+  }
+}
+
+/* ------------------------------------------------------------------- base */
+body {
+  margin: 0;
+  /* System stack on purpose: the console must never wait on a font file. */
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  letter-spacing: -0.004em;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+}
+h1 { font-size: 1.25rem; letter-spacing: .01em; }
+h2 { font-size: 1rem; letter-spacing: .01em; }
+h3 { font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+a { color: var(--rosso-700); }
+strong { font-weight: 650; }
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--rosso); outline-offset: 2px;
+}
+.vh { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---------------------------------------------------------------- buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: var(--tap); min-width: var(--tap); padding: 9px 15px;
+  border: 1px solid var(--line-2); border-radius: var(--r);
+  background: var(--btn-bg); color: var(--ink);
+  font-size: .94rem; font-weight: 600; line-height: 1.15;
+  text-align: center; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn[aria-busy="true"] { opacity: .6; cursor: progress; }
+.btn-primary { background: var(--pri-bg); color: var(--pri-fg); border-color: transparent; }
+.btn-ghost   { background: transparent; }
+/* Destructive is outlined until you mean it; the inline confirm's Sì is the
+   only filled red on the screen, so nothing irreversible is one stray tap. */
+.btn-danger  { background: transparent; color: var(--dang); border-color: var(--dang); }
+.btn-danger-solid { background: var(--dang); color: var(--card); border-color: transparent; }
+.btn-sm  { min-height: var(--tap); padding: 7px 12px; font-size: .88rem; }
+.btn-big { width: 100%; min-height: 54px; font-size: 1rem; }
+
+/* ------------------------------------------------------------------ shell */
+.boot, .login { display: grid; place-items: center; min-height: 76vh; padding: 22px 16px; }
+.login-box {
+  width: 100%; max-width: 400px; background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--r);
+  padding: 26px 22px; box-shadow: var(--lift);
+}
+.login-box img.mark { display: block; width: 76px; height: auto; margin: 0 auto 14px; }
+.login-box h1 { text-align: center; }
+.login-sub { text-align: center; color: var(--dim); font-size: .9rem; margin-bottom: 18px; }
+.login-box label { display: block; font-size: .78rem; letter-spacing: .12em;
+                   text-transform: uppercase; color: var(--dim); margin: 14px 0 5px; }
+.login-box input {
+  width: 100%; min-height: var(--tap); padding: 11px 12px;
+  border: 1px solid var(--line-2); border-radius: var(--r);
+  background: var(--sunk); color: var(--ink);
+  font-size: 16px;                     /* < 16px makes iOS zoom on focus */
+}
+.login-box .btn { width: 100%; margin-top: 18px; }
+.login-foot { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line);
+              font-size: .82rem; color: var(--dim); line-height: 1.6; text-align: center; }
+
+.bar {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--card); border-bottom: 1px solid var(--line);
+  padding: 10px var(--pad) 0;
+}
+.bar-top { display: flex; align-items: center; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.brand img { width: 30px; height: auto; display: block; }
+.brand b { font-size: .96rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.who { margin-left: auto; font-size: .78rem; color: var(--dim);
+       max-width: 36vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tabs { display: flex; gap: 2px; margin-top: 8px; overflow-x: auto; }
+.tab {
+  border: 0; background: transparent; color: var(--dim);
+  padding: 10px 12px; min-height: var(--tap); cursor: pointer; white-space: nowrap;
+  font-size: .94rem; font-weight: 600; border-bottom: 2px solid transparent;
+}
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--rosso); }
+
+main { padding: var(--pad); display: grid; gap: 14px; max-width: 760px; margin: 0 auto; }
+.panel { display: grid; gap: 14px; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
+  padding: 16px; box-shadow: var(--lift); display: grid; gap: 12px;
+}
+.hint { font-size: .86rem; color: var(--dim); line-height: 1.55; }
+.loading { display: flex; align-items: center; gap: 10px; color: var(--dim); padding: 16px 2px; }
+.spin {
+  width: 16px; height: 16px; flex: none; border-radius: 50%;
+  border: 2px solid var(--line-2); border-top-color: var(--rosso);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } }
+
+/* messages ------------------------------------------------------------- */
+.msg { font-size: .9rem; line-height: 1.5; padding: 10px 12px; border-radius: var(--r); }
+.msg-err  { background: var(--dang-bg); color: var(--dang); font-weight: 600; }
+.msg-ok   { background: var(--ok-bg);   color: var(--ok); }
+.msg-warn { background: var(--warn-bg); color: var(--warn); }
+
+/* Toast: fixed low on the screen, where a thumb already is. Successes fade
+   out on their own; errors stay put until they are read and dismissed. */
+.toast {
+  position: fixed; z-index: 40;
+  left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom));
+  max-width: 560px; margin: 0 auto;
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 12px 12px 14px; border-radius: var(--r);
+  box-shadow: var(--lift); border: 1px solid var(--line-2);
+}
+.toast p { flex: 1 1 auto; font-size: .93rem; line-height: 1.45; }
+.toast button {
+  flex: none; border: 0; background: transparent; color: inherit;
+  min-width: var(--tap); min-height: var(--tap); margin: -10px -8px -10px 0;
+  font-size: 1.3rem; line-height: 1; cursor: pointer;
+}
+.toast.is-err  { background: var(--dang-bg); color: var(--dang); }
+.toast.is-ok   { background: var(--ok-bg);   color: var(--ok); }
+.toast.is-warn { background: var(--warn-bg); color: var(--warn); }
+
+/* inline confirm ------------------------------------------------------- */
+/* No window.confirm() anywhere in this file: the question is asked in place,
+   under the thing it is about, so nobody loses the row they were looking at. */
+.confirm {
+  margin-top: 10px; padding: 12px; border-radius: var(--r);
+  border: 1px solid var(--dang); background: var(--dang-bg);
+  display: grid; gap: 10px;
+}
+.confirm p { font-size: .92rem; line-height: 1.45; color: var(--dang); font-weight: 600; }
+.confirm .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.confirm .row .btn { flex: 1 1 auto; }
+
+/* servizio ------------------------------------------------------------- */
+.daynav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.daynav .grp { display: flex; gap: 6px; flex: 1 1 auto; }
+.daynav .grp .btn { flex: 1 1 auto; }
+.btn-day.is-on { background: var(--pri-bg); color: var(--pri-fg); border-color: transparent; }
+.daynav input[type="date"] {
+  min-height: var(--tap); padding: 8px 10px; font-size: 16px;
+  background: var(--card); border: 1px solid var(--line-2);
+  border-radius: var(--r); color: var(--ink); flex: 1 1 150px;
+}
+/* "sabato 9 agosto" -> "Sabato 9 agosto": only the first letter, because the
+   Italian month name is lower case and capitalize would raise it too. */
+.dayhead .d { font-size: 1.15rem; font-weight: 700; }
+.dayhead .d::first-letter { text-transform: uppercase; }
+.dayhead .s { font-size: .92rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font-size: .82rem; padding: 4px 10px; border-radius: var(--r);
+  background: var(--sunk); border: 1px solid var(--line); color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.bk-list { display: grid; gap: 10px; }
+.bk {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
+  border-left: 3px solid var(--rosso);
+  padding: 12px 13px; display: grid; gap: 9px; box-shadow: var(--lift);
+}
+.bk.is-off { opacity: .58; border-left-color: var(--faint); }
+.bk.is-seated { border-left-color: var(--warn); }
+.bk-l1 { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.bk-time { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums;
+           letter-spacing: -.02em; }
+.bk-pax { font-size: 1rem; font-weight: 650; color: var(--ink-2); }
+.bk-name { font-size: 1.02rem; font-weight: 600; flex: 1 1 100%; }
+.badge {
+  font-size: .72rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  padding: 4px 8px; border-radius: var(--r); margin-left: auto;
+}
+.badge-confirmed { background: var(--ok-bg);   color: var(--ok); }
+.badge-seated    { background: var(--warn-bg); color: var(--warn); }
+.badge-cancelled { background: var(--dang-bg); color: var(--dang); }
+.badge-noshow    { background: var(--dang-bg); color: var(--dang); }
+.bk-meta { font-size: .88rem; color: var(--dim); display: grid; gap: 4px; }
+.bk-meta a { text-decoration: none; font-weight: 600; }
+.bk-notes {
+  font-size: .92rem; background: var(--sunk); border-left: 2px solid var(--rosso);
+  padding: 8px 10px; color: var(--ink-2);
+}
+.bk-act { display: flex; flex-wrap: wrap; gap: 6px; }
+.bk-act .btn { flex: 1 1 auto; }
+
+/* chiusure ------------------------------------------------------------- */
+.clo { display: grid; gap: 8px; }
+.clo-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 12px 13px; border: 1px solid var(--line); border-left: 3px solid var(--dang);
+  border-radius: var(--r); background: var(--sunk);
+}
+.clo-when { font-weight: 650; flex: 1 1 170px; }
+.clo-when::first-letter { text-transform: uppercase; }
+.clo-note { color: var(--dim); font-size: .87rem; flex: 1 1 100%; }
+.clo-fixed { border-left-color: var(--faint); }
+.clo-tag {
+  font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: var(--r); background: var(--card);
+  border: 1px solid var(--line); color: var(--dim);
+}
+
+/* impostazioni --------------------------------------------------------- */
+.f { display: grid; gap: 5px; }
+.f > span { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.f input, .f select {
+  min-height: var(--tap); padding: 10px 12px; font-size: 16px;
+  background: var(--sunk); border: 1px solid var(--line-2);
+  border-radius: var(--r); color: var(--ink);
+}
+.f em { font-style: normal; font-size: .83rem; color: var(--dim); line-height: 1.5; }
+.kill-state { font-weight: 700; font-size: 1.02rem; }
+
+.wingrid { display: grid; gap: 12px; }
+.win-day { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 11px;
+           display: grid; gap: 8px; }
+.win-day > h3 { margin-bottom: 2px; }
+.win-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.win-row.is-off { opacity: .5; }
+.win-on { display: flex; align-items: center; gap: 8px; min-width: 116px;
+          min-height: var(--tap); font-weight: 600; cursor: pointer; }
+.win-on input { width: 22px; height: 22px; accent-color: var(--rosso); }
+.win-times { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.win-times input, .win-times select {
+  min-height: var(--tap); padding: 7px 9px; font-size: 16px;
+  background: var(--sunk); border: 1px solid var(--line-2);
+  border-radius: var(--r); color: var(--ink);
+}
+.win-arrow { color: var(--dim); }
+
+/* footer --------------------------------------------------------------- */
+.madeby { display: flex; align-items: center; justify-content: center; gap: 8px;
+          padding: 20px 14px 8px; color: var(--dim); font-size: .74rem; }
+.madeby img { height: 28px; width: auto; opacity: .85; }
+</style>
+</head>
+<body>
+
+<!-- ================================================================= boot -->
+<section id="boot" class="boot"><p class="loading"><span class="spin"></span>Un attimo…</p></section>
+
+<!-- ================================================================ login -->
+<section id="login" class="login" hidden>
+  <div class="login-box">
+    <img class="mark" src="assets/img/logo.png" alt="Porca Porchetta" width="512" height="512">
+    <h1>Console prenotazioni</h1>
+    <p class="login-sub">Area riservata allo staff.</p>
+    <form id="login-form" novalidate>
+      <label for="li-email">Email</label>
+      <input id="li-email" name="email" type="email" required autocomplete="username"
+             inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false"
+             enterkeyhint="next">
+      <label for="li-pass">Password</label>
+      <input id="li-pass" name="password" type="password" required
+             autocomplete="current-password" enterkeyhint="go">
+      <p id="login-msg" class="msg msg-err" role="alert" hidden></p>
+      <button id="login-btn" type="submit" class="btn btn-primary">Entra</button>
+    </form>
+    <p class="login-foot">
+      Porca Porchetta · Via del Trivio 31, Anguillara Sabazia<br>
+      <a href="tel:+390665495256">06 6549 5256</a>
+    </p>
+    <p class="madeby">
+      <span>Console a cura di</span>
+      <a href="https://x3roautomations.it" target="_blank" rel="noopener">
+        <img src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265">
+      </a>
+    </p>
+  </div>
+</section>
+
+<!-- ================================================================== app -->
+<div id="app" hidden>
+  <header class="bar">
+    <div class="bar-top">
+      <span class="brand">
+        <img src="assets/img/logo.png" alt="" width="512" height="512">
+        <b>Console</b>
+      </span>
+      <span id="who" class="who"></span>
+      <button id="logout" type="button" class="btn btn-ghost btn-sm">Esci</button>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sezioni">
+      <button class="tab" role="tab" id="tab-servizio" data-tab="servizio"
+              aria-controls="panel-servizio" aria-selected="true">Prenotazioni</button>
+      <button class="tab" role="tab" id="tab-chiusure" data-tab="chiusure"
+              aria-controls="panel-chiusure" aria-selected="false" tabindex="-1">Chiusure</button>
+      <button class="tab" role="tab" id="tab-impostazioni" data-tab="impostazioni"
+              aria-controls="panel-impostazioni" aria-selected="false" tabindex="-1">Impostazioni</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ------------------------------------------------- 1. prenotazioni -->
+    <section id="panel-servizio" class="panel" role="tabpanel"
+             aria-labelledby="tab-servizio" tabindex="-1">
+      <div class="daynav">
+        <div class="grp">
+          <button type="button" class="btn btn-day btn-sm" data-day="-1">Ieri</button>
+          <button type="button" class="btn btn-day btn-sm is-on" data-day="0">Oggi</button>
+          <button type="button" class="btn btn-day btn-sm" data-day="1">Domani</button>
+        </div>
+        <label><span class="vh">Scegli una data</span><input id="day-input" type="date"></label>
+        <button id="day-reload" type="button" class="btn btn-ghost btn-sm">Aggiorna</button>
+      </div>
+      <div id="day-head"></div>
+      <div id="day-body"></div>
+    </section>
+
+    <!-- ----------------------------------------------------- 2. chiusure -->
+    <section id="panel-chiusure" class="panel" role="tabpanel"
+             aria-labelledby="tab-chiusure" tabindex="-1" hidden>
+      <form id="clo-form" class="card" novalidate>
+        <h2>Chiudi una data</h2>
+        <p class="hint">Una data chiusa sparisce dalle prenotazioni online. Le prenotazioni
+          già in agenda <strong>non</strong> vengono cancellate: vanno gestite una per una
+          da Prenotazioni.</p>
+        <label class="f"><span>Data</span><input id="clo-date" type="date" required></label>
+        <label class="f"><span>Cosa chiudi</span>
+          <select id="clo-band">
+            <option value="">Tutto il giorno</option>
+            <option value="pranzo">Solo il pranzo</option>
+            <option value="cena">Solo la cena</option>
+          </select>
+          <em>Sabato e domenica si servono due turni: puoi chiudere solo il pranzo e
+            restare aperto la sera.</em>
+        </label>
+        <label class="f"><span>Nota (facoltativa)</span>
+          <input id="clo-note" type="text" maxlength="200" placeholder="Es. ferie, evento privato">
+          <em>Consigliata: è l'unico modo per riconoscere una chiusura decisa a mano.</em>
+        </label>
+        <p id="clo-msg" class="msg" role="alert" hidden></p>
+        <button id="clo-block" type="button" class="btn btn-danger">Chiudi la data</button>
+      </form>
+
+      <section class="card">
+        <h2>Date chiuse</h2>
+        <p class="hint">Le prossime chiusure, fin dove arriva il calendario delle
+          prenotazioni online.</p>
+        <div id="clo-list"></div>
+      </section>
+    </section>
+
+    <!-- ------------------------------------------------- 3. impostazioni -->
+    <section id="panel-impostazioni" class="panel" role="tabpanel"
+             aria-labelledby="tab-impostazioni" tabindex="-1" hidden>
+      <div id="set-load"></div>
+
+      <div id="set-wrap" class="panel" hidden>
+        <section class="card">
+          <h2>Prenotazioni online</h2>
+          <p id="kill-state" class="kill-state"></p>
+          <p class="hint">Se le fermi, il sito smette di prendere prenotazioni e mostra il
+            telefono. Le prenotazioni già confermate restano valide.</p>
+          <button id="kill-btn" type="button" class="btn btn-big"></button>
+          <div id="kill-confirm"></div>
+        </section>
+
+        <form id="set-form" class="card" novalidate>
+          <h2>Sala e turni</h2>
+          <p class="hint">Valgono per tutte le nuove prenotazioni online.</p>
+
+          <label class="f"><span>Posti in sala</span>
+            <input name="capacity_seats" type="number" inputmode="numeric" min="1" max="500" step="1" required>
+            <em>Massimo di persone sedute nello stesso momento.</em>
+          </label>
+          <label class="f"><span>Soglia tavoli piccoli (persone)</span>
+            <input name="small_party_max" type="number" inputmode="numeric" min="1" max="40" step="1" required>
+            <em>Fino a questo numero vale il turno breve; sopra, quello lungo.</em>
+          </label>
+          <label class="f"><span id="lbl-turn-small">Durata turno, tavoli piccoli (minuti)</span>
+            <input name="turn_minutes_small" type="number" inputmode="numeric" min="30" max="300" step="5" required>
+          </label>
+          <label class="f"><span id="lbl-turn-large">Durata turno, tavoli grandi (minuti)</span>
+            <input name="turn_minutes_large" type="number" inputmode="numeric" min="30" max="300" step="5" required>
+          </label>
+          <label class="f"><span>Massimo persone per prenotazione online</span>
+            <input name="max_party" type="number" inputmode="numeric" min="1" max="40" step="1" required>
+            <em>Oltre questo numero il sito non prende la prenotazione e invita a chiamare
+              il 06 6549 5256. Non arriva nessuna richiesta da approvare: i gruppi grandi
+              si gestiscono al telefono.</em>
+          </label>
+          <label class="f"><span>Preavviso minimo (minuti)</span>
+            <input name="lead_minutes" type="number" inputmode="numeric" min="0" max="1440" step="5" required>
+            <em>Quanto prima si deve prenotare rispetto all'orario del tavolo.</em>
+          </label>
+          <label class="f"><span>Si prenota fino a (giorni)</span>
+            <input name="horizon_days" type="number" inputmode="numeric" min="1" max="365" step="1" required>
+          </label>
+
+          <p id="set-msg" class="msg" role="alert" hidden></p>
+          <button id="set-save" type="submit" class="btn btn-primary">Salva impostazioni</button>
+        </form>
+
+        <form id="win-form" class="card" novalidate>
+          <h2>Orari della settimana</h2>
+          <p class="hint">Prima apertura e <strong>ultima entrata</strong>, per ogni servizio.
+            Un servizio senza spunta non si prenota.
+            <strong>Salvando sostituisci tutti gli orari della settimana.</strong></p>
+          <div id="win-grid" class="wingrid"></div>
+          <p id="win-msg" class="msg" role="alert" hidden></p>
+          <button id="win-save" type="submit" class="btn btn-primary" disabled>Salva gli orari</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <p class="madeby">
+    <span>Console a cura di</span>
+    <a href="https://x3roautomations.it" target="_blank" rel="noopener">
+      <img src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265">
+    </a>
+  </p>
+</div>
+
+<!-- =============================================================== config -->
+<script>
+  /* Filled at deploy, exactly like window.PORCA_BOOKING_CONFIG in prenota.html.
+     The Supabase anon key is public by design — a scoped, revocable project
+     identifier, not a secret: the `porca` schema grants anon nothing (see the
+     FINAL LOCKDOWN block in supabase/migrations/20260806120000_porca.sql).
+     While anonKey is still on its PASTE_ placeholder this page refuses to run
+     and says so, instead of failing halfway through a login. */
+  window.PORCA_ADMIN_CONFIG = {
+    supabaseUrl:  "https://wednfenmftdlywrglhgj.supabase.co",
+    functionsUrl: "https://wednfenmftdlywrglhgj.supabase.co/functions/v1",
+    anonKey:      "PASTE_ANON_KEY"
+  };
+</script>
+
+<script>
+/* Porca Porchetta — console di servizio
+ * ---------------------------------------------------------------------------
+ * SECURITY: this file holds zero authority. Every call carries the staff
+ * member's access token to porca-admin, which verifies the JWT and checks
+ * porca.admins. A 401 sends you back to the login screen; a 403 means "not
+ * staff" and signs you out. No token is ever logged or printed.
+ *
+ * TIMEZONE: the fraschetta's clock is Europe/Rome. Wall-clock times come from
+ * what the API returns (porca.rome_iso / slot_time), never from the device.
+ * Calendar labels for a bare YYYY-MM-DD are formatted from a UTC-midnight Date
+ * with timeZone:'UTC', so "sabato 9 agosto" reads the same on every phone.
+ *
+ * ERRORS: a raw Postgres or HTTP string never reaches the screen. Slugs are
+ * mapped to Italian sentences here; an unknown slug falls back to the server's
+ * own Italian message, then to one generic line. Nothing fails silently.
+ *
+ * MARKUP: every server value goes in through textContent (the `text` key of
+ * h()). There is no innerHTML in this file, so a guest's name or note cannot
+ * become markup.
+ *
+ * NUMBERS: no business rule is written here. Capacity, turn lengths, party
+ * thresholds, lead time, horizon and opening hours all come from the API.
+ */
+(function () {
+  'use strict';
+
+  var CFG  = window.PORCA_ADMIN_CONFIG || {};
+  var ROME = 'Europe/Rome';
+  var TEL_HREF = '+390665495256';
+  var TEL_TEXT = '06 6549 5256';
+  /* How far ahead the closure list and the weekly-hours reader look. The public
+     availability endpoint caps a request at 30 days and the database clamps it
+     again to settings.horizon_days, so this is an upper bound, not a promise. */
+  var LOOKAHEAD_DAYS = 30;
+
+  /* ------------------------------------------------------------------ dom */
+
+  function $(sel, root) { return (root || document).querySelector(sel); }
+
+  function h(tag, attrs) {
+    var n = document.createElement(tag), k, v, i, kid;
+    if (attrs) {
+      for (k in attrs) {
+        if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+        v = attrs[k];
+        if (v == null || v === false) continue;
+        if (k === 'class') n.className = v;
+        else if (k === 'text') n.textContent = v;        // every untrusted value lands here
+        else if (k === 'on' ) { for (var e in v) n.addEventListener(e, v[e]); }
+        else if (k === 'data') { for (var d in v) n.dataset[d] = v[d]; }
+        else n.setAttribute(k, v === true ? '' : String(v));
+      }
+    }
+    for (i = 2; i < arguments.length; i++) {
+      kid = arguments[i];
+      if (kid == null || kid === false || kid === '') continue;
+      if (Object.prototype.toString.call(kid) === '[object Array]') {
+        for (var j = 0; j < kid.length; j++) {
+          if (kid[j] == null || kid[j] === false || kid[j] === '') continue;
+          n.appendChild(kid[j].nodeType ? kid[j] : document.createTextNode(String(kid[j])));
+        }
+        continue;
+      }
+      n.appendChild(kid.nodeType ? kid : document.createTextNode(String(kid)));
+    }
+    return n;
+  }
+
+  function loadingNode(label) {
+    return h('p', { class: 'loading' }, h('span', { class: 'spin', 'aria-hidden': 'true' }), label);
+  }
+
+  var elBoot = $('#boot');
+
+  /* Terminal state: the console cannot run at all. No exception is thrown —
+     a half-started page that then blows up is worse than one honest screen. */
+  function fatal(text) {
+    $('#login').hidden = true;
+    $('#app').hidden = true;
+    elBoot.hidden = false;
+    elBoot.replaceChildren(h('div', { class: 'login-box' },
+      h('h1', { text: 'Console prenotazioni' }),
+      h('p', { class: 'msg msg-err', role: 'alert', text: text }),
+      h('p', { class: 'login-foot' },
+        'Se il problema resta, chiama ',
+        h('a', { href: 'tel:' + TEL_HREF, text: TEL_TEXT }), '.')));
+  }
+
+  function configReady() {
+    var keys = ['supabaseUrl', 'functionsUrl', 'anonKey'], i, v;
+    for (i = 0; i < keys.length; i++) {
+      v = CFG[keys[i]];
+      if (typeof v !== 'string' || !v || v.indexOf('PASTE_') === 0) return false;
+    }
+    return true;
+  }
+
+  if (!configReady()) {
+    fatal('Console non configurata: manca la chiave di collegamento al server. ' +
+          'Va inserita al momento della pubblicazione — scrivi a chi ha fatto il sito.');
+    return;
+  }
+
+  var BASE     = String(CFG.functionsUrl).replace(/\/+$/, '');
+  var ENDPOINT = BASE + '/porca-admin';
+  var AVAIL    = BASE + '/porca-availability';
+  var AUTH     = String(CFG.supabaseUrl).replace(/\/+$/, '') + '/auth/v1';
+  var ANON     = CFG.anonKey;
+
+  /* --------------------------------------------------------------- errori */
+
+  var ERR = {
+    network:            'Connessione assente. Controlla la rete e riprova.',
+    unauthorized:       'Sessione scaduta. Entra di nuovo.',
+    forbidden:          'Questo account non è abilitato alla console.',
+    invalid_body:       'Dati non validi. Controlla i campi e riprova.',
+    payload_too_large:  'Richiesta troppo grande.',
+    method_not_allowed: 'Richiesta non consentita.',
+    origin_not_allowed: 'Questa pagina non è autorizzata a parlare con il server.',
+    unknown_action:     'Azione non riconosciuta.',
+    rate_limited:       'Troppe richieste. Riprova tra qualche minuto.',
+    server_error:       'Errore del server. Riprova tra qualche istante.',
+    /* porca.admin_set_status() */
+    bad_status:         'Stato non valido.',
+    not_found:          'Prenotazione non trovata. Aggiorna la giornata.',
+    full:               'Non ci sono più posti per riattivare questa prenotazione.',
+    duplicate:          'Esiste già una prenotazione confermata con questo numero per quella data.',
+    /* porca.admin_block() */
+    bad_input:          'Data non valida.',
+    /* porca.admin_settings() */
+    bad_patch:               'Valore non valido nelle impostazioni.',
+    invalid_capacity_seats:  'I posti in sala devono essere tra 1 e 500.',
+    invalid_turn_minutes:    'La durata del turno deve essere tra 30 e 300 minuti.',
+    invalid_small_party_max: 'La soglia dei tavoli piccoli deve essere tra 1 e 40.',
+    invalid_max_party:       'Il massimo per prenotazione deve essere tra 1 e 40.',
+    invalid_lead_minutes:    'Il preavviso deve essere tra 0 e 1440 minuti.',
+    invalid_horizon_days:    'I giorni di anticipo devono essere tra 1 e 365.',
+    invalid_accepting:       'Valore non valido per le prenotazioni online.',
+    /* porca.admin_windows() */
+    bad_rows:          'Orari non validi.',
+    bad_row:           'Una riga degli orari non è valida.',
+    bad_dow:           'Giorno della settimana non valido.',
+    bad_service:       'Servizio non valido.',
+    bad_times:         "L'apertura deve venire prima dell'ultima entrata.",
+    bad_slot_minutes:  "L'intervallo tra gli orari può essere solo 15 o 30 minuti.",
+    duplicate_window:  'Due righe per lo stesso giorno e servizio.'
+  };
+
+  function errText(slug, serverMessage) {
+    return ERR[slug] || serverMessage || 'Qualcosa non ha funzionato. Riprova.';
+  }
+
+  function ConsoleError(slug, serverMessage) {
+    this.name = 'ConsoleError';
+    this.slug = slug || 'server_error';
+    this.message = errText(slug, serverMessage);
+  }
+  ConsoleError.prototype = Object.create(Error.prototype);
+  ConsoleError.prototype.constructor = ConsoleError;
+
+  /* -------------------------------------------------------------- sessione */
+  /* Supabase Auth over plain fetch. supabase-js is not loaded: it only ships
+     from a CDN, and this page makes no third-party request. What the SDK would
+     do for us — keep the session, refresh it before it expires — is 40 lines. */
+
+  var STORE = 'porca-admin-session';
+  var session = null;
+  var refreshing = null;
+
+  function readStoredSession() {
+    var raw, s;
+    try { raw = window.localStorage.getItem(STORE); } catch (e) { return null; }
+    if (!raw) return null;
+    try { s = JSON.parse(raw); } catch (e) { return null; }
+    if (!s || typeof s.access_token !== 'string' || typeof s.refresh_token !== 'string') return null;
+    return s;
+  }
+  function writeStoredSession(s) {
+    try { window.localStorage.setItem(STORE, JSON.stringify(s)); } catch (e) { /* private mode */ }
+  }
+  function dropStoredSession() {
+    try { window.localStorage.removeItem(STORE); } catch (e) { /* nothing to do */ }
+  }
+
+  function nowSec() { return Math.floor(Date.now() / 1000); }
+
+  function adoptSession(json) {
+    session = {
+      access_token:  json.access_token,
+      refresh_token: json.refresh_token,
+      expires_at:    Number(json.expires_at) || (nowSec() + (Number(json.expires_in) || 3600)),
+      email:         (json.user && json.user.email) || (session && session.email) || ''
+    };
+    writeStoredSession(session);
+    return session;
+  }
+
+  function authPost(path, body, bearer) {
+    var headers = { 'content-type': 'application/json', apikey: ANON };
+    if (bearer) headers.authorization = 'Bearer ' + bearer;
+    return fetch(AUTH + path, {
+      method: 'POST', headers: headers, body: JSON.stringify(body || {})
+    }).then(function (res) {
+      return res.json().catch(function () { return null; })
+        .then(function (json) { return { status: res.status, ok: res.ok, json: json }; });
+    }, function () {
+      throw new ConsoleError('network');
+    });
+  }
+
+  /* GoTrue speaks its own vocabulary; staff should never see any of it. */
+  function loginError(status, json) {
+    var code = (json && (json.error_code || json.error)) || '';
+    if (code === 'email_not_confirmed') {
+      return 'Questo indirizzo non è ancora stato confermato.';
+    }
+    if (status === 400 || status === 401) return 'Email o password non corrette.';
+    if (status === 422) return 'Controlla che l\'email sia scritta bene.';
+    if (status === 429) return 'Troppi tentativi. Riprova tra qualche minuto.';
+    return 'Non riesco ad accedere. Riprova tra qualche istante.';
+  }
+
+  function signIn(email, password) {
+    return authPost('/token?grant_type=password', { email: email, password: password })
+      .then(function (r) {
+        if (!r.ok || !r.json || !r.json.access_token) {
+          throw new ConsoleError('login_failed', loginError(r.status, r.json));
+        }
+        return adoptSession(r.json);
+      });
+  }
+
+  /* A refresh token is single use, so concurrent callers share one flight. */
+  function refreshSession() {
+    if (refreshing) return refreshing;
+    if (!session) return Promise.reject(new ConsoleError('unauthorized'));
+    var token = session.refresh_token;
+    refreshing = authPost('/token?grant_type=refresh_token', { refresh_token: token })
+      .then(function (r) {
+        if (!r.ok || !r.json || !r.json.access_token) throw new ConsoleError('unauthorized');
+        return adoptSession(r.json);
+      })
+      .then(function (s) { refreshing = null; return s; },
+            function (e) { refreshing = null; throw e; });
+    return refreshing;
+  }
+
+  function accessToken() {
+    if (!session) return Promise.reject(new ConsoleError('unauthorized'));
+    if (session.expires_at - nowSec() > 60) return Promise.resolve(session.access_token);
+    return refreshSession().then(function (s) { return s.access_token; }, function () {
+      // The refresh token is gone or spent: same outcome as a 401.
+      signOut(ERR.unauthorized);
+      throw new ConsoleError('unauthorized');
+    });
+  }
+
+  function signOut(reason) {
+    var token = session && session.access_token;
+    session = null;
+    dropStoredSession();
+    if (token) {
+      // Best effort: the local session is already gone either way.
+      authPost('/logout', {}, token)['catch'](function () { /* offline */ });
+    }
+    showLogin(reason);
+  }
+
+  /* ------------------------------------------------------------------ api */
+
+  /** POST to porca-admin with the current access token. */
+  function callApi(action, payload) {
+    return accessToken().then(function (token) {
+      var body = { action: action };
+      if (payload) { for (var k in payload) { body[k] = payload[k]; } }
+      return fetch(ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          apikey: ANON,
+          authorization: 'Bearer ' + token
+        },
+        body: JSON.stringify(body)
+      }).then(null, function () { throw new ConsoleError('network'); });
+    }).then(function (res) {
+      return res.json().catch(function () { return null; })
+        .then(function (json) { return { status: res.status, ok: res.ok, json: json }; });
+    }).then(function (r) {
+      if (r.status === 401) { signOut(ERR.unauthorized); throw new ConsoleError('unauthorized'); }
+      if (r.status === 403) { signOut(ERR.forbidden);    throw new ConsoleError('forbidden'); }
+      if (!r.ok || !r.json || r.json.ok === false) {
+        throw new ConsoleError(r.json && r.json.error, r.json && r.json.message);
+      }
+      // The Edge Function wraps the SQL result: { ok, action, data }. The inner
+      // jsonb carries its own ok:false for expected refusals (full, duplicate…).
+      var inner = r.json.data;
+      if (inner && inner.ok === false) throw new ConsoleError(inner.error, inner.message);
+      return inner;
+    });
+  }
+
+  /* The public availability calendar, called with the anon key exactly as the
+     booking widget does. It carries no personal data and no occupancy, and it
+     is the ONLY way to read two things porca-admin has no action for:
+       - which dates are closed (there is no `closures` list action),
+       - the weekly service_windows template (`windows` only writes).
+     A closed day arrives as closed:true with services:[]. */
+  function fetchCalendar() {
+    var to = ymdShift(romeToday(), LOOKAHEAD_DAYS);
+    return fetch(AVAIL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', apikey: ANON, authorization: 'Bearer ' + ANON },
+      body: JSON.stringify({ party: 1, to: to })
+    }).then(null, function () { throw new ConsoleError('network'); })
+      .then(function (res) {
+        return res.json().catch(function () { return null; })
+          .then(function (json) { return { ok: res.ok, json: json }; });
+      })
+      .then(function (r) {
+        if (!r.ok || !r.json || !r.json.days || r.json.days.length === undefined) {
+          throw new ConsoleError(r.json && r.json.error, r.json && r.json.message);
+        }
+        state.calendar = r.json;
+        return r.json;
+      });
+  }
+
+  function ensureCalendar(force) {
+    if (state.calendar && !force) return Promise.resolve(state.calendar);
+    return fetchCalendar();
+  }
+
+  /* ----------------------------------------------------------------- date */
+
+  /* "Today" is the device clock read in Rome. It is used only to pick which
+     day to show first and to step Ieri/Domani; every stored date and every
+     wall-clock time on screen comes from the server. */
+  function romeToday() {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: ROME, year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date());
+  }
+  function ymdShift(ymd, days) {
+    return new Date(Date.parse(ymd + 'T00:00:00Z') + days * 86400000).toISOString().slice(0, 10);
+  }
+  function ymdUTC(ymd) {
+    var p = String(ymd).split('-');
+    return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+  }
+  function dayLabel(ymd) {
+    return new Intl.DateTimeFormat('it-IT', {
+      timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long'
+    }).format(ymdUTC(ymd));
+  }
+  function dayLabelShort(ymd) {
+    return new Intl.DateTimeFormat('it-IT', {
+      timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric'
+    }).format(ymdUTC(ymd));
+  }
+  function dateOfInstant(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return new Intl.DateTimeFormat('it-IT', {
+      timeZone: ROME, day: '2-digit', month: '2-digit'
+    }).format(d);
+  }
+  function plural(n, one, many) { return n === 1 ? one : many; }
+
+  /* --------------------------------------------------------------- stato */
+
+  var state = {
+    day: romeToday(),
+    settings: null,
+    settingsLoaded: false,
+    calendar: null,
+    template: null
+  };
+
+  /* -------------------------------------------------------------- toast */
+
+  var toast = null, toastTimer = null;
+  function clearToast() {
+    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+    if (toast) { toast.remove(); toast = null; }
+  }
+  /** kind: 'ok' | 'warn' | 'err'. Errors stay until dismissed. */
+  function say(kind, text) {
+    clearToast();
+    toast = h('div', { class: 'toast is-' + kind, role: 'alert' },
+      h('p', { text: text }),
+      h('button', { type: 'button', 'aria-label': 'Chiudi', on: { click: clearToast } }, '×'));
+    document.body.appendChild(toast);
+    if (kind === 'ok') toastTimer = setTimeout(clearToast, 6000);
+  }
+  function panelMsg(el, kind, text) {
+    if (!kind) { el.hidden = true; el.textContent = ''; return; }
+    el.className = 'msg msg-' + kind;
+    el.textContent = text;
+    el.hidden = false;
+  }
+
+  /* ------------------------------------------------------ conferma inline */
+
+  var closeOpenConfirm = null;
+
+  /**
+   * Ask in place, under the thing being acted on. Never window.confirm().
+   * Resolves true only if the operator taps the affirmative button.
+   */
+  function askInline(host, question, yesLabel) {
+    if (closeOpenConfirm) closeOpenConfirm();
+    return new Promise(function (resolve) {
+      var box = h('div', { class: 'confirm', role: 'group', 'aria-label': 'Conferma' });
+      function done(value) {
+        if (closeOpenConfirm === close) closeOpenConfirm = null;
+        box.remove();
+        resolve(value);
+      }
+      function close() { done(false); }
+      var no  = h('button', { type: 'button', class: 'btn btn-sm btn-ghost',
+                              on: { click: function () { done(false); } } }, 'No, lascia stare');
+      var yes = h('button', { type: 'button', class: 'btn btn-sm btn-danger-solid',
+                              on: { click: function () { done(true); } } }, yesLabel);
+      box.appendChild(h('p', { text: question }));
+      box.appendChild(h('div', { class: 'row' }, no, yes));
+      closeOpenConfirm = close;
+      host.appendChild(box);
+      no.focus();
+    });
+  }
+
+  /* ------------------------------------------------------------- schermate */
+
+  var elLogin = $('#login');
+  var elApp   = $('#app');
+
+  function showLogin(message) {
+    clearToast();
+    elBoot.hidden = true;
+    elApp.hidden = true;
+    elLogin.hidden = false;
+    $('#li-pass').value = '';
+    if (message) panelMsg($('#login-msg'), 'err', message);
+    else panelMsg($('#login-msg'), null, null);
+  }
+
+  function showApp() {
+    elBoot.hidden = true;
+    elLogin.hidden = true;
+    elApp.hidden = false;
+    $('#who').textContent = (session && session.email) || '';
+    $('#day-input').value = state.day;
+    $('#clo-date').value = state.day;
+    $('#clo-date').min = romeToday();
+    loadDay();
+  }
+
+  /* ---------------------------------------------------------------- login */
+
+  var loginForm = $('#login-form');
+  var loginBtn  = $('#login-btn');
+
+  loginForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    panelMsg($('#login-msg'), null, null);
+    var email = $('#li-email').value.trim();
+    var pass  = $('#li-pass').value;
+    if (!email || !pass) {
+      panelMsg($('#login-msg'), 'err', 'Inserisci email e password.');
+      return;
+    }
+    loginBtn.disabled = true; loginBtn.setAttribute('aria-busy', 'true');
+    signIn(email, pass).then(function () {
+      $('#li-pass').value = '';
+      showApp();
+    }, function (err) {
+      panelMsg($('#login-msg'), 'err', err.message || ERR.server_error);
+    }).then(function () {
+      loginBtn.disabled = false; loginBtn.removeAttribute('aria-busy');
+    });
+  });
+
+  $('#logout').addEventListener('click', function () { signOut(null); });
+
+  /* ----------------------------------------------------------------- tabs */
+
+  var PANELS = ['servizio', 'chiusure', 'impostazioni'];
+  Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (tab) {
+    tab.addEventListener('click', function () {
+      var name = tab.dataset.tab;
+      PANELS.forEach(function (p) {
+        var on = p === name;
+        var t = $('#tab-' + p);
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        $('#panel-' + p).hidden = !on;
+      });
+      // Chiusure always re-reads: it is one light, PII-free call and a stale
+      // closure list is exactly the kind of lie this console must not tell.
+      if (name === 'chiusure') loadClosures();
+      if (name === 'impostazioni' && !state.settingsLoaded) loadSettings();
+    });
+  });
+
+  /* ======================================================== 1. prenotazioni */
+
+  var dayHead = $('#day-head');
+  var dayBody = $('#day-body');
+
+  Array.prototype.forEach.call(document.querySelectorAll('.btn-day'), function (btn) {
+    btn.addEventListener('click', function () {
+      state.day = ymdShift(romeToday(), parseInt(btn.dataset.day, 10) || 0);
+      $('#day-input').value = state.day;
+      Array.prototype.forEach.call(document.querySelectorAll('.btn-day'), function (b) {
+        b.classList.toggle('is-on', b === btn);
+      });
+      loadDay();
+    });
+  });
+  $('#day-input').addEventListener('change', function (e) {
+    if (!e.target.value) return;
+    state.day = e.target.value;
+    Array.prototype.forEach.call(document.querySelectorAll('.btn-day'), function (b) {
+      b.classList.remove('is-on');
+    });
+    loadDay();
+  });
+  $('#day-reload').addEventListener('click', function () { loadDay(); });
+
+  var STATUS_LABEL = {
+    confirmed: 'Confermata',
+    seated:    'In sala',
+    cancelled: 'Annullata',
+    noshow:    'No show'
+  };
+  var SERVICE_LABEL = { pranzo: 'Pranzo', cena: 'Cena', giornata: 'Giornata' };
+  var ACTIVE = { confirmed: true, seated: true };
+
+  function loadDay() {
+    if (closeOpenConfirm) closeOpenConfirm();
+    dayHead.replaceChildren(loadingNode('Carico la giornata…'));
+    dayBody.replaceChildren();
+    return callApi('day', { from: state.day, to: state.day }).then(function (payload) {
+      var day = payload && payload.days && payload.days[0];
+      if (!day) {
+        dayHead.replaceChildren(h('p', { class: 'card msg msg-warn',
+          text: 'Nessun dato per questa data.' }));
+        return;
+      }
+      paintDayHead(day);
+      paintDayBody(day);
+    }, function (err) {
+      dayHead.replaceChildren(h('p', { class: 'card msg msg-err', role: 'alert', text: err.message }));
+    });
+  }
+
+  function paintDayHead(day) {
+    var bookings = day.bookings || [];
+    var live = bookings.filter(function (b) { return ACTIVE[b.status]; });
+    var covers = live.reduce(function (acc, b) { return acc + (b.party || 0); }, 0);
+
+    var chips = h('div', { class: 'chips' });
+    (day.totals || []).forEach(function (t) {
+      chips.appendChild(h('span', { class: 'chip',
+        text: (SERVICE_LABEL[t.service] || t.service) + ' · ' + t.covers + ' coperti · ' +
+              t.bookings + ' ' + plural(t.bookings, 'tavolo', 'tavoli') }));
+    });
+
+    var card = h('div', { class: 'card dayhead' },
+      h('div', { class: 'd', text: dayLabel(day.date) }),
+      h('div', { class: 's',
+        text: live.length + ' ' + plural(live.length, 'prenotazione', 'prenotazioni') +
+              ' · ' + covers + ' coperti · picco ' + day.peak + ' su ' + day.capacity + ' posti' }),
+      (day.totals || []).length ? chips : null,
+      day.closed ? h('p', { class: 'msg msg-warn',
+        text: 'Data chiusa' + (day.note ? ' — ' + day.note : '') +
+              '. Il sito non prende prenotazioni per questo giorno.' }) : null
+    );
+    dayHead.replaceChildren(card);
+  }
+
+  function paintDayBody(day) {
+    var rows = (day.bookings || []).slice();
+    var list = h('div', { class: 'bk-list' });
+    if (!rows.length) {
+      list.appendChild(h('p', { class: 'card hint', text: 'Nessuna prenotazione per questa data.' }));
+    }
+    // Live tables first, in time order; cancelled and no-show fall to the bottom.
+    rows.sort(function (a, b) {
+      var d = (ACTIVE[b.status] ? 1 : 0) - (ACTIVE[a.status] ? 1 : 0);
+      if (d) return d;
+      return String(a.time).localeCompare(String(b.time));
+    });
+    rows.forEach(function (b) { list.appendChild(bookingRow(b)); });
+    dayBody.replaceChildren(list);
+  }
+
+  function bookingRow(b) {
+    var off = !ACTIVE[b.status];
+    var row = h('div', {
+      class: 'bk' + (off ? ' is-off' : '') + (b.status === 'seated' ? ' is-seated' : '')
+    });
+
+    row.appendChild(h('div', { class: 'bk-l1' },
+      h('span', { class: 'bk-time', text: b.time }),
+      h('span', { class: 'bk-pax', text: b.party + ' ' + plural(b.party, 'persona', 'persone') }),
+      h('span', { class: 'badge badge-' + b.status, text: STATUS_LABEL[b.status] || b.status }),
+      h('span', { class: 'bk-name', text: b.name })
+    ));
+
+    var meta = h('div', { class: 'bk-meta' });
+    if (b.anonymized_at) {
+      // gdpr_purge() scrubbed name, phone, e-mail and notes after 120 days.
+      meta.appendChild(h('div', { text: 'Contatti rimossi (privacy).' }));
+    } else {
+      if (b.phone) {
+        meta.appendChild(h('div', null,
+          h('a', { href: 'tel:' + String(b.phone).replace(/[^\d+]/g, ''), text: b.phone })));
+      }
+      if (b.email) {
+        meta.appendChild(h('div', null, h('a', { href: 'mailto:' + b.email, text: b.email })));
+      }
+    }
+    meta.appendChild(h('div', {
+      text: 'Codice ' + b.code + ' · ' + (SERVICE_LABEL[b.service] || b.service) +
+            ' · ' + b.source + ' · prenotata il ' + dateOfInstant(b.created_at)
+    }));
+    row.appendChild(meta);
+
+    if (b.notes) row.appendChild(h('div', { class: 'bk-notes', text: b.notes }));
+
+    var act = h('div', { class: 'bk-act' });
+    function mk(label, status, cls, question, yes) {
+      return h('button', {
+        type: 'button', class: 'btn btn-sm ' + cls,
+        on: { click: function () { setStatus(row, b, status, question, yes); } }
+      }, label);
+    }
+
+    var who = b.name + ' (' + b.party + ' ' + plural(b.party, 'persona', 'persone') +
+              ', ore ' + b.time + ')';
+    if (b.status === 'confirmed') {
+      act.appendChild(mk('Seduti', 'seated', 'btn-ghost'));
+      act.appendChild(mk('No show', 'noshow', 'btn-danger',
+        'Segnare ' + who + ' come no show? I posti tornano liberi.', 'Sì, no show'));
+      act.appendChild(mk('Annulla', 'cancelled', 'btn-danger',
+        'Annullare la prenotazione di ' + who + '? Il cliente non riceve nessun avviso.',
+        'Sì, annulla'));
+    } else if (b.status === 'seated') {
+      act.appendChild(mk('Torna a confermata', 'confirmed', 'btn-ghost'));
+      act.appendChild(mk('Annulla', 'cancelled', 'btn-danger',
+        'Annullare la prenotazione di ' + who + '? Il cliente non riceve nessun avviso.',
+        'Sì, annulla'));
+    } else {
+      // Riattiva re-runs the capacity check in the database, excluding this row:
+      // if the sala filled up meanwhile it comes back "full" and nothing changes.
+      act.appendChild(mk('Riattiva', 'confirmed', 'btn-ghost'));
+    }
+    row.appendChild(act);
+    return row;
+  }
+
+  function setStatus(host, b, status, question, yesLabel) {
+    var go = question ? askInline(host, question, yesLabel || 'Sì, procedi') : Promise.resolve(true);
+    go.then(function (yes) {
+      if (!yes) return;
+      return callApi('set_status', { id: b.id, status: status }).then(function (data) {
+        say('ok', data && data.changed === false
+          ? 'Nessuna modifica: era già in questo stato.'
+          : 'Prenotazione ' + b.code + ': ' + (STATUS_LABEL[status] || status).toLowerCase() + '.');
+        return loadDay();
+      }, function (err) {
+        say('err', err.message);
+      });
+    });
+  }
+
+  /* ============================================================ 2. chiusure */
+
+  var cloList = $('#clo-list');
+  var cloMsg  = $('#clo-msg');
+  var DOW_NAME = { 0: 'domenica', 1: 'lunedì', 2: 'martedì', 3: 'mercoledì',
+                   4: 'giovedì', 5: 'venerdì', 6: 'sabato' };
+
+  /**
+   * porca-admin has no action that lists closures, so the list is read off the
+   * public availability calendar, which marks every closed day.
+   *
+   * `closed` there means two different things — a row in porca.closures, OR a
+   * weekday with no active service_windows row (that is how Monday is closed).
+   * They are told apart like this: a day carrying a note is certainly a manual
+   * closure, and so is any closed day whose weekday is open on some other date
+   * in the window. Everything else is the fixed weekly closing day, which is
+   * changed from Impostazioni → Orari della settimana, not from here.
+   */
+  function splitClosures(calendar) {
+    var days = calendar.days || [];
+    var openDow = {}, manual = [], fixedDow = {}, i, d;
+    for (i = 0; i < days.length; i++) if (!days[i].closed) openDow[days[i].dow] = true;
+    for (i = 0; i < days.length; i++) {
+      d = days[i];
+      // A half-day closure leaves closed:false — the other service still runs —
+      // so filtering on `closed` alone hides exactly the banded closures the
+      // owner just created, and the Riapri button with them. closed_band is the
+      // only signal for those.
+      if (!d.closed && !d.closed_band) continue;
+      if (d.note || d.closed_band || openDow[d.dow]) manual.push(d);
+      else fixedDow[d.dow] = true;
+    }
+    return { manual: manual, fixed: Object.keys(fixedDow).map(Number) };
+  }
+
+  function closureRow(d) {
+    var row = h('div', { class: 'clo-row' },
+      h('span', { class: 'clo-when', text: dayLabel(d.date) }),
+      h('span', { class: 'clo-tag', text: dayLabelShort(d.date) })
+    );
+    row.appendChild(h('span', {
+      class: 'clo-tag',
+      text: d.closed_band === 'pranzo' ? 'solo pranzo'
+          : d.closed_band === 'cena' ? 'solo cena'
+          : 'tutto il giorno'
+    }));
+    if (d.note) row.appendChild(h('span', { class: 'clo-note', text: d.note }));
+    row.appendChild(h('button', {
+      type: 'button', class: 'btn btn-sm btn-ghost',
+      on: { click: function () { reopen(row, d.date); } }
+    }, 'Riapri'));
+    return row;
+  }
+
+  function loadClosures() {
+    if (closeOpenConfirm) closeOpenConfirm();
+    cloList.replaceChildren(loadingNode('Carico le chiusure…'));
+    return ensureCalendar(true).then(function (cal) {
+      var split = splitClosures(cal);
+      var box = h('div', { class: 'clo' });
+      if (!split.manual.length) {
+        box.appendChild(h('p', { class: 'hint', text: 'Nessuna data chiusa a mano in calendario.' }));
+      } else {
+        split.manual.forEach(function (d) { box.appendChild(closureRow(d)); });
+      }
+      if (split.fixed.length) {
+        box.appendChild(h('p', { class: 'hint',
+          text: 'Chiusura settimanale: ' +
+                split.fixed.map(function (n) { return DOW_NAME[n]; }).join(', ') +
+                '. Si cambia da Impostazioni → Orari della settimana.' }));
+      }
+      cloList.replaceChildren(box);
+    }, function (err) {
+      cloList.replaceChildren(h('p', { class: 'msg msg-err', role: 'alert', text: err.message }));
+    });
+  }
+
+  function reopen(host, date) {
+    askInline(host, 'Riaprire ' + dayLabel(date) + '? Torna disponibile per le prenotazioni online.',
+              'Sì, riapri').then(function (yes) {
+      if (!yes) return;
+      return callApi('block', { date: date, on: false }).then(function () {
+        say('ok', 'Data riaperta.');
+        return loadClosures();
+      }, function (err) {
+        say('err', err.message);
+      });
+    });
+  }
+
+  $('#clo-block').addEventListener('click', function () {
+    panelMsg(cloMsg, null, null);
+    var form = $('#clo-form');
+    var date = $('#clo-date').value;
+    var note = $('#clo-note').value.trim();
+    if (!date) { panelMsg(cloMsg, 'err', 'Scegli una data.'); return; }
+
+    askInline(form,
+      'Chiudere ' + dayLabel(date) + '? Sparisce dalle prenotazioni online per tutta la ' +
+      'giornata. Le prenotazioni già in agenda NON vengono cancellate.',
+      'Sì, chiudi').then(function (yes) {
+      if (!yes) return;
+      return callApi('block', { date: date, note: note, on: true }).then(function (data) {
+        // admin_block() never touches bookings; it reports what the date already
+        // holds so the operator can go and deal with them by hand.
+        if (data && data.warning) {
+          panelMsg(cloMsg, 'warn', data.warning);
+          say('warn', data.warning);
+        } else {
+          panelMsg(cloMsg, 'ok', 'Data chiusa.');
+          say('ok', 'Data chiusa.');
+        }
+        $('#clo-note').value = '';
+        return loadClosures();
+      }, function (err) {
+        panelMsg(cloMsg, 'err', err.message);
+        say('err', err.message);
+      });
+    });
+  });
+
+  /* ======================================================== 3. impostazioni */
+
+  var setForm = $('#set-form');
+  var setMsg  = $('#set-msg');
+  var killBtn = $('#kill-btn');
+  var SET_KEYS = ['capacity_seats', 'small_party_max', 'turn_minutes_small',
+                  'turn_minutes_large', 'max_party', 'lead_minutes', 'horizon_days'];
+
+  function loadSettings() {
+    $('#set-load').replaceChildren(loadingNode('Carico le impostazioni…'));
+    $('#set-load').hidden = false;
+    $('#set-wrap').hidden = true;
+    // The contract has no read-only action: an empty patch changes no value and
+    // returns the current row. Documented behaviour of porca.admin_settings().
+    return callApi('settings', { patch: {} }).then(function (data) {
+      paintSettings((data && data.settings) || {});
+      state.settingsLoaded = true;
+      $('#set-load').hidden = true;
+      $('#set-wrap').hidden = false;
+      loadWindows();
+    }, function (err) {
+      $('#set-load').replaceChildren(
+        h('p', { class: 'card msg msg-err', role: 'alert', text: err.message }));
+    });
+  }
+
+  function paintSettings(s) {
+    state.settings = s;
+    SET_KEYS.forEach(function (name) {
+      var input = setForm.elements[name];
+      if (input && s[name] != null) input.value = s[name];
+    });
+    paintTurnLabels();
+    var on = s.accepting !== false;
+    $('#kill-state').textContent = on
+      ? 'Attive — il sito prende prenotazioni.'
+      : 'FERME — il sito mostra solo il telefono.';
+    killBtn.textContent = on ? 'Ferma le prenotazioni online' : 'Riattiva le prenotazioni online';
+    killBtn.className = 'btn btn-big ' + (on ? 'btn-danger' : 'btn-primary');
+  }
+
+  /* The threshold is a setting, so the two turn labels quote it live rather
+     than repeating a number that would quietly start lying. */
+  function paintTurnLabels() {
+    var v = parseInt(setForm.elements.small_party_max.value, 10);
+    if (!isFinite(v) || v < 1) {
+      $('#lbl-turn-small').textContent = 'Durata turno, tavoli piccoli (minuti)';
+      $('#lbl-turn-large').textContent = 'Durata turno, tavoli grandi (minuti)';
+      return;
+    }
+    $('#lbl-turn-small').textContent = 'Durata turno, fino a ' + v + ' ' +
+      plural(v, 'persona', 'persone') + ' (minuti)';
+    $('#lbl-turn-large').textContent = 'Durata turno, oltre ' + v + ' ' +
+      plural(v, 'persona', 'persone') + ' (minuti)';
+  }
+  setForm.elements.small_party_max.addEventListener('input', paintTurnLabels);
+
+  killBtn.addEventListener('click', function () {
+    var turningOff = !state.settings || state.settings.accepting !== false;
+    var go = turningOff
+      ? askInline($('#kill-confirm'),
+          'Fermare le prenotazioni online? Il sito smette di prenderle finché non le riattivi.',
+          'Sì, ferma')
+      : Promise.resolve(true);
+    go.then(function (yes) {
+      if (!yes) return;
+      killBtn.disabled = true; killBtn.setAttribute('aria-busy', 'true');
+      return callApi('settings', { patch: { accepting: !turningOff } }).then(function (data) {
+        paintSettings((data && data.settings) || {});
+        say('ok', turningOff ? 'Prenotazioni online ferme.' : 'Prenotazioni online riattivate.');
+      }, function (err) {
+        say('err', err.message);
+      }).then(function () {
+        killBtn.disabled = false; killBtn.removeAttribute('aria-busy');
+      });
+    });
+  });
+
+  setForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    panelMsg(setMsg, null, null);
+
+    var patch = {}, i, name, raw;
+    for (i = 0; i < SET_KEYS.length; i++) {
+      name = SET_KEYS[i];
+      raw = String(setForm.elements[name].value).trim();
+      // Whole numbers only: porca.admin_settings() casts with ::int and would
+      // refuse "12,5" with a slug instead of a sentence anyone can act on.
+      if (!/^\d+$/.test(raw)) {
+        panelMsg(setMsg, 'err', 'Controlla i valori: devono essere numeri interi.');
+        return;
+      }
+      patch[name] = parseInt(raw, 10);
+    }
+    if (patch.turn_minutes_large < patch.turn_minutes_small) {
+      panelMsg(setMsg, 'err',
+        'Il turno dei tavoli grandi non può essere più corto di quello dei piccoli.');
+      return;
+    }
+    if (patch.small_party_max > patch.max_party) {
+      panelMsg(setMsg, 'err',
+        'La soglia dei tavoli piccoli non può superare il massimo per prenotazione.');
+      return;
+    }
+
+    var save = $('#set-save');
+    save.disabled = true; save.setAttribute('aria-busy', 'true');
+    callApi('settings', { patch: patch }).then(function (data) {
+      paintSettings((data && data.settings) || patch);
+      panelMsg(setMsg, 'ok', 'Impostazioni salvate.');
+      say('ok', 'Impostazioni salvate.');
+    }, function (err) {
+      panelMsg(setMsg, 'err', err.message);
+    }).then(function () {
+      save.disabled = false; save.removeAttribute('aria-busy');
+    });
+  });
+
+  /* ---------------------------------------------- orari della settimana --- */
+
+  var winGrid = $('#win-grid');
+  var winMsg  = $('#win-msg');
+  var winSave = $('#win-save');
+  var DOW_ORDER = [1, 2, 3, 4, 5, 6, 0];
+  var DOW_TITLE = { 0: 'Domenica', 1: 'Lunedì', 2: 'Martedì', 3: 'Mercoledì',
+                    4: 'Giovedì', 5: 'Venerdì', 6: 'Sabato' };
+
+  function hhmmMin(v) {
+    var m = /^(\d{1,2}):(\d{2})/.exec(String(v || ''));
+    return m ? (+m[1]) * 60 + (+m[2]) : null;
+  }
+
+  /**
+   * The `windows` action only WRITES; the contract has no read.
+   * The current template is reconstructed from the public availability
+   * calendar, which lists exactly the active windows: the first slot of a
+   * service is `opens`, the last is `last_seating`, and the gap between the
+   * first two is `slot_minutes`. The first OPEN occurrence of each weekday
+   * wins, so a one-off closure cannot make a whole weekday look inactive.
+   */
+  function buildTemplate(calendar) {
+    var tpl = {}, seen = {}, days = calendar.days || [], i, j, d, sv, slots, step;
+    for (i = 0; i < days.length; i++) {
+      d = days[i];
+      if (!d || d.closed) continue;
+      seen[d.dow] = true;
+      if (tpl[d.dow]) continue;                       // first open occurrence wins
+      tpl[d.dow] = {};
+      for (j = 0; j < (d.services || []).length; j++) {
+        sv = d.services[j];
+        slots = sv.slots || [];
+        if (!slots.length) continue;
+        step = slots.length > 1 ? (hhmmMin(slots[1].time) - hhmmMin(slots[0].time)) : 30;
+        if (step !== 15 && step !== 30) step = 30;
+        tpl[d.dow][sv.service] = {
+          opens: slots[0].time,
+          last_seating: slots[slots.length - 1].time,
+          slot_minutes: step
+        };
+      }
+    }
+    return { tpl: tpl, seen: seen };
+  }
+
+  /** Services offered anywhere in the week, so a 'giornata' row is never lost. */
+  function servicesInTemplate(tpl) {
+    var out = ['pranzo', 'cena'], dow, svc;
+    for (dow in tpl) for (svc in tpl[dow]) if (out.indexOf(svc) === -1) out.push(svc);
+    return out;
+  }
+
+  /** A blank row borrows the same service's hours from another day — never invented. */
+  function borrowHours(tpl, service) {
+    var i, dow;
+    for (i = 0; i < DOW_ORDER.length; i++) {
+      dow = DOW_ORDER[i];
+      if (tpl[dow] && tpl[dow][service]) return tpl[dow][service];
+    }
+    return null;
+  }
+
+  function loadWindows() {
+    winGrid.replaceChildren(loadingNode('Carico gli orari…'));
+    winSave.disabled = true;
+    panelMsg(winMsg, null, null);
+    return ensureCalendar(false).then(function (cal) {
+      var built = buildTemplate(cal);
+      state.template = built.tpl;
+      renderWindows(built.tpl, built.seen);
+      winSave.disabled = false;
+    }, function (err) {
+      winGrid.replaceChildren(h('p', { class: 'msg msg-err', role: 'alert', text: err.message }));
+    });
+  }
+
+  function renderWindows(tpl, seen) {
+    var services = servicesInTemplate(tpl);
+    winGrid.replaceChildren();
+
+    DOW_ORDER.forEach(function (dow) {
+      var block = h('div', { class: 'win-day' }, h('h3', { text: DOW_TITLE[dow] }));
+      services.forEach(function (service) {
+        var cur = (tpl[dow] && tpl[dow][service]) || null;
+        var row = h('div', {
+          class: 'win-row' + (cur ? '' : ' is-off'),
+          data: { dow: String(dow), service: service }
+        });
+
+        var chk = h('input', { type: 'checkbox', 'data-f': 'active' });
+        chk.checked = !!cur;
+        var opens = h('input', { type: 'time', 'data-f': 'opens', step: '900',
+          'aria-label': DOW_TITLE[dow] + ', ' + (SERVICE_LABEL[service] || service) + ': apertura' });
+        var last = h('input', { type: 'time', 'data-f': 'last_seating', step: '900',
+          'aria-label': DOW_TITLE[dow] + ', ' + (SERVICE_LABEL[service] || service) + ': ultima entrata' });
+        var sel = h('select', { 'data-f': 'slot_minutes',
+          'aria-label': DOW_TITLE[dow] + ', ' + (SERVICE_LABEL[service] || service) + ': intervallo' },
+          h('option', { value: '15', text: "ogni 15'" }),
+          h('option', { value: '30', text: "ogni 30'" }));
+
+        if (cur) {
+          opens.value = cur.opens;
+          last.value = cur.last_seating;
+          sel.value = String(cur.slot_minutes);
+        } else {
+          sel.value = '30';                 // porca.service_windows.slot_minutes default
+        }
+
+        chk.addEventListener('change', function () {
+          row.classList.toggle('is-off', !chk.checked);
+          if (chk.checked && !opens.value && !last.value) {
+            var like = borrowHours(tpl, service);
+            if (like) {
+              opens.value = like.opens;
+              last.value = like.last_seating;
+              sel.value = String(like.slot_minutes);
+            }
+          }
+        });
+
+        row.appendChild(h('label', { class: 'win-on' }, chk,
+          h('span', { text: SERVICE_LABEL[service] || service })));
+        row.appendChild(h('div', { class: 'win-times' }, opens,
+          h('span', { class: 'win-arrow', 'aria-hidden': 'true' }, '→'), last, sel));
+        block.appendChild(row);
+      });
+      winGrid.appendChild(block);
+    });
+
+    var missing = DOW_ORDER.filter(function (d) { return !seen[d]; });
+    if (missing.length) {
+      panelMsg(winMsg, 'warn',
+        'Non ho potuto leggere gli orari di: ' +
+        missing.map(function (d) { return DOW_TITLE[d].toLowerCase(); }).join(', ') +
+        '. Nel calendario risultano chiusi. Se invece sono aperti, compilali a mano ' +
+        'prima di salvare, altrimenti il salvataggio li lascia chiusi.');
+    }
+  }
+
+  $('#win-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    panelMsg(winMsg, null, null);
+
+    var rows = [], bad = null;
+    Array.prototype.forEach.call(winGrid.querySelectorAll('.win-row'), function (row) {
+      if (bad) return;
+      var dow = parseInt(row.dataset.dow, 10);
+      var service = row.dataset.service;
+      if (!row.querySelector('[data-f="active"]').checked) return;   // assente = chiuso
+      var opens = row.querySelector('[data-f="opens"]').value;
+      var last  = row.querySelector('[data-f="last_seating"]').value;
+      var slot  = parseInt(row.querySelector('[data-f="slot_minutes"]').value, 10);
+      var label = DOW_TITLE[dow] + ', ' + (SERVICE_LABEL[service] || service).toLowerCase();
+      if (!opens || !last) { bad = label + ': mancano gli orari.'; return; }
+      if (hhmmMin(opens) >= hhmmMin(last)) {
+        bad = label + ": l'apertura deve venire prima dell'ultima entrata.";
+        return;
+      }
+      rows.push({ dow: dow, service: service, opens: opens, last_seating: last,
+                  slot_minutes: slot, active: true });
+    });
+    if (bad) { panelMsg(winMsg, 'err', bad); return; }
+
+    var open = rows.length
+      ? ' Restano attivi ' + rows.length + ' ' + plural(rows.length, 'servizio', 'servizi') + '.'
+      : ' Attenzione: così il locale risulta chiuso tutti i giorni.';
+    askInline($('#win-form'),
+      'Salvare gli orari? Sostituisci tutta la settimana: quello che non ha la spunta ' +
+      'risulta chiuso.' + open, 'Sì, salva').then(function (yes) {
+      if (!yes) return;
+      winSave.disabled = true; winSave.setAttribute('aria-busy', 'true');
+      return callApi('windows', { rows: rows }).then(function (data) {
+        if (data && data.warning) {
+          panelMsg(winMsg, 'warn', data.warning);
+          say('warn', data.warning);
+        } else {
+          panelMsg(winMsg, 'ok', 'Orari salvati.');
+          say('ok', 'Orari della settimana aggiornati.');
+        }
+        // The calendar the closure list and this grid read from is now stale.
+        state.calendar = null;
+        return loadWindows();
+      }, function (err) {
+        panelMsg(winMsg, 'err', err.message);
+      }).then(function () {
+        winSave.disabled = false; winSave.removeAttribute('aria-busy');
+      });
+    });
+  });
+
+  /* ================================================================== boot */
+
+  session = readStoredSession();
+  if (!session) {
+    showLogin(null);
+  } else if (session.expires_at - nowSec() > 60) {
+    showApp();
+  } else {
+    // Stored but stale: swap it for a fresh one before showing anything.
+    refreshSession().then(function () { showApp(); },
+                          function () { signOut(null); });
+  }
+})();
+</script>
+
+</body>
+</html>

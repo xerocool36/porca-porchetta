@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="it" data-i18n-page="privacy">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Spec build for a real named business that has not signed off yet. Stays out of
+     the index until the owner approves. -->
+<meta name="robots" content="noindex, nofollow">
 <title>Privacy, Porca Porchetta ad Anguillara Sabazia</title>
 <meta name="description" content="Informativa privacy di Porca Porchetta: quali dati raccoglie il modulo di prenotazione, perché, dove finiscono, per quanto tempo restano e come cancellarli.">
 <link rel="canonical" href="https://xerocool36.github.io/porca-porchetta/privacy.html">
@@ -12,17 +15,18 @@
 <meta property="og:title" content="Privacy, Porca Porchetta">
 <meta property="og:description" content="Come trattiamo i dati raccolti quando prenoti un tavolo online.">
 <meta property="og:url" content="https://xerocool36.github.io/porca-porchetta/privacy.html">
-<meta name="theme-color" content="#F2F2F0">
+<meta name="theme-color" content="#F4EEE2">
 
 <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/img/logo-180.png">
 <link rel="manifest" href="site.webmanifest">
 
 <link rel="preload" href="assets/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/bevan-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="has-dock">
-<a class="u-skip" href="#main">Salta al contenuto</a>
+<a class="u-skip" href="#main" data-i18n="skip">Salta al contenuto</a>
 
 <svg class="sprite" aria-hidden="true" focusable="false">
   <symbol id="i-ig" viewBox="0 0 24 24">
@@ -50,26 +54,31 @@
   </symbol>
 </svg>
 
-<!-- IT/EN toggle omitted: this is a legal text and the Italian version is the
-     one that counts. -->
+<!-- The informativa itself stays Italian: it is a legal text and the Italian
+     version is the one that counts. The toggle stays in the header anyway, so
+     an English visitor who lands here is not dead-ended with no way back to
+     the rest of the site; the note under the h1 says which is which. -->
 <header class="hdr">
   <div class="hdr__inner">
     <a href="index.html" aria-label="Porca Porchetta">
-      <img class="hdr__logo" src="assets/img/logo.png" alt="Porca Porchetta, fraschetta" width="512" height="512">
+      <img class="hdr__logo" src="assets/img/logo-128.webp" alt="" width="128" height="128" decoding="async">
     </a>
     <span class="hdr__spacer"></span>
-    <a class="hdr__link" href="menu.html">Menù</a>
-    <a class="hdr__link hdr__link--cta" href="prenota.html">Prenota</a>
+    <a class="hdr__link" href="menu.html" data-i18n="nav.menu">Menù</a>
+    <a class="hdr__link hdr__link--cta" href="prenota.html" data-i18n="nav.book">Prenota</a>
+    <div class="lang" role="group" aria-label="Lingua / Language">
+      <button class="lang__btn" type="button" data-lang="it" aria-pressed="true"><span>IT</span></button>
+      <button class="lang__btn" type="button" data-lang="en" aria-pressed="false"><span>EN</span></button>
+    </div>
   </div>
 </header>
 
 <main id="main">
 
-<section class="band band--tight band--white" style="padding-block:52px 44px;">
+<section class="prenota__intro">
   <div class="wrap">
-    <hr class="rule">
     <h1 class="head__title t-display">Privacy</h1>
-    <p class="head__sub">
+    <p class="head__sub" data-i18n="pv.sub">
       Che cosa raccoglie il modulo di prenotazione, perché, dove finisce e per
       quanto tempo resta. Niente clausole di riempimento: qui c'è solo quello
       che questo sito fa davvero.
@@ -81,7 +90,11 @@
   <div class="wrap">
     <div class="doc">
 
-      <p class="doc__date">Ultimo aggiornamento: 6 agosto 2026</p>
+      <p class="doc__date" data-i18n="pv.updated">Ultimo aggiornamento: 6 agosto 2026</p>
+
+      <p class="alert alert--info" data-i18n="pv.langnote">
+        L'informativa che segue è in italiano: è la versione che fa fede.
+      </p>
 
       <p>
         Questo sito raccoglie dati personali in un punto solo: il modulo con cui
@@ -236,8 +249,8 @@
     <div class="ftr__grid">
 
       <div>
-        <img class="ftr__logo" src="assets/img/logo.png" alt="Porca Porchetta" width="512" height="512" loading="lazy">
-        <p class="ftr__tag">
+        <img class="ftr__logo" src="assets/img/logo-128.webp" alt="" width="128" height="128" loading="lazy" decoding="async">
+        <p class="ftr__tag" data-i18n="ft.tag">
           Fraschetta in una grotta di tufo, ad Anguillara Sabazia.
         </p>
         <ul class="social">
@@ -260,37 +273,37 @@
       </div>
 
       <div>
-        <h3>Il locale</h3>
+        <h3 data-i18n="ft.nav">Il locale</h3>
         <ul class="ftr__nav">
-          <li><a href="menu.html">Menù</a></li>
-          <li><a href="prenota.html">Prenota</a></li>
-          <li><a href="index.html#dove">Orari</a></li>
-          <li><a href="privacy.html" aria-current="page">Privacy</a></li>
+          <li><a href="menu.html" data-i18n="nav.menu">Menù</a></li>
+          <li><a href="prenota.html" data-i18n="nav.book">Prenota</a></li>
+          <li><a href="index.html#dove" data-i18n="ft.hours">Orari</a></li>
+          <li><a href="privacy.html" aria-current="page" data-i18n="ft.privacy">Privacy</a></li>
         </ul>
       </div>
 
       <div>
-        <h3>Dove siamo</h3>
-        <p>
+        <h3 data-i18n="ft.where">Dove siamo</h3>
+        <p data-i18n="ft.addrmail">
           Via del Trivio, 31<br>
           00061 Anguillara Sabazia (RM)<br>
           <a href="tel:+390665495256">06 6549 5256</a><br>
           <a href="mailto:Porcaporchetta2025@gmail.com">Porcaporchetta2025@gmail.com</a>
         </p>
-        <h3 style="margin-top:22px;">Orari</h3>
+        <h3 data-i18n="ft.hours">Orari</h3>
         <p>
-          Mar-Ven 17:00-23:00<br>
-          Sab-Dom 11:30-14:30 · 17:00-23:00<br>
-          <span class="ftr__closed">Lunedì chiuso</span>
+          <span data-i18n="ft.h1">Mar-Ven 17:00-23:00</span><br>
+          <span data-i18n="ft.h2">Sab-Dom 11:30-14:30 · 17:00-23:00</span><br>
+          <span class="ftr__closed" data-i18n="ft.h3">Lunedì chiuso</span>
         </p>
       </div>
     </div>
 
     <div class="ftr__base">
-      <p class="ftr__note">© <span id="yr">2026</span> Porca Porchetta · P.IVA da inserire</p>
+      <p class="ftr__note">© <span id="yr">2026</span> Porca Porchetta · <span data-i18n="ft.vat">P.IVA da inserire</span></p>
       <a class="credit" href="https://x3roautomations.it" target="_blank" rel="noopener">
-        <span>Sito realizzato da</span>
-        <img class="credit__logo" src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265" loading="lazy">
+        <span data-i18n="ft.credit">Sito realizzato da</span>
+        <img class="credit__logo" src="assets/img/x3ro-logo.webp" alt="x3ro Automations" width="420" height="265" loading="lazy" decoding="async">
       </a>
     </div>
   </div>
@@ -299,18 +312,19 @@
 <nav class="dock" aria-label="Azioni rapide">
   <a class="btn btn--vino" href="prenota.html">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>
-    <span>Prenota</span>
+    <span data-i18n="nav.book">Prenota</span>
   </a>
   <a class="btn btn--ghost" href="menu.html">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-menu"></use></svg>
-    <span>Menù</span>
+    <span data-i18n="nav.menu">Menù</span>
   </a>
   <a class="btn btn--ghost" href="tel:+390665495256">
     <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tel"></use></svg>
-    <span>Chiama</span>
+    <span data-i18n="cta.call">Chiama</span>
   </a>
 </nav>
 
+<script src="js/i18n.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
