@@ -98,23 +98,57 @@
      stylesheet kills the transition) and the swap is instant.
      --------------------------------------------------------------------- */
   function chapter() {
+    var section = document.getElementById('grotta');
     var stage = document.getElementById('stage');
     var steps = document.querySelectorAll('.chapter__step');
-    if (!stage || !steps.length || !hasIO) return;
+    if (!section || !stage || !steps.length) return;
 
     var shots = stage.querySelectorAll('.chapter__shot');
+    var io = null;
 
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        var n = e.target.getAttribute('data-step');
-        for (var i = 0; i < shots.length; i++) {
-          shots[i].classList.toggle('is-on', shots[i].getAttribute('data-shot') === n);
+    // Phones do not get the sticky stage. A held photograph swapping under
+    // three passages needs a tall viewport to read as one camera move; on a
+    // 390px screen it is half the screen pinned in place while text slides
+    // past it, which is the one piece of motion on this site that made a
+    // person feel something was wrong with the page. Down here each passage
+    // simply carries its own picture and the section scrolls like a page.
+    // The nodes MOVE rather than being duplicated: one download either way.
+    var wide = window.matchMedia('(min-width: 900px)');
+
+    function toFlow() {
+      section.classList.add('chapter--flow');
+      for (var i = 0; i < steps.length; i++) {
+        var n = steps[i].getAttribute('data-step');
+        for (var j = 0; j < shots.length; j++) {
+          if (shots[j].getAttribute('data-shot') === n) {
+            steps[i].insertBefore(shots[j], steps[i].firstChild);
+          }
         }
-      });
-    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+      }
+      if (io) { io.disconnect(); io = null; }
+    }
 
-    for (var s = 0; s < steps.length; s++) io.observe(steps[s]);
+    function toStage() {
+      section.classList.remove('chapter--flow');
+      for (var k = 0; k < shots.length; k++) stage.appendChild(shots[k]);
+      if (io || !hasIO) return;
+      io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          var n = e.target.getAttribute('data-step');
+          for (var i = 0; i < shots.length; i++) {
+            shots[i].classList.toggle('is-on', shots[i].getAttribute('data-shot') === n);
+          }
+        });
+      }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+      for (var s = 0; s < steps.length; s++) io.observe(steps[s]);
+    }
+
+    function sync() { if (wide.matches) toStage(); else toFlow(); }
+
+    sync();
+    if (wide.addEventListener) wide.addEventListener('change', sync);
+    else if (wide.addListener) wide.addListener(sync);   // Safari < 14
   }
 
   /* ---------------------------------------------------------------------

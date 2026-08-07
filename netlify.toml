@@ -33,6 +33,33 @@
 # to BOTH script-src and frame-src, loading the script in prenota.html, and
 # setting turnstileSiteKey — porca-book is fail-closed on an empty token, so
 # setting TURNSTILE_SECRET on its own refuses every booking.
+# ============================================================================
+# BLOCKER FOR THE NETLIFY MIGRATION — READ BEFORE THE FIRST DEPLOY
+#
+# This file is not in force today. The site is served from GitHub Pages, which
+# sends no CSP, so nothing below is currently applied and nothing below has
+# ever been exercised against a real deploy.
+#
+# The day this moves to Netlify (i.e. once the owner buys the domain and we
+# host it), `script-src 'self'; style-src 'self'` WILL BREAK admin.html. The
+# staff console is deliberately self-contained: its stylesheet is one inline
+# <style> block and its whole application is one inline <script>. Both are
+# dropped under this policy and the console renders as a blank page. The
+# public pages are unaffected — they load css/style.css and js/*.js as files.
+#
+# Two ways out, in order of preference:
+#   1. Extract admin.html's <style> to css/admin.css and its <script> to
+#      js/admin.js, and link them. Keeps the policy intact everywhere.
+#      Roughly an hour, and it is the honest fix.
+#   2. Add a [[headers]] block for "/admin.html" that repeats this CSP with
+#      'unsafe-inline' added to script-src and style-src. Five minutes, and it
+#      weakens exactly the page that manages the bookings. The page holds no
+#      authority (porca-admin verifies the JWT server-side) and renders every
+#      untrusted value as a text node, so the real risk is low — but it is a
+#      deliberate downgrade and it needs to be a decision, not an accident.
+#
+# Do not deploy to Netlify without picking one and testing the console login.
+# ============================================================================
 [[headers]]
   for = "/*"
   [headers.values]

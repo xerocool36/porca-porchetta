@@ -10,10 +10,20 @@ Static, no build step, no dependencies, no third-party requests.
 
 Plain HTML + CSS + vanilla JS. No framework, no CDN, no analytics, no cookies.
 
-Design direction is **"Fraschetta Fumetto"** — a comic book set inside their tufo cave.
-Palette and type derive from the venue's own artefacts: colours sampled from their printed
-menu board and logo, arch shapes from the cave vaults, neon from the wall signs, the
-tic-tac-toe game from their paper placemats.
+Design direction is **"La grotta"** (v3, 2026-08-07). Two colours carry the whole site:
+ink, and the **cotto** of their own brick vault. Everything else is warm tufo stone. The
+bottle green of their shopfront was the accent until 2026-08-07 and was dropped at the
+owner's request — it survives only inside photographs of the shopfront itself, where it is
+documentary. Bevan, a heavy Clarendon slab, is the letterform of the painted *insegne* and
+enamel plates hanging in their alley; the enamel seal is quoted from those plates.
+
+Two earlier directions were rejected by the owner: v1 "Fraschetta Fumetto" (comic /
+illustration) and v2 "Travertino" (neutral grey with a single pomegranate accent).
+
+**Every photograph of this venue is a 3:4 phone portrait and no landscape frame exists.**
+The hero is therefore three portraits standing side by side rather than one letterboxed
+plate — a single wide hero has to crop a portrait, which is what deleted the painted ROMA
+sign in both earlier builds. Anything added later should respect that constraint.
 
 Motion is IntersectionObserver + CSS keyframes only. GSAP and Lenis were deliberately
 dropped: the QR menu page has to paint fast on cafe 4G, and smooth-scroll libraries hijack
@@ -32,6 +42,15 @@ Taken from the venue's own published material and cross-checked:
 - **Address** - Via del Trivio 31-33.
 - **Rating** - 4.7 stars / 63 Google reviews at time of build (2026-07-26).
 
+## Known blockers
+
+| What | When it bites | Detail |
+|---|---|---|
+| **CSP breaks the staff console** | The first Netlify deploy | `netlify.toml` sets `script-src 'self'; style-src 'self'`. `admin.html` is one inline `<style>` plus one inline `<script>`, so both are dropped and the console renders blank. Harmless today (GitHub Pages sends no CSP). Fix before hosting: extract to `css/admin.css` + `js/admin.js`, **or** add an `/admin.html` header block with `'unsafe-inline'` and accept the downgrade. Full note at the top of `netlify.toml`. |
+| **Canonical / OG / sitemap URLs** | Domain purchase | They point at the GitHub Pages address. Update in `index.html`, `menu.html`, `prenota.html`, `sitemap.xml`, `robots.txt`. |
+| **`noindex` on every page** | Owner sign-off | Deliberate: this is a spec build for a business that has not signed off. Remove `<meta name="robots" content="noindex, nofollow">` when it goes live for real. |
+| **Confirmation email** | Domain purchase | Resend is off until the fraschetta owns a domain to send from. |
+
 ## Placeholders - to confirm with the client
 
 | Item | Current state |
@@ -46,6 +65,15 @@ Taken from the venue's own published material and cross-checked:
 
 localStorage stores exactly one key, `pp-lang` ("it" or "en"), for the language toggle.
 It is a preference, not tracking, so no consent banner is required.
+
+## Booking
+
+Self-hosted on the shared x3ro Supabase project, schema `porca`. There is **no** approval
+queue and no large-party gate: `porca.settings.max_party` is **20** (raised from 8 on
+2026-08-07), so a party of fourteen is an ordinary capacity question that `porca.book()`
+answers like any other. The widget renders chips 1–8 and hands anything larger to a native
+picker; it reads the cap from the server, so changing it in the staff console's
+*Impostazioni* changes the page with no redeploy.
 
 ## Deploy
 
@@ -86,3 +114,6 @@ requests, which matters if video is ever added.
 - IT / EN toggle leaves no untranslated strings.
 - Reduced motion: page fully composed and readable with zero animation.
 - Keyboard only: every control focusable, tris playable.
+- No horizontal scroll at 390px on **every** page, `admin.html` included. Two separate
+  min-content blowouts have already shipped here (a grid item and a `<fieldset>`, both
+  defaulting to `min-width: auto` around the 14-chip date strip).

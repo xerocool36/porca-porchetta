@@ -44,10 +44,33 @@
     'hero.h1a': 'A fraschetta',
     'hero.h1b': 'cut into the tufo',
     'hero.lede': 'Porchetta carved to order, boards, sandwiches and wine by the jug. A hundred metres from Lake Bracciano.',
+    'hero.f1': 'Sixty covers',
+    'hero.f2': 'Via del Trivio 31',
+    'hero.f3': 'The lake, a hundred metres',
+    'hero.when': 'When we are open',
+    'hero.w1d': 'Tuesday to Friday',
+    'hero.w2d': 'Saturday and Sunday',
+    'hero.wlink': 'Where we are',
+
+    /* the header lockup, which is set rather than drawn */
+    'mark.sub': 'Fraschetta · Anguillara',
 
     /* ------------------------------------------------------------ apertura */
     'ap.title': 'The osteria of the Castelli, under Anguillara',
     'ap.sub': 'One room, the house wine, food brought to the table without ceremony. Here the room is a cave cut into the tufo: sixty covers under the old town. Closed on Monday.',
+    'ap.p2': 'That is how the fraschetta started in the Castelli: you opened the cellar, hung a branch outside the door and ate whatever there was. Here it means porchetta, cold cuts sliced to order and wine ordered by the jug.',
+
+    /* the line of dishes above the boards. Porchetta, bufala, supplì and
+       bruschette are the names printed on their own board, so they stay
+       in Italian in both languages. */
+    'bk.porchetta': 'Porchetta',
+    'bk.bufala': 'Bufala',
+    'bk.suppli': 'Supplì',
+    'bk.crudo': 'Prosciutto crudo',
+    'bk.salumi': 'Cold cuts',
+    'bk.olive': 'Olives',
+    'bk.funghi': 'Mushroom',
+    'bk.bruschette': 'Bruschette',
 
     /* -------------------------------------------------------------- grotta */
     'gr.t1': 'The entrance',
@@ -67,6 +90,9 @@
     'tv.c3t': 'Ciavatta and ciavattone',
     'tv.c3d': 'Two sizes of sandwich: porchetta, sausage, tripe or meatballs. Takeaway too.',
     'tv.c4t': 'On the plate',
+    'tv.c4d': 'What comes out of the kitchen, beyond the boards.',
+    'tv.euro': 'Prices in euro. The full menu is on the carta.',
+    'tv.winek': 'To drink',
     'tv.p1': 'Meatballs in tomato sauce',
     'tv.p2': 'Tripe',
     'tv.p3': 'Mixed bruschette',
@@ -82,7 +108,7 @@
     /* ------------------------------------------------------------- prenota */
     'pr.title': 'Book a table',
     'pr.sub': 'Sixty covers, and at the weekend they fill up. The confirmation reaches you by email within a minute.',
-    'pr.alt': 'Groups of more than eight: <a href="tel:+390665495256">06 6549 5256</a>',
+    'pr.alt': 'Large tables book here too. Rather talk to someone? <a href="tel:+390665495256">06 6549 5256</a>',
 
     /* --------------------------------------------------------- orari, dove */
     'in.title': 'Hours and contacts',
@@ -272,7 +298,7 @@
     'pn.langnote': 'The booking form below is in Italian. To book in English, please call <a href="tel:+390665495256">06 6549 5256</a>.',
     'pn.good': 'Worth knowing',
     'pn.g1': '<strong>We hold the table for about fifteen minutes.</strong> If you are running late, call and we will move it.',
-    'pn.g2': '<strong>For groups of more than eight</strong> the tables are laid out by hand: the number is <a href="tel:+390665495256">06 6549 5256</a>.',
+    'pn.g2': '<strong>Large tables book here too.</strong> Above eight, pick the number from the dropdown: if there is room, the confirmation arrives like it does for everyone else.',
     'pn.g3': '<strong>We are closed on Monday.</strong> Tuesday to Friday evenings only, Saturday and Sunday lunch as well.',
     'pn.sum': 'Your table',
     'pn.day': 'Day',

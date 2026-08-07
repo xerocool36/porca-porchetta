@@ -35,9 +35,12 @@
 
      WHAT THIS CONSOLE DOES NOT HAVE, AND WHY
      - No "Richieste da approvare". porca has no pending state: the status
-       check is ('confirmed','cancelled','noshow','seated') and porca.book()
-       refuses a party over settings.max_party outright, telling the guest to
-       phone. There is no queue to approve, so there is no screen for one.
+       check is ('confirmed','cancelled','noshow','seated'). Large tables are
+       not a request either — the owner dropped the "over eight, phone us"
+       gate on 2026-08-07 and settings.max_party is 20, so a party of fourteen
+       is an ordinary capacity question that porca.book() answers like any
+       other. Raise or lower that number in Impostazioni; nothing else needs
+       to change. There is no queue to approve, so there is no screen for one.
      - Half-day closures ARE supported. porca.closures.band is null for the
        whole day, or names ONE service ('pranzo' / 'cena'). The venue runs two
        services at the weekend, so "chiuso a pranzo sabato, aperto a cena" has
@@ -56,61 +59,62 @@ button, input, select, textarea { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
 
 /* ----------------------------------------------------------------- tokens */
-/* Values lifted verbatim from css/style.css — direction "Travertino":
-   cool stone, one red accent, one 2px corner. The status colours (verde /
-   ambra) are the only additions: a service tool has to say "confermata",
-   "in sala" and "annullata" at a glance, and rosso alone cannot. */
+/* Sampled off css/style.css so the staff tool and the public site are visibly
+   the same business: warm tufo stone, ink, and the cotto of their own brick
+   vault as the single accent. The status colours (verde / ambra) are the only
+   additions — a service tool has to say "confermata", "in sala" and
+   "annullata" at a glance, and one accent cannot. */
 :root {
   color-scheme: light dark;
 
-  --bg:      #F2F2F0;   /* stone-050 */
-  --card:    #FFFFFF;
-  --sunk:    #F2F2F0;
-  --ink:     #2E2C29;   /* stone-900 */
-  --ink-2:   #4A4742;   /* stone-700 */
-  --dim:     #6E6A63;   /* stone-500 */
-  --faint:   #A8A49C;   /* stone-300 */
-  --line:    rgba(46, 44, 41, .14);
-  --line-2:  rgba(46, 44, 41, .28);
+  --bg:      #F7F3EB;   /* tufo-050, the site's page ground */
+  --card:    #FFFDF7;
+  --sunk:    #EDE6D9;   /* tufo-100 */
+  --ink:     #1B1713;   /* cave-900 */
+  --ink-2:   #4A4137;   /* tufo-700 */
+  --dim:     #6B5F50;   /* tufo-500 */
+  --faint:   #A6977E;   /* tufo-300 */
+  --line:    rgba(27, 23, 19, .14);
+  --line-2:  rgba(27, 23, 19, .30);
 
-  --rosso:     #C0392B;
-  --rosso-700: #A2301F;
+  --cotto:     #A24A2A;
+  --cotto-700: #86381E;
 
-  --ok:    #2C6A46;  --ok-bg:   #E7EFE9;
+  --ok:    #2C6A46;  --ok-bg:   #E6EFE8;
   --warn:  #7A5312;  --warn-bg: #F5EEDF;
-  --dang:  #A2301F;  --dang-bg: #F8E9E6;
+  --dang:  #A3302B;  --dang-bg: #F7E7E3;
 
-  --pri-fg: #FFFFFF; --pri-bg: #C0392B;
-  --btn-bg: #FFFFFF;
+  --pri-fg: #FFFDF7; --pri-bg: #A24A2A;
+  --btn-bg: #FFFDF7;
 
   --r:   2px;        /* one corner radius, no exceptions */
   --tap: 44px;
   --pad: 14px;
-  --lift: 0 1px 2px rgba(46, 44, 41, .05), 0 18px 40px -28px rgba(46, 44, 41, .35);
+  --lift: 0 1px 2px rgba(27, 23, 19, .05), 0 18px 40px -28px rgba(27, 23, 19, .35);
 }
 
 /* The cave is dark and so is the bar at 22:30. Same stone, inverted. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg:      #1B1A18;
-    --card:    #242320;
-    --sunk:    #1B1A18;
-    --ink:     #F2F2F0;
-    --ink-2:   #DAD8D3;
-    --dim:     #A8A49C;
-    --faint:   #6E6A63;
-    --line:    rgba(242, 242, 240, .16);
-    --line-2:  rgba(242, 242, 240, .30);
+    --bg:      #12100C;   /* cave-950 */
+    --card:    #221D18;
+    --sunk:    #1B1713;
+    --ink:     #F7F3EB;
+    --ink-2:   #E2DACB;
+    --dim:     #A6977E;
+    --faint:   #6B5F50;
+    --line:    rgba(247, 243, 235, .16);
+    --line-2:  rgba(247, 243, 235, .30);
 
-    --rosso:     #E88276;
-    --rosso-700: #F0A79C;
+    --cotto:     #D8845C;
+    --cotto-700: #E7A183;
 
     --ok:   #8ACFA6;  --ok-bg:   #18301F;
     --warn: #E8C27A;  --warn-bg: #332810;
     --dang: #FF9E90;  --dang-bg: #3A1C18;
 
-    --pri-fg: #1A0B08; --pri-bg: #E88276;
-    --btn-bg: #2C2A26;
+    --pri-fg: #1B1713; --pri-bg: #D8845C;
+    --btn-bg: #2A241E;
     --lift: 0 1px 2px rgba(0, 0, 0, .5);
   }
 }
@@ -129,10 +133,10 @@ body {
 h1 { font-size: 1.25rem; letter-spacing: .01em; }
 h2 { font-size: 1rem; letter-spacing: .01em; }
 h3 { font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
-a { color: var(--rosso-700); }
+a { color: var(--cotto-700); }
 strong { font-weight: 650; }
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid var(--rosso); outline-offset: 2px;
+  outline: 3px solid var(--cotto); outline-offset: 2px;
 }
 .vh { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
       overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
@@ -185,19 +189,60 @@ strong { font-weight: 650; }
   background: var(--card); border-bottom: 1px solid var(--line);
   padding: 10px var(--pad) 0;
 }
+/* the bar's contents share the content column's width, so the logo, the tabs
+   and the cards below them all start on the same line */
+.bar-top, .tabs { max-width: 760px; margin-inline: auto; }
 .bar-top { display: flex; align-items: center; gap: 10px; }
 .brand { display: flex; align-items: center; gap: 9px; min-width: 0; }
 .brand img { width: 30px; height: auto; display: block; }
 .brand b { font-size: .96rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .who { margin-left: auto; font-size: .78rem; color: var(--dim);
        max-width: 36vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tabs { display: flex; gap: 2px; margin-top: 8px; overflow-x: auto; }
-.tab {
-  border: 0; background: transparent; color: var(--dim);
-  padding: 10px 12px; min-height: var(--tap); cursor: pointer; white-space: nowrap;
-  font-size: .94rem; font-weight: 600; border-bottom: 2px solid transparent;
+/* A segmented control, not three underlined words: which section you are in
+   has to survive being read at arm's length, one-handed, in a dark room. */
+.tabs {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  gap: 4px; margin: 10px auto; padding: 4px;
+  background: var(--sunk); border: 1px solid var(--line); border-radius: var(--r);
 }
-.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--rosso); }
+.tab {
+  border: 0; border-radius: var(--r); background: transparent; color: var(--dim);
+  padding: 9px 8px; min-height: 40px; cursor: pointer; white-space: nowrap;
+  font-size: .92rem; font-weight: 600;
+}
+.tab[aria-selected="true"] {
+  background: var(--card); color: var(--ink);
+  box-shadow: 0 1px 2px rgba(27, 23, 19, .12);
+}
+
+/* Occupancy at a glance. The number was buried in a grey run-on line
+   ("picco 12 su 60 posti"); at the pass what you want to know in one look is
+   how full the room already is. Width comes from a decile on a data attribute
+   because the CSP is style-src 'self' and an inline width would be dropped. */
+.load { display: grid; gap: 6px; }
+.load__bar {
+  height: 8px; border-radius: var(--r); overflow: hidden;
+  background: var(--sunk); border: 1px solid var(--line);
+}
+.load__fill { height: 100%; width: 0; background: var(--cotto); }
+.load[data-load="1"]  .load__fill { width: 10%; }
+.load[data-load="2"]  .load__fill { width: 20%; }
+.load[data-load="3"]  .load__fill { width: 30%; }
+.load[data-load="4"]  .load__fill { width: 40%; }
+.load[data-load="5"]  .load__fill { width: 50%; }
+.load[data-load="6"]  .load__fill { width: 60%; }
+.load[data-load="7"]  .load__fill { width: 70%; }
+.load[data-load="8"]  .load__fill { width: 80%; }
+.load[data-load="9"]  .load__fill { width: 90%; }
+.load[data-load="10"] .load__fill { width: 100%; }
+/* nearly full and full read differently, and neither is an error */
+.load.is-tight .load__fill { background: var(--warn); }
+.load.is-full  .load__fill { background: var(--dang); }
+.load__k {
+  display: flex; justify-content: space-between; gap: 12px;
+  font-size: .84rem; color: var(--dim); font-variant-numeric: tabular-nums;
+}
+.load__k b { color: var(--ink); font-weight: 700; }
 
 main { padding: var(--pad); display: grid; gap: 14px; max-width: 760px; margin: 0 auto; }
 .panel { display: grid; gap: 14px; }
@@ -209,7 +254,7 @@ main { padding: var(--pad); display: grid; gap: 14px; max-width: 760px; margin: 
 .loading { display: flex; align-items: center; gap: 10px; color: var(--dim); padding: 16px 2px; }
 .spin {
   width: 16px; height: 16px; flex: none; border-radius: 50%;
-  border: 2px solid var(--line-2); border-top-color: var(--rosso);
+  border: 2px solid var(--line-2); border-top-color: var(--cotto);
   animation: spin .8s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -278,7 +323,7 @@ main { padding: var(--pad); display: grid; gap: 14px; max-width: 760px; margin: 
 .bk-list { display: grid; gap: 10px; }
 .bk {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--r);
-  border-left: 3px solid var(--rosso);
+  border-left: 3px solid var(--cotto);
   padding: 12px 13px; display: grid; gap: 9px; box-shadow: var(--lift);
 }
 .bk.is-off { opacity: .58; border-left-color: var(--faint); }
@@ -299,7 +344,7 @@ main { padding: var(--pad); display: grid; gap: 14px; max-width: 760px; margin: 
 .bk-meta { font-size: .88rem; color: var(--dim); display: grid; gap: 4px; }
 .bk-meta a { text-decoration: none; font-weight: 600; }
 .bk-notes {
-  font-size: .92rem; background: var(--sunk); border-left: 2px solid var(--rosso);
+  font-size: .92rem; background: var(--sunk); border-left: 2px solid var(--cotto);
   padding: 8px 10px; color: var(--ink-2);
 }
 .bk-act { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -341,7 +386,7 @@ main { padding: var(--pad); display: grid; gap: 14px; max-width: 760px; margin: 
 .win-row.is-off { opacity: .5; }
 .win-on { display: flex; align-items: center; gap: 8px; min-width: 116px;
           min-height: var(--tap); font-weight: 600; cursor: pointer; }
-.win-on input { width: 22px; height: 22px; accent-color: var(--rosso); }
+.win-on input { width: 22px; height: 22px; accent-color: var(--cotto); }
 .win-times { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .win-times input, .win-times select {
   min-height: var(--tap); padding: 7px 9px; font-size: 16px;
@@ -541,12 +586,16 @@ main { padding: var(--pad); display: grid; gap: 14px; max-width: 760px; margin: 
      The Supabase anon key is public by design — a scoped, revocable project
      identifier, not a secret: the `porca` schema grants anon nothing (see the
      FINAL LOCKDOWN block in supabase/migrations/20260806120000_porca.sql).
-     While anonKey is still on its PASTE_ placeholder this page refuses to run
-     and says so, instead of failing halfway through a login. */
+     It is the same publishable key js/booking-config.js already carries, and
+     it was left on its PASTE_ placeholder here, so every deploy of this page
+     so far has opened on "Console non configurata" and the staff console has
+     never actually run in production. Filled 2026-08-07.
+     If the placeholder is ever restored, the page refuses to run and says so,
+     instead of failing halfway through a login. */
   window.PORCA_ADMIN_CONFIG = {
     supabaseUrl:  "https://wednfenmftdlywrglhgj.supabase.co",
     functionsUrl: "https://wednfenmftdlywrglhgj.supabase.co/functions/v1",
-    anonKey:      "PASTE_ANON_KEY"
+    anonKey:      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndlZG5mZW5tZnRkbHl3cmdsaGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTkzODQsImV4cCI6MjA5MTk5NTM4NH0.iKXesGP9UJl2tLuYKupRkcrGGz0GR-NOPu6upR46YdU"
   };
 </script>
 
@@ -1120,11 +1169,25 @@ main { padding: var(--pad); display: grid; gap: 14px; max-width: 760px; margin: 
               t.bookings + ' ' + plural(t.bookings, 'tavolo', 'tavoli') }));
     });
 
+    var cap = day.capacity || 0;
+    var ratio = cap ? day.peak / cap : 0;
+    var load = h('div', {
+      class: 'load' + (ratio >= 1 ? ' is-full' : ratio >= 0.8 ? ' is-tight' : ''),
+      'data-load': String(Math.min(10, Math.ceil(ratio * 10)))
+    },
+      // the bar is a picture of the line under it, so it is not announced twice
+      h('div', { class: 'load__bar', 'aria-hidden': 'true' }, h('div', { class: 'load__fill' })),
+      h('div', { class: 'load__k' },
+        h('span', {}, h('b', { text: day.peak + ' di ' + cap }),
+          document.createTextNode(' al picco')),
+        h('span', { text: covers + ' coperti in giornata' }))
+    );
+
     var card = h('div', { class: 'card dayhead' },
       h('div', { class: 'd', text: dayLabel(day.date) }),
       h('div', { class: 's',
-        text: live.length + ' ' + plural(live.length, 'prenotazione', 'prenotazioni') +
-              ' · ' + covers + ' coperti · picco ' + day.peak + ' su ' + day.capacity + ' posti' }),
+        text: live.length + ' ' + plural(live.length, 'prenotazione', 'prenotazioni') }),
+      cap ? load : null,
       (day.totals || []).length ? chips : null,
       day.closed ? h('p', { class: 'msg msg-warn',
         text: 'Data chiusa' + (day.note ? ' — ' + day.note : '') +

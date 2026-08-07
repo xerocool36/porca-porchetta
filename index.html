@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://xerocool36.github.io/porca-porchetta/assets/img/sala-roma.webp">
 <meta property="og:url" content="https://xerocool36.github.io/porca-porchetta/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#F4EEE2">
+<meta name="theme-color" content="#F7F3EB">
 
 <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="assets/img/logo-180.png">
@@ -28,7 +28,7 @@
 <link rel="preload" href="assets/fonts/bevan-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="assets/img/sala-roma-700.webp"
       imagesrcset="assets/img/sala-roma-700.webp 700w, assets/img/sala-roma-1100.webp 1100w, assets/img/sala-roma.webp 1400w"
-      imagesizes="(min-width: 900px) 48vw, 100vw" fetchpriority="high">
+      imagesizes="(min-width: 760px) 40vw, 100vw" fetchpriority="high">
 <link rel="stylesheet" href="css/style.css">
 
 <script type="application/ld+json">
@@ -84,43 +84,52 @@
 <body class="has-dock">
 <a class="u-skip" href="#main" data-i18n="skip">Salta al contenuto</a>
 
-<!-- icon sprite: drawn inline so the page makes no external requests
-     and the marks inherit currentColor -->
+<!-- icon sprite: drawn inline so the page makes no external requests and the
+     marks inherit currentColor. One drawing standard across every page: a 24
+     grid, 1.5 stroke, round caps and joins, no fill anywhere. Presentation
+     attributes sit on each <symbol>, never on a wrapping <g> — a <g> does not
+     reach <use> shadow content, and every mark renders as a black blob. -->
 <svg class="sprite" aria-hidden="true" focusable="false">
-  <symbol id="i-ig" viewBox="0 0 24 24">
-    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <circle cx="12" cy="12" r="4.3" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <circle cx="16.9" cy="7.1" r="1.3" fill="currentColor"/>
+  <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3.6" y="5.4" width="16.8" height="15" rx="2"/>
+    <path d="M3.6 10.1h16.8M8.2 3.5v3.8M15.8 3.5v3.8"/>
   </symbol>
-  <symbol id="i-fb" viewBox="0 0 24 24">
-    <path d="M13.9 21v-7.4h2.5l.38-2.9h-2.88V8.85c0-.84.23-1.41 1.44-1.41h1.54V4.85A20.6 20.6 0 0 0 14.64 4.75c-2.23 0-3.76 1.36-3.76 3.86v2.09H8.4v2.9h2.48V21z" fill="currentColor"/>
+  <symbol id="i-fb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14.6 21v-8.1h2.6l.4-3h-3V8.2c0-.9.3-1.4 1.5-1.4h1.6V4.1A19 19 0 0 0 15.4 4c-2.3 0-3.8 1.4-3.8 3.9v2H9v3h2.6V21"/>
   </symbol>
-  <symbol id="i-tel" viewBox="0 0 24 24">
-    <path d="M7.2 3.6h2.5l1.5 3.8-1.8 1.3a11 11 0 0 0 4.4 4.4l1.3-1.8 3.8 1.5v2.5c0 1.2-1 2.2-2.2 2.2A13.2 13.2 0 0 1 5 6.1c0-1.2 1-2.2 2.2-2.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <symbol id="i-ig" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3.75" y="3.75" width="16.5" height="16.5" rx="4.5"/>
+    <circle cx="12" cy="12" r="3.9"/>
+    <path d="M16.9 7.15h.01"/>
   </symbol>
-  <symbol id="i-pin" viewBox="0 0 24 24">
-    <path d="M12 3.2c3.5 0 6.3 2.8 6.3 6.3 0 4.5-6.3 11.3-6.3 11.3S5.7 14 5.7 9.5C5.7 6 8.5 3.2 12 3.2z" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <circle cx="12" cy="9.4" r="2.3" fill="currentColor"/>
+  <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.4 3.8h11.2a1 1 0 0 1 1 1v14.4a1 1 0 0 1-1 1H6.4a1 1 0 0 1-1-1V4.8a1 1 0 0 1 1-1z"/>
+    <path d="M8.9 8.4h6.2M8.9 12h6.2M8.9 15.6h3.6"/>
   </symbol>
-  <symbol id="i-cal" viewBox="0 0 24 24">
-    <rect x="3.4" y="5.2" width="17.2" height="15.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/>
-    <path d="M3.4 10.1h17.2M8.2 3.4v3.6M15.8 3.4v3.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3.4c3.4 0 6.1 2.7 6.1 6.1 0 4.4-6.1 11-6.1 11S5.9 13.9 5.9 9.5c0-3.4 2.7-6.1 6.1-6.1z"/>
+    <circle cx="12" cy="9.4" r="2.2"/>
   </symbol>
-  <symbol id="i-menu" viewBox="0 0 24 24">
-    <path d="M5 4.2h14v15.6H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-    <path d="M8.4 8.6h7.2M8.4 12h7.2M8.4 15.4h4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <symbol id="i-tel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6.9 3.9h2.6l1.4 3.6-1.9 1.4a11.3 11.3 0 0 0 4.1 4.1l1.4-1.9 3.6 1.4v2.6a2.1 2.1 0 0 1-2.3 2.1A13.6 13.6 0 0 1 4.8 6.2 2.1 2.1 0 0 1 6.9 3.9z"/>
   </symbol>
 </svg>
 
 <header class="hdr" id="bar">
   <div class="hdr__inner">
-    <a href="#top" aria-label="Porca Porchetta">
-      <!-- the link carries the accessible name, so the mark is decorative -->
-      <img class="hdr__logo" src="assets/img/logo-128.webp" alt="" width="128" height="128" decoding="async">
+    <a class="hdr__mark" href="#top">
+      <img class="hdr__mark-logo" src="assets/img/logo-128.webp" alt="" width="128" height="128" decoding="async">
+      <span class="hdr__mark-txt">
+        <span class="hdr__mark-name">Porca Porchetta</span>
+        <span class="hdr__mark-sub" data-i18n="mark.sub">Fraschetta · Anguillara</span>
+      </span>
     </a>
     <span class="hdr__spacer"></span>
     <a class="hdr__link" href="menu.html" data-i18n="nav.menu">Menù</a>
     <a class="hdr__link hdr__link--cta" href="prenota.html" data-i18n="nav.book">Prenota</a>
+    <a class="hdr__ig" href="https://www.instagram.com/porcaporchettaanguillara/" target="_blank" rel="noopener" aria-label="Instagram">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ig"></use></svg>
+    </a>
     <div class="lang" role="group" aria-label="Lingua / Language">
       <button class="lang__btn" type="button" data-lang="it" aria-pressed="true"><span>IT</span></button>
       <button class="lang__btn" type="button" data-lang="en" aria-pressed="false"><span>EN</span></button>
@@ -134,13 +143,14 @@
 <main id="main">
 
 <!-- ============================ HERO ============================
-     Split, not overlaid. sala-roma.webp is a 1400x1867 portrait: behind
-     centred type it was cropped to a 19%-66% band on every desktop, which
-     deleted the painted ROMA sign its own alt text describes. Here the
-     picture keeps its own portrait column and the type keeps a real ground,
-     so no scrim and no text-shadow are needed to make it readable. -->
+     A title block on stone, then a full bleed triptych. Every photograph of
+     this venue is a 3:4 phone portrait; a single wide hero has to letterbox
+     one, which is what deleted the painted ROMA sign in the last two builds.
+     Three portraits side by side make the wide band without cropping any of
+     them, and the type keeps a real ground, so no scrim is needed. -->
 <section class="hero" id="top">
-  <div class="hero__type">
+  <div class="hero__type wrap">
+    <div class="hero__lead">
     <p class="eyebrow" data-i18n="hero.kicker">Anguillara Sabazia · Lago di Bracciano</p>
 
     <h1 class="hero__h1">
@@ -160,38 +170,92 @@
       </a>
       <a class="btn btn--linea" href="menu.html" data-i18n="nav.menu">Menù</a>
     </div>
+    </div>
+
+    <!-- The right of a hero is where a stock photo usually goes. The most useful
+         thing a fraschetta can put there is when it is open. -->
+    <aside class="hero__when">
+     <h2 class="hero__when-k" data-i18n="hero.when">Quando siamo aperti</h2>
+     <dl class="hero__when-l">
+       <div><dt data-i18n="hero.w1d">Martedì-venerdì</dt><dd>17:00-23:00</dd></div>
+       <div><dt data-i18n="hero.w2d">Sabato e domenica</dt><dd>11:30-14:30 · 17:00-23:00</dd></div>
+       <div class="is-closed"><dt data-i18n="d.mon">Lunedì</dt><dd data-i18n="in.closed">Chiuso</dd></div>
+     </dl>
+     <a class="linkish" href="#dove" data-i18n="hero.wlink">Dove siamo</a>
+   </aside>
+
+    <!-- Three portraits standing side by side, so no plate is letterboxed. The
+         arch carries the mobile view alone; the other two are desktop only. -->
+    <div class="hero__strip">
+      <div class="hero__shot hero__shot--arch">
+        <img src="assets/img/sala-roma.webp"
+             srcset="assets/img/sala-roma-700.webp 700w,
+                     assets/img/sala-roma-1100.webp 1100w,
+                     assets/img/sala-roma.webp 1400w"
+             sizes="(min-width: 760px) 40vw, 100vw"
+             alt="La sala scavata nel tufo, con la volta in mattoni e l'insegna ROMA all'ingresso"
+             width="1400" height="1867" fetchpriority="high" decoding="async">
+      </div>
+      <div class="hero__shot hero__shot--extra">
+        <img src="assets/img/cave-corridor.webp"
+             srcset="assets/img/cave-corridor-600.webp 600w, assets/img/cave-corridor.webp 900w"
+             sizes="30vw"
+             class="is-low"
+             alt="Il corridoio scavato nel tufo, con i tavoli apparecchiati sotto la volta"
+             width="900" height="1200" loading="lazy" decoding="async">
+      </div>
+      <div class="hero__shot hero__shot--extra">
+        <img src="assets/img/porchetta-board.webp"
+             srcset="assets/img/porchetta-board-560.webp 560w, assets/img/porchetta-board.webp 900w"
+             sizes="30vw"
+             alt="Porchetta e bruschette su un tagliere, con un bicchiere di vino rosso"
+             width="900" height="820" loading="lazy" decoding="async">
+      </div>
+    </div>
+
+    <p class="hero__facts">
+      <span data-i18n="hero.f1">Sessanta coperti</span>
+      <span data-i18n="hero.f2">Via del Trivio 31</span>
+      <span data-i18n="hero.f3">Il lago a cento metri</span>
+    </p>
   </div>
 
-  <div class="hero__frame">
-    <img src="assets/img/sala-roma.webp"
-         srcset="assets/img/sala-roma-700.webp 700w,
-                 assets/img/sala-roma-1100.webp 1100w,
-                 assets/img/sala-roma.webp 1400w"
-         sizes="(min-width: 900px) 48vw, 100vw"
-         alt="La sala scavata nel tufo, con la volta in mattoni e l'insegna ROMA all'ingresso"
-         width="1400" height="1867" fetchpriority="high" decoding="async">
-  </div>
 </section>
 
 <!-- ========================== 1. APERTURA ==========================
      Layout family: centred editorial statement under one of their own
      enamel plates. -->
 <section class="band" id="posto">
-  <div class="wrap wrap--narrow">
-    <div class="head head--mid rev">
-      <p class="targa" role="note">
-        <span class="u-sr" data-i18n="targa.sr">Targa smaltata appesa nel vicolo del locale:</span>
-        <span class="targa__ring" lang="it">
-          <span class="targa__t">Attenzione</span>
-          <span class="targa__b">Nessuno esce sobrio</span>
-        </span>
-      </p>
-      <h2 class="head__title t-display" data-i18n="ap.title">L'osteria dei Castelli, sotto Anguillara</h2>
-      <p class="head__sub" data-i18n="ap.sub">
-        Una sala, il vino della casa, il cibo portato in tavola senza cerimonie.
-        Qui la sala è una grotta scavata nel tufo: sessanta coperti sotto il
-        centro storico. Il lunedì è chiuso.
-      </p>
+  <div class="wrap">
+    <div class="split">
+      <div class="ph">
+        <img src="assets/img/cave-dining.webp"
+             srcset="assets/img/cave-dining-520.webp 520w, assets/img/cave-dining.webp 900w"
+             sizes="(min-width: 900px) 45vw, 100vw"
+             alt="Clienti a tavola in fondo alla sala scavata nella roccia"
+             width="900" height="1200" loading="lazy" decoding="async">
+      </div>
+      <div class="split__text rev">
+        <p class="targa" role="note">
+          <span class="u-sr" data-i18n="targa.sr">Targa smaltata appesa nel vicolo del locale:</span>
+          <span class="targa__ring" lang="it">
+            <span class="targa__t">Attenzione</span>
+            <span class="targa__b">Nessuno esce sobrio</span>
+          </span>
+        </p>
+        <h2 class="head__title t-display" data-i18n="ap.title">L'osteria dei Castelli, sotto Anguillara</h2>
+        <p class="t-lede" data-i18n="ap.sub">
+          Una sala, il vino della casa, il cibo portato in tavola senza cerimonie.
+          Qui la sala è una grotta scavata nel tufo: sessanta coperti sotto il
+          centro storico. Il lunedì è chiuso.
+        </p>
+        <p data-i18n="ap.p2">
+          La fraschetta nasce così nei Castelli: si apriva la cantina, si
+          appendeva una frasca fuori dalla porta e si mangiava quello che c'era.
+          Da noi vuol dire porchetta, salumi affettati al momento e vino
+          ordinato a caraffa.
+        </p>
+      </div>
     </div>
   </div>
 </section>
@@ -229,21 +293,21 @@
 
     <div class="chapter__text" id="steps">
       <article class="chapter__step" data-step="0">
-        <h3 data-i18n="gr.t1">L'ingresso</h3>
+        <h3 data-n="01" data-i18n="gr.t1">L'ingresso</h3>
         <p data-i18n="gr.p1">
           Si entra dal vicolo, oltre il bancone con i salumi appesi. Via del
           Trivio 31, nel centro storico.
         </p>
       </article>
       <article class="chapter__step" data-step="1">
-        <h3 data-i18n="gr.t2">Le sale</h3>
+        <h3 data-n="02" data-i18n="gr.t2">Le sale</h3>
         <p data-i18n="gr.p2">
           Il corridoio scende sotto le volte: pietra bianca, pavimento in
           terrazzo, tavoli di legno. Sessanta coperti in tutto.
         </p>
       </article>
       <article class="chapter__step" data-step="2">
-        <h3 data-i18n="gr.t3">La sera</h3>
+        <h3 data-n="03" data-i18n="gr.t3">La sera</h3>
         <p data-i18n="gr.p3">
           D'estate il gelsomino arriva fino alla porta e le targhe smaltate
           restano accese nel vicolo. Si resta a tavola fino alle undici.
@@ -255,8 +319,8 @@
 </section>
 
 <!-- ========================= 3. A TAVOLA =========================
-     Layout family: asymmetric photo mosaic, three photographs and one
-     typographic cell. Captions sit under the pictures, never on them. -->
+     Layout family: a line of dish discs, then three portraits in a row, then
+     the priced menu card. Captions sit under the pictures, never on them. -->
 <section class="band" id="tavola">
   <div class="wrap">
     <div class="head rev">
@@ -275,8 +339,44 @@
       </p>
     </div>
 
-    <div class="mosaic">
-      <div class="mosaic__cell mosaic__cell--a">
+    <!-- il banco: what actually arrives on the boards -->
+    <div class="dischi dischi--lead" role="list">
+      <figure class="disco" role="listitem">
+        <img src="assets/img/disc-porchetta.webp" srcset="assets/img/disc-porchetta-220.webp 220w, assets/img/disc-porchetta.webp 420w" sizes="(min-width: 760px) 140px, 22vw" alt="Fette di porchetta su una bruschetta" width="420" height="420" loading="lazy" decoding="async">
+        <figcaption data-i18n="bk.porchetta">Porchetta</figcaption>
+      </figure>
+      <figure class="disco" role="listitem">
+        <img src="assets/img/disc-bufala.webp" srcset="assets/img/disc-bufala-220.webp 220w, assets/img/disc-bufala.webp 420w" sizes="(min-width: 760px) 140px, 22vw" alt="Bufala con prosciutto crudo" width="420" height="420" loading="lazy" decoding="async">
+        <figcaption data-i18n="bk.bufala">Bufala</figcaption>
+      </figure>
+      <figure class="disco" role="listitem">
+        <img src="assets/img/disc-suppli.webp" srcset="assets/img/disc-suppli-220.webp 220w, assets/img/disc-suppli.webp 420w" sizes="(min-width: 760px) 140px, 22vw" alt="Supplì fritti sul tagliere" width="420" height="420" loading="lazy" decoding="async">
+        <figcaption data-i18n="bk.suppli">Supplì</figcaption>
+      </figure>
+      <figure class="disco" role="listitem">
+        <img src="assets/img/disc-crudo.webp" srcset="assets/img/disc-crudo-220.webp 220w, assets/img/disc-crudo.webp 420w" sizes="(min-width: 760px) 140px, 22vw" alt="Prosciutto crudo affettato" width="420" height="420" loading="lazy" decoding="async">
+        <figcaption data-i18n="bk.crudo">Crudo</figcaption>
+      </figure>
+      <figure class="disco" role="listitem">
+        <img src="assets/img/disc-salame.webp" srcset="assets/img/disc-salame-220.webp 220w, assets/img/disc-salame.webp 420w" sizes="(min-width: 760px) 140px, 22vw" alt="Salame e salumi misti" width="420" height="420" loading="lazy" decoding="async">
+        <figcaption data-i18n="bk.salumi">Salumi</figcaption>
+      </figure>
+      <figure class="disco" role="listitem">
+        <img src="assets/img/disc-olive.webp" srcset="assets/img/disc-olive-220.webp 220w, assets/img/disc-olive.webp 420w" sizes="(min-width: 760px) 140px, 22vw" alt="Olive verdi sul tagliere" width="420" height="420" loading="lazy" decoding="async">
+        <figcaption data-i18n="bk.olive">Olive</figcaption>
+      </figure>
+      <figure class="disco" role="listitem">
+        <img src="assets/img/disc-funghi.webp" srcset="assets/img/disc-funghi-220.webp 220w, assets/img/disc-funghi.webp 420w" sizes="(min-width: 760px) 140px, 22vw" alt="Bruschetta ai funghi" width="420" height="420" loading="lazy" decoding="async">
+        <figcaption data-i18n="bk.funghi">Funghi</figcaption>
+      </figure>
+      <figure class="disco" role="listitem">
+        <img src="assets/img/disc-bruschetta.webp" srcset="assets/img/disc-bruschetta-220.webp 220w, assets/img/disc-bruschetta.webp 420w" sizes="(min-width: 760px) 140px, 22vw" alt="Bruschetta al pomodoro" width="420" height="420" loading="lazy" decoding="async">
+        <figcaption data-i18n="bk.bruschette">Bruschette</figcaption>
+      </figure>
+    </div>
+
+    <div class="grid3">
+      <div>
         <div class="ph">
           <img src="assets/img/tagliere-board.webp"
                alt="Tagliere di salumi affettati, appoggiato sulla tovaglietta di carta del locale"
@@ -288,11 +388,11 @@
         </p>
       </div>
 
-      <div class="mosaic__cell mosaic__cell--b">
+      <div>
         <div class="ph">
           <img src="assets/img/porchetta-board.webp"
                srcset="assets/img/porchetta-board-560.webp 560w, assets/img/porchetta-board.webp 900w"
-               sizes="(min-width: 900px) 46vw, 100vw"
+               sizes="(min-width: 760px) 32vw, 100vw"
                alt="Porchetta tagliata a fette su un tagliere, con bruschette e un bicchiere di vino rosso"
                width="900" height="820" loading="lazy" decoding="async">
         </div>
@@ -302,11 +402,11 @@
         </p>
       </div>
 
-      <div class="mosaic__cell mosaic__cell--c">
+      <div>
         <div class="ph">
           <img src="assets/img/ciavattoni.webp"
                srcset="assets/img/ciavattoni-560.webp 560w, assets/img/ciavattoni.webp 1000w"
-               sizes="(min-width: 900px) 54vw, 100vw"
+               sizes="(min-width: 760px) 32vw, 100vw"
                alt="Due ciavattoni imbottiti nella carta di Porca Porchetta"
                width="1000" height="1333" loading="lazy" decoding="async">
         </div>
@@ -315,29 +415,39 @@
           <span data-i18n="tv.c3d">Due misure di panino: porchetta, salsiccia, trippa o polpette. Anche da portare via.</span>
         </p>
       </div>
-
-      <div class="mosaic__cell mosaic__cell--d">
-        <div class="plate">
-          <h3 data-i18n="tv.c4t">Al piatto</h3>
-          <ul class="plate__list">
-            <li data-i18n="tv.p1">Polpette al sugo</li>
-            <li data-i18n="tv.p2">Trippa</li>
-            <li data-i18n="tv.p3">Bruschette miste</li>
-            <li data-i18n="tv.p4">Bresaola e rughetta</li>
-            <li data-i18n="tv.p5">Caprese</li>
-            <li data-i18n="tv.p6">Cicoria e broccoletti</li>
-          </ul>
-          <p class="plate__note" data-i18n="tv.wine">
-            In carta sette bianchi e sette rossi, Frascati Superiore e Cesanese
-            compresi. Lo spritz si ordina in caraffa, da tre, cinque o otto litri.
-          </p>
-          <a class="linkish" href="menu.html" data-i18n="cta.menuPrices">Menù e prezzi</a>
-        </div>
-      </div>
     </div>
 
-    <div class="cta-row">
-      <a class="btn btn--linea" href="menu.html#m-vini" data-i18n="cta.wine">La carta dei vini</a>
+    <!-- The menu card. It used to be six dish names in a beige box: a list of
+         words is not a menu, and the one question it has to answer on a phone
+         is what this costs. Real prices, off their own board. -->
+    <div class="plate">
+      <div class="plate__main">
+        <div class="plate__head">
+          <h3 data-i18n="tv.c4t">Al piatto</h3>
+          <p class="plate__sub" data-i18n="tv.c4d">Quello che esce dalla cucina, oltre ai taglieri.</p>
+        </div>
+        <ul class="plate__list">
+          <li><span data-i18n="tv.p1">Polpette al sugo</span><b>10</b></li>
+          <li><span data-i18n="tv.p2">Trippa</span><b>10</b></li>
+          <li><span data-i18n="tv.p3">Bruschette miste</span><b>5</b></li>
+          <li><span data-i18n="tv.p4">Bresaola e rughetta</span><b>10</b></li>
+          <li><span data-i18n="tv.p5">Caprese</span><b>7</b></li>
+          <li><span data-i18n="tv.p6">Cicoria e broccoletti</span><b>5</b></li>
+        </ul>
+        <p class="plate__euro" data-i18n="tv.euro">Prezzi in euro. Il menù completo è in carta.</p>
+      </div>
+
+      <div class="plate__side">
+        <p class="plate__k" data-i18n="tv.winek">Da bere</p>
+        <p class="plate__note" data-i18n="tv.wine">
+          In carta sette bianchi e sette rossi, Frascati Superiore e Cesanese
+          compresi. Lo spritz si ordina in caraffa, da tre, cinque o otto litri.
+        </p>
+        <div class="cta-row cta-row--flush">
+          <a class="btn btn--vino btn--wide" href="menu.html" data-i18n="cta.menuPrices">Menù e prezzi</a>
+          <a class="btn btn--linea btn--wide" href="menu.html#m-vini" data-i18n="cta.wine">La carta dei vini</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -346,7 +456,7 @@
      Layout family: image and text split. The only one on the page. -->
 <section class="band band--panel" id="lago">
   <div class="wrap">
-    <div class="split">
+    <div class="split split--flip">
       <div class="ph">
         <img src="assets/img/lago-tramonto.webp"
              srcset="assets/img/lago-tramonto-600.webp 600w, assets/img/lago-tramonto.webp 1200w"
@@ -382,7 +492,8 @@
         </a>
       </div>
       <p class="strip__alt" data-i18n="pr.alt">
-        Gruppi oltre otto persone: <a href="tel:+390665495256">06 6549 5256</a>
+        Anche i tavoli grandi si prenotano da qui. Preferisci parlare?
+        <a href="tel:+390665495256">06 6549 5256</a>
       </p>
     </div>
   </div>
@@ -421,26 +532,27 @@
             <span data-i18n="cta.dir">Indicazioni</span>
           </a>
         </div>
-      </div>
-    </div>
 
-    <!-- The only third party content on the whole site, and it is only on this
-         page: a real Google map, lazy loaded, below the fold. Loading it pulls
-         Google's own tile, font and places hosts, which is Google's embed and
-         not in our control. menu.html, prenota.html, privacy.html and 404.html
-         still make zero external requests, so the QR menu stays fast on a phone
-         underground. Disclosed in privacy.html.
-         NOTE: netlify.toml has default-src 'self' and no frame-src, so if this
-         site ever moves off GitHub Pages that header needs
-         "frame-src https://www.google.com;" or the map will be blocked. -->
-    <div class="map">
-      <iframe
-        title="Mappa: Porca Porchetta, Via del Trivio 31, Anguillara Sabazia"
-        src="https://www.google.com/maps?q=Porca+Porchetta,+Via+del+Trivio+31,+00061+Anguillara+Sabazia+RM&amp;z=17&amp;hl=it&amp;output=embed"
-        width="1200" height="450"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        allowfullscreen></iframe>
+        <!-- The only third party content on the whole site, and it is only on
+             this page: a real Google map, lazy loaded, below the fold. Loading
+             it pulls Google's own tile, font and places hosts, which is
+             Google's embed and not in our control. menu.html, prenota.html,
+             privacy.html and 404.html still make zero external requests, so
+             the QR menu stays fast on a phone underground. Disclosed in
+             privacy.html.
+             NOTE: netlify.toml has default-src 'self' and no frame-src, so if
+             this site ever moves off GitHub Pages that header needs
+             "frame-src https://www.google.com;" or the map will be blocked. -->
+        <div class="map">
+          <iframe
+            title="Mappa: Porca Porchetta, Via del Trivio 31, Anguillara Sabazia"
+            src="https://www.google.com/maps?q=Porca+Porchetta,+Via+del+Trivio+31,+00061+Anguillara+Sabazia+RM&amp;z=17&amp;hl=it&amp;output=embed"
+            width="1200" height="450"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen></iframe>
+        </div>
+      </div>
     </div>
   </div>
 </section>

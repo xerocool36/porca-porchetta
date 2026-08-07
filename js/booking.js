@@ -60,7 +60,11 @@
   // admin console changed nothing on the page, which is the sort of silent
   // no-op nobody ever debugs.
   var DAYS_SHOWN = 14;                          // date strip length, until told
-  var MAX_PARTY = 8;                            // owner-confirmed online cap
+  var MAX_PARTY = 20;                           // pre-response default only
+  // Above this the row stops being chips and becomes a native picker. Twenty
+  // chips is four rows of tapping on a phone to answer "how many of you";
+  // eight covers almost every booking and the rest is one OS wheel.
+  var CHIP_PARTY_MAX = 8;
   var MIN_FILL_MS = 1500;                       // no human fills this form faster
   var HP_FIELD = 'pp_note_2';                   // honeypot: see the note at fs4
   var TEL_HREF = '+390665495256';
@@ -81,10 +85,11 @@
     people: 'Quante persone',
     you: 'I tuoi dati',
     service: 'Servizio',
-    // Split, not baked: the cap is whatever porca.settings.max_party says today.
-    party_more_pre: 'Per gruppi oltre',
-    party_more_mid: 'persone chiamaci al',
-    party_more_end: '— li gestiamo direttamente noi.',
+    // Large tables book online like every other table. The picker's label is
+    // split so it always states the number porca.settings.max_party says today.
+    party_more_chip: 'Di più',
+    party_more_label: 'Quante persone, fino a',
+    party_more_unit: 'persone',
     full: 'esaurito',
     closed: 'chiuso',
     closed_day: 'Chiusi in questa data.',
@@ -627,22 +632,45 @@
     // The server's number, not ours. MAX_PARTY only covers the render that
     // happens before porca-availability has answered.
     var maxP = (S.meta && S.meta.max_party) || MAX_PARTY;
-    for (var n = 1; n <= maxP; n++) {
+    var chipMax = Math.min(maxP, CHIP_PARTY_MAX);
+    var big = S.party > chipMax;
+    for (var n = 1; n <= chipMax; n++) {
       var pb = el('button', 'chip', String(n));
       pb.type = 'button';
       pb.setAttribute('data-party', String(n));
       pb.setAttribute('aria-pressed', String(n === S.party));
       party.appendChild(pb);
     }
+    if (maxP > chipMax) {
+      // Selecting it lands on the first size the chips cannot express, and the
+      // picker below opens with that already chosen.
+      var mb = el('button', 'chip chip--more', T.party_more_chip);
+      mb.type = 'button';
+      mb.setAttribute('data-party', String(chipMax + 1));
+      mb.setAttribute('aria-pressed', String(big));
+      party.appendChild(mb);
+    }
     rove(party);
     fs3.appendChild(party);
-    var callout = el('p', 'alert alert--info');
-    // ...and the prose says the same number the buttons do, always.
-    callout.appendChild(document.createTextNode(
-      T.party_more_pre + ' ' + maxP + ' ' + T.party_more_mid + ' '));
-    callout.appendChild(telLink());
-    callout.appendChild(document.createTextNode(' ' + T.party_more_end));
-    fs3.appendChild(callout);
+
+    if (maxP > chipMax && big) {
+      var pick = el('div', 'partypick');
+      var plab = el('label', 'label', T.party_more_label + ' ' + maxP);
+      plab.setAttribute('for', 'pp-party-more');
+      var psel = el('select', 'select');
+      psel.id = 'pp-party-more';
+      psel.name = 'party_more';
+      psel.setAttribute('data-party-select', '');
+      for (var m = chipMax + 1; m <= maxP; m++) {
+        var opt = el('option', '', m + ' ' + T.party_more_unit);
+        opt.value = String(m);
+        if (m === S.party) opt.selected = true;
+        psel.appendChild(opt);
+      }
+      pick.appendChild(plab);
+      pick.appendChild(psel);
+      fs3.appendChild(pick);
+    }
     form.appendChild(fs3);
 
     /* 04 — i tuoi dati ---------------------------------------------------- */
@@ -964,6 +992,13 @@
   });
 
   root.addEventListener('change', function (e) {
+    if (e.target.hasAttribute('data-party-select')) {
+      S.party = +e.target.value;
+      S.refocus = '[data-party-select]';
+      syncRecap();
+      loadAvailability(true);             // availability depends on party size
+      return;
+    }
     if (e.target.name === 'consent') {
       S.f.consent = !!e.target.checked;
       clearFieldErr(e.target);

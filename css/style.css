@@ -5,14 +5,19 @@
    The romanità is pulled out of their own walls rather than invented: Bevan,
    a heavy Clarendon slab, is the letterform of the painted insegne and the
    enamel plates hanging in their alley; the neutral ramp is sampled off the
-   tufo, the travertino and the terrazzo in their own photographs; the accent
-   is the bottle green of their board and the oxblood of the round targhe.
+   tufo, the travertino and the terrazzo in their own photographs.
+
+   Two colours carry the whole site, ink and the cotto of their own brick
+   vault. Everything else is stone. The bottle green of their shopfront was the
+   accent until 2026-08-07 and is gone at the owner's request: it survives only
+   inside the photographs of the shopfront itself, where it is documentary.
 
    Rules held throughout
    - photography is rectangular and full bleed, or round when it is quoting a
-     targa; it is never masked into an arbitrary shape
+     targa or a dish; it is never masked into an arbitrary shape
    - Bevan is display only and never runs below --fs-500, where it turns to mud
-   - oxblood is a data colour: prices, and the word "chiuso". Nothing else
+   - cotto is the accent and the data colour: calls to action, links, prices,
+     and the word "chiuso". --danger is separate and functional: invalid fields
    - one corner radius, 2px, no exceptions
    - motion is entrance, scroll driven reveal and hover only; the scrollbar is
      never hijacked and nothing loops forever
@@ -109,33 +114,38 @@
   /* tufo, travertino, terrazzo: whitewashed walls and floor. Hue held
      70deg-86deg the whole way down, chroma peaking in the mid tones, which is
      what a real stone ramp does and what every photograph on this site is. */
-  --tufo-050: #F4EEE2;   /* page ground        */
-  --tufo-100: #E6DECD;   /* alternate band     */
-  --tufo-200: #CFC3AC;   /* image placeholder  */
+  --tufo-050: #F7F3EB;   /* page ground        */
+  --tufo-100: #EDE6D9;   /* alternate band     */
+  --tufo-200: #D3C8B4;   /* image placeholder  */
   --tufo-300: #A6977E;   /* muted on dark      */
-  --tufo-500: #6A5D4E;   /* muted on light     */
+  --tufo-500: #6B5F50;   /* muted on light     */
   --tufo-700: #4A4137;   /* secondary text     */
 
   /* the cave */
-  --cave-900: #231D16;   /* ink, dark panels   */
-  --cave-950: #15110C;   /* the grotta chapter */
+  --cave-900: #1B1713;   /* ink, dark panels   */
+  --cave-950: #12100C;   /* the grotta chapter */
 
-  /* accent: their own board */
-  --insegna:     #124334; /* CTAs, links, focus on light  */
-  --insegna-lit: #2EA07F; /* dark grounds only            */
+  /* Accent: the cotto of their own brick vault, sampled off
+     02-arco-roma. Two colours on the whole site, ink and cotto, and
+     everything else is stone. 5.35:1 on the page ground. */
+  --accent:      #A24A2A; /* CTAs, links, prices, focus on light */
+  --accent-dark: #86381E; /* hover only                          */
+  --accent-lit:  #D8845C; /* dark grounds only, 6.6:1 on the cave */
 
-  /* data colour: the enamel plates. Prices, and the word chiuso. */
-  --oxblood: #7A2A2E;
+  /* the enamel seal quoted off their alley: ink, not a third hue */
+  --seal: var(--cave-900);
 
-  /* material tints. Decoration, and type only on --cave-950. */
-  --cotto: #9A6B45;      /* the brick vault    */
-  --gold:  #C9B98F;      /* the lit doorway    */
+  /* material tint, decoration only */
+  --gold: #C9B98F;       /* the lit doorway    */
+
+  /* functional, never brand: invalid fields and error alerts */
+  --danger: #A3302B;
 
   --ink:   var(--cave-900);
   --ink-2: var(--tufo-700);
   --ink-3: var(--tufo-500);
 
-  --focus: var(--insegna);
+  --focus: var(--accent);
 
   /* hairlines */
   --line:   rgba(35, 29, 22, .16);
@@ -199,6 +209,13 @@ img, svg, video { display: block; max-width: 100%; }
 img { height: auto; }
 
 h1, h2, h3, h4 { margin: 0; font-weight: 600; line-height: var(--lh-title); letter-spacing: var(--tr-title); }
+/* the UA gives figure 40px of side margin, which ate two thirds of every disc */
+figure { margin: 0; }
+/* A fieldset's UA min-inline-size is min-content, so it refuses to shrink below
+   its widest child. The booking form's date strip is fourteen chips wide, which
+   made the whole page 2638px wide on a 390px phone and scroll sideways: the
+   strip's own overflow-x never got a chance to clip anything. */
+fieldset { min-width: 0; }
 p { margin: 0 0 1em; }
 p:last-child { margin-bottom: 0; }
 ul, ol { margin: 0; padding: 0; list-style: none; }
@@ -206,7 +223,7 @@ a { color: inherit; }
 button, input, select, textarea { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
 
-::selection { background: var(--insegna); color: var(--tufo-050); }
+::selection { background: var(--accent); color: var(--tufo-050); }
 
 /* One ring, two grounds. #124334 is 9.68:1 on the page ground; #2EA07F is
    5.12:1 on the cave. Both clear SC 1.4.11 with room to spare. */
@@ -215,7 +232,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   outline-offset: 3px;
   border-radius: var(--r);
 }
-.on-dark, .ftr, .chapter, .offer, .riepilogo { --focus: var(--insegna-lit); }
+.on-dark, .ftr, .chapter, .offer, .riepilogo { --focus: var(--accent-lit); }
 
 .u-skip {
   position: absolute;
@@ -223,7 +240,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   top: 0;
   z-index: 100;
   padding: 12px 18px;
-  background: var(--insegna);
+  background: var(--accent);
   color: var(--tufo-050);
   font-weight: 600;
   text-decoration: none;
@@ -291,8 +308,22 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .band--tight { padding-block: calc(var(--band) * .62); }
 .band--panel { background: var(--tufo-100); }
 
-/* section head, always stacked: headline on top, body under it */
+/* Section head. Stacked on a phone; on a desktop the headline takes the left
+   column and its paragraph the right, which is what stops every section on the
+   page opening with half a screen of empty stone. */
 .head { max-width: 46rem; margin-bottom: 52px; }
+@media (min-width: 900px) {
+  .head:not(.head--mid) {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    column-gap: clamp(48px, 6vw, 90px);
+    align-items: end;
+    max-width: none;
+  }
+  .head:not(.head--mid) .targa { grid-column: 1; grid-row: 1; }
+  .head:not(.head--mid) .head__title { grid-column: 1; grid-row: 2; margin-bottom: 0; }
+  .head:not(.head--mid) .head__sub { grid-column: 2; grid-row: 2; max-width: 44ch; }
+}
 .head--mid { margin-inline: auto; text-align: center; }
 .head--flush { margin-bottom: 0; }
 .head__title {
@@ -325,12 +356,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
   display: grid;
   place-content: center;
   gap: 4px;
-  width: clamp(176px, 21vw, 232px);
+  width: clamp(152px, 16vw, 196px);
   aspect-ratio: 1;
   padding: 18px;
   border-radius: 50%;
-  background: var(--oxblood);
-  box-shadow: inset 0 0 0 3px var(--tufo-050), inset 0 0 0 5px var(--oxblood);
+  background: var(--seal);
+  box-shadow: inset 0 0 0 3px var(--tufo-050), inset 0 0 0 5px var(--seal);
   color: var(--tufo-050);
   text-align: center;
   transform: rotate(-3.5deg);
@@ -338,7 +369,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .band--panel .targa__ring,
 .mband--alt .targa__ring {
-  box-shadow: inset 0 0 0 3px var(--tufo-100), inset 0 0 0 5px var(--oxblood);
+  box-shadow: inset 0 0 0 3px var(--tufo-100), inset 0 0 0 5px var(--seal);
 }
 .targa:hover .targa__ring,
 .targa:focus-within .targa__ring { transform: rotate(1.5deg); }
@@ -388,11 +419,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn:active { transform: translateY(1px); }
 
 .btn--vino {                       /* primary: their board green */
-  background: var(--insegna);
-  border-color: var(--insegna);
+  background: var(--accent);
+  border-color: var(--accent);
   color: var(--tufo-050);
 }
-.btn--vino:hover { background: #0C2E24; border-color: #0C2E24; }
+.btn--vino:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
 
 .btn--linea {                      /* secondary on light */
   background: transparent;
@@ -410,7 +441,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .btn--wide { width: 100%; }
 
-.on-dark .btn--vino { box-shadow: 0 0 0 1px rgba(244, 238, 226, .38); }
+.on-dark .btn--vino,
+.strip .btn--vino { box-shadow: 0 0 0 1px rgba(247, 243, 235, .42); }
 
 .btn[disabled], .btn[aria-disabled='true'] {
   opacity: .45;
@@ -425,6 +457,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   margin-top: 32px;
 }
 .cta-row--mid { justify-content: center; }
+.cta-row--flush { margin-top: 0; }
 
 /* quiet text link */
 .linkish {
@@ -433,7 +466,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: 0;
   border: 0;
   background: none;
-  color: var(--insegna);
+  color: var(--accent);
   font-size: var(--fs-200);
   font-weight: 600;
   text-decoration: underline;
@@ -442,7 +475,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   cursor: pointer;
   transition: color var(--t-fast) var(--ease);
 }
-.linkish:hover { color: #0C2E24; }
+.linkish:hover { color: var(--accent-dark); }
 @media (pointer: coarse), (max-width: 900px) {
   .linkish { min-height: 44px; }
 }
@@ -471,8 +504,50 @@ button, input, select, textarea { font: inherit; color: inherit; }
   max-width: var(--maxw);
   margin-inline: auto;
 }
-.hdr__logo { width: 42px; height: 42px; flex: none; }
+/* Their roundel plus the name set beside it. The mark alone read as a sticker
+   at 42px, so it is smaller here and the wordmark carries the weight; below
+   470px the words drop and the roundel identifies the bar on its own. */
+.hdr__mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  padding: 4px 2px;
+  text-decoration: none;
+}
+.hdr__mark-logo { width: 34px; height: 34px; flex: none; }
+.hdr__mark-txt { display: grid; gap: 2px; }
+.hdr__mark-name {
+  font-size: var(--fs-200);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.hdr__mark-sub {
+  font-size: var(--fs-100);
+  line-height: 1;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
 .hdr__spacer { flex: 1; }
+
+/* Instagram is where this venue actually posts, so it earns a place in the bar
+   rather than only in the footer. Icon only: a labelled link would push the
+   booking button off a 390px screen. */
+.hdr__ig {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--r);
+  color: var(--ink-2);
+  transition: color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease);
+}
+.hdr__ig:hover { color: var(--ink); background: rgba(27, 23, 19, .07); }
+.hdr__ig .ic { width: 20px; height: 20px; }
 
 .hdr__link {
   padding: 11px 14px;
@@ -484,10 +559,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .hdr__link:hover { background: rgba(35, 29, 22, .07); }
 .hdr__link--cta {
-  background: var(--insegna);
+  background: var(--accent);
   color: var(--tufo-050);
 }
-.hdr__link--cta:hover { background: #0C2E24; }
+.hdr__link--cta:hover { background: var(--accent-dark); }
 
 /* Sticky, always solid: the hero is a light typographic panel now, so there is
    no photograph for the bar to float over and no transparent state to manage.
@@ -519,66 +594,83 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* Narrow phones: logo, Menù, Prenota and a two button toggle do not fit on one
    row. Menù is the middle action in the dock, so it is the one that goes. */
-@media (max-width: 470px) {
-  .hdr { gap: 6px; padding-inline: 14px; }
-  .hdr__logo { width: 38px; height: 38px; }
+@media (max-width: 560px) {
+  .hdr { gap: 4px; padding-inline: 14px; }
+  /* the roundel identifies the bar on its own down here */
+  .hdr__mark-txt { display: none; }
+  /* it is a link, so it keeps a thumb-sized target once the words are gone */
+  .hdr__mark { min-width: 44px; min-height: 44px; justify-content: center; padding: 0; }
+  .hdr__mark-logo { width: 36px; height: 36px; }
   .hdr__link { padding: 11px 12px; }
   .hdr__link:not(.hdr__link--cta) { display: none; }
   .lang__btn { min-width: 44px; padding: 0 6px; }
 }
 
 /* --------------------------------------------------------------------------
-   8. Hero. Split, not overlaid.
-   sala-roma.webp is 1400x1867 portrait: full bleed behind centred type it was
-   cropped to a 19%-66% band on every desktop, which deleted the painted ROMA
-   sign the alt text describes. A portrait photograph belongs in a portrait
-   container, so the type gets its own ground and the picture gets its own
-   column. Nothing needs a scrim or a text shadow any more.
+   8. Hero: a title block on stone, then a full bleed triptych.
+
+   Every photograph of this venue is a 3:4 phone portrait and no landscape
+   frame exists or ever will. A single wide hero image therefore has to crop a
+   portrait to a letterbox, which is what deleted the painted ROMA sign in the
+   last two builds. Three portraits standing side by side make one wide band
+   without cropping any of them vertically, and the type gets a clean stone
+   ground above instead of a scrim.
    -------------------------------------------------------------------------- */
 .hero {
-  min-height: 100vh;
-  min-height: 100svh;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto;
   background: var(--tufo-050);
   color: var(--cave-900);
   isolation: isolate;
 }
 
+/* One grid, two orders. On a phone the photographs come straight after the
+   headline, because a cave restaurant whose first screen is all type has
+   wasted the only thing it has; the opening hours follow them. On a desktop
+   the hours take the empty right of the title block and the triptych goes
+   full bleed underneath. */
 .hero__type {
-  grid-row: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 44px var(--gut) 48px;
+  display: grid;
+  padding-block: clamp(36px, 6vh, 84px) 0;
+  grid-template-areas: 'lead' 'strip' 'when' 'facts';
 }
-.hero__frame {
-  grid-row: 1;
-  position: relative;
-  overflow: hidden;
-  min-height: 52svh;
-  background: var(--tufo-200);
-}
-/* the painted ROMA sign is in the top 7% of the plate and the brick vault in
-   the next 16%: on a phone the frame is a short wide band, so the crop is
-   pinned near the top or the sign the alt text describes is lost again */
-.hero__frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 8%; }
+.hero__lead  { grid-area: lead; }
+.hero__when  { grid-area: when; margin-top: 36px; }
+.hero__facts { grid-area: facts; }
+.hero__strip { grid-area: strip; }
 
-@media (min-width: 900px) {
-  .hero {
-    grid-template-columns: minmax(0, 52fr) minmax(0, 48fr);
-    grid-template-rows: 1fr;
-  }
+@media (min-width: 1000px) {
   .hero__type {
-    grid-column: 1; grid-row: 1;
-    justify-content: center;
-    padding: calc(var(--bar-h) + 32px) clamp(40px, 4vw, 72px) 64px clamp(40px, 6vw, 96px);
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+    grid-template-areas: 'lead when' 'facts facts' 'strip strip';
+    column-gap: clamp(48px, 6vw, 96px);
+    align-items: end;
   }
-  .hero__frame { grid-column: 2; grid-row: 1; min-height: 100svh; }
-  /* the column is 3:4-ish, so almost the whole plate fits: no pinning needed */
-  .hero__frame img { object-position: 50% 50%; }
+  .hero__when { margin-top: 0; }
 }
+
+/* when we are open, stated once, above the fold */
+.hero__when { align-self: end; }
+.hero__when-k {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-100);
+  font-weight: 600;
+  letter-spacing: var(--tr-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.hero__when-l > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 16px;
+  padding: 9px 0;
+  font-size: var(--fs-200);
+}
+.hero__when-l dt { font-weight: 600; }
+.hero__when-l dd { margin: 0; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.hero__when-l .is-closed dd { color: var(--accent); font-weight: 600; }
+.hero__when .linkish { margin-top: 14px; }
 
 .hero__h1 {
   font-family: var(--ff-display);
@@ -586,7 +678,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-size: var(--fs-700);
   line-height: var(--lh-display);
   letter-spacing: var(--tr-display);
-  margin: 0 0 24px;
+  margin: 0 0 26px;
   max-width: var(--m-display);
 }
 .hero__h1 .ln {
@@ -605,6 +697,57 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-size: var(--fs-400);
   line-height: var(--lh-lede);
   color: var(--ink-2);
+}
+
+/* the three standing facts, on one hairline under the call to action */
+.hero__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 34px;
+  /* the bottom space is padding, not margin: this <p> is the last child of the
+     hero on a phone, where `p:last-child { margin-bottom: 0 }` outranks it */
+  margin: 36px 0 0;
+  padding: 20px 0 clamp(34px, 5vh, 56px);
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-100);
+  font-weight: 500;
+  letter-spacing: var(--tr-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Full bleed without a horizontal scrollbar: body is overflow-x: clip, so a
+   100vw child centred on the wrap is safe here. */
+.hero__strip {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  height: clamp(300px, 46svh, 430px);
+  margin: 34px calc(var(--gut) * -1) 0;
+  background: var(--tufo-200);
+}
+.hero__shot { position: relative; overflow: hidden; background: var(--tufo-200); }
+.hero__shot img { width: 100%; height: 100%; object-fit: cover; }
+/* the painted ROMA sign sits in the top 7% of its plate; the crop is pinned
+   high so the thing the alt text describes survives the frame */
+.hero__shot--arch img { object-position: 50% 12%; }
+/* the corridor plate carries its tables low in the frame */
+.hero__shot img.is-low { object-position: 50% 62%; }
+/* on a phone only the arch runs: two more portraits here would push the first
+   sentence of the page a whole screen further down */
+.hero__shot--extra { display: none; }
+
+@media (min-width: 760px) {
+  .hero__strip { grid-template-columns: 1.15fr 1fr 1fr; height: clamp(420px, 66svh, 620px); }
+  .hero__shot--extra { display: block; }
+}
+@media (min-width: 900px) {
+  .hero__type { padding-block: clamp(56px, 9vh, 112px) 0; }
+}
+@media (min-width: 1000px) {
+  /* out of the centred wrap and across the full viewport, without a scrollbar:
+     body is overflow-x: clip */
+  .hero__strip { margin: 0 calc(50% - 50vw); }
 }
 
 /* --------------------------------------------------------------------------
@@ -656,6 +799,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
       var(--tufo-050) 100%);
   color: var(--tufo-200);
 }
+/* On a phone the ramp is two 84px smudges either side of a dark block, on a
+   section that is already several screens tall: you never see both ends, so
+   all it reads as is a blurry edge. Down here the ground is simply dark. */
+@media (max-width: 899px) {
+  .chapter { background: var(--cave-950); }
+}
 .chapter__grid { display: grid; gap: 0; }
 
 .chapter__stage {
@@ -694,17 +843,47 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .chapter__shot.is-on { opacity: 1; transform: scale(1); }
 .chapter__shot img { width: 100%; height: 100%; object-fit: cover; }
 
+/* Phones: no sticky stage, no crossfade. js/main.js moves each photograph
+   into the passage it belongs to and the section reads as an ordinary page. */
+.chapter--flow .chapter__stage { display: none; }
+.chapter--flow .chapter__shot {
+  position: static;
+  opacity: 1;
+  transform: none;
+  transition: none;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 22px;
+  overflow: hidden;
+  border-radius: var(--r);
+  background: var(--cave-900);
+}
+.chapter--flow .chapter__shot img { width: 100%; height: 100%; object-fit: cover; }
+.chapter--flow .chapter__step { padding-block: 40px; }
+.chapter--flow .chapter__step:first-child { padding-top: 0; }
+.chapter--flow .chapter__step:last-child { padding-bottom: 0; }
+
 .chapter__text { min-width: 0; }
 .chapter__step {
   padding-block: 9vh;
-  border-top: 1px solid rgba(154, 107, 69, .55);   /* cotto hairline */
+  border-top: 1px solid rgba(216, 132, 92, .38);   /* cotto hairline */
 }
 .chapter__step:first-child { border-top: 0; padding-top: 0; }
 .chapter__step h3 {
   font-size: var(--fs-500);
   font-weight: 600;
-  color: var(--gold);
+  color: var(--accent-lit);
   margin-bottom: 14px;
+}
+/* the step number, set in the display face beside the heading */
+.chapter__step h3::before {
+  content: attr(data-n) ' ';
+  font-family: var(--ff-body);
+  font-size: var(--fs-100);
+  font-weight: 600;
+  letter-spacing: var(--tr-caps);
+  vertical-align: .32em;
+  margin-right: 12px;
+  color: var(--tufo-300);
 }
 .chapter__step p {
   color: var(--tufo-200);
@@ -742,74 +921,117 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* --------------------------------------------------------------------------
-   11. A tavola: asymmetric photo mosaic with one typographic cell
+   11. Three portraits, one row, captions underneath and never on top.
+   The dish discs above them reuse .dischi / .disco from the menu page: one
+   component, two pages, rather than two that drift apart.
    -------------------------------------------------------------------------- */
-.mosaic {
-  display: grid;
-  gap: 34px 28px;
-  grid-template-columns: 1fr;
-}
-.mosaic__cell > .ph { aspect-ratio: 4 / 5; }
+.grid3 { display: grid; gap: 40px 30px; grid-template-columns: 1fr; }
+@media (min-width: 760px) { .grid3 { grid-template-columns: repeat(3, 1fr); } }
+.grid3 .ph { aspect-ratio: 3 / 4; }
 
-@media (min-width: 900px) {
-  .mosaic { grid-template-columns: repeat(12, 1fr); gap: 56px 40px; }
-  .mosaic__cell { display: flex; flex-direction: column; }
-  .mosaic__cell > .ph { flex: 1 1 auto; aspect-ratio: auto; }
-  .mosaic__cell--a { grid-column: 1 / 6; }
-  .mosaic__cell--a > .ph { min-height: 470px; }
-  .mosaic__cell--b { grid-column: 6 / 13; }
-  .mosaic__cell--b > .ph { min-height: 540px; }
-  .mosaic__cell--c { grid-column: 1 / 8; }
-  .mosaic__cell--c > .ph { min-height: 500px; }
-  .mosaic__cell--d { grid-column: 8 / 13; }
-}
-
+/* The menu card that closes the section: a priced list, set like the menu
+   page's own rows so the two read as one document, and a quiet second column
+   for the drinking and the two ways into the full carta. */
 .plate {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100%;
-  padding: 40px 34px;
-  background: var(--tufo-100);
-  border-radius: var(--r);
-}
-.plate h3 { font-size: var(--fs-500); font-weight: 600; margin-bottom: 18px; }
-.plate__list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 8px 26px;
-  margin-bottom: 22px;
-  color: var(--ink-2);
+  gap: 32px;
+  margin-top: 56px;
+  padding: 30px 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--tufo-100);
+}
+@media (min-width: 900px) {
+  .plate {
+    grid-template-columns: minmax(0, 1.35fr) minmax(240px, 1fr);
+    gap: 56px;
+    padding: 46px 44px;
+    align-items: start;
+  }
+}
+.plate__head { margin-bottom: 22px; }
+.plate h3 { font-size: var(--fs-500); font-weight: 600; }
+.plate__sub {
+  margin: 8px 0 0;
   font-size: var(--fs-200);
+  color: var(--ink-3);
+}
+
+.plate__list { border-top: 1px solid var(--line); }
+.plate__list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-300);
+}
+.plate__list span { min-width: 0; }
+.plate__list b {
+  flex: none;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.plate__euro {
+  margin: 14px 0 0;
+  font-size: var(--fs-100);
+  color: var(--ink-3);
+}
+
+/* second column */
+.plate__side { display: grid; align-content: start; }
+.plate__k {
+  margin: 0 0 10px;
+  font-size: var(--fs-100);
+  font-weight: 600;
+  letter-spacing: var(--tr-caps);
+  text-transform: uppercase;
+  color: var(--ink-3);
 }
 .plate__note {
   margin: 0 0 22px;
   font-size: var(--fs-200);
+  line-height: 1.6;
   color: var(--ink-2);
-  max-width: var(--m-caption);
+}
+/* stacked, full width: two outlined buttons side by side in a narrow column
+   wrapped to two lines each on a phone */
+.plate__side .cta-row { flex-direction: column; gap: 10px; }
+@media (min-width: 900px) {
+  .plate__side { border-left: 1px solid var(--line); padding-left: 40px; height: 100%; }
 }
 
 /* --------------------------------------------------------------------------
-   12. Split: the one image plus text section on the page
+   12. Split: image and text, used twice, mirrored the second time
    -------------------------------------------------------------------------- */
 .split { display: grid; gap: 36px; align-items: center; }
 @media (min-width: 900px) {
-  .split { grid-template-columns: 5fr 6fr; gap: 76px; }
-  .split__text { padding-right: 4%; }
+  .split { grid-template-columns: 6fr 5fr; gap: clamp(48px, 6vw, 84px); }
+  /* photograph on the right, text on the left */
+  .split--flip .ph { order: 2; }
 }
 .split .ph { aspect-ratio: 3 / 4; }
 
 /* --------------------------------------------------------------------------
-   13. Prenota band
+   13. Prenota band. The one ink plane on a stone page, so the single
+   conversion on the homepage is also the only inverted thing on it.
    -------------------------------------------------------------------------- */
-.strip { background: var(--tufo-100); border-block: 1px solid var(--line); }
+.strip {
+  background: var(--cave-900);
+  color: var(--tufo-100);
+  --focus: var(--accent-lit);
+}
+.strip .head__title { color: var(--tufo-050); }
+.strip .head__sub { color: var(--tufo-200); }
 .strip__alt {
   margin-top: 22px;
   font-size: var(--fs-200);
-  color: var(--ink-2);
+  color: var(--tufo-300);
 }
 .strip__alt a {
-  color: var(--ink);
+  color: var(--tufo-050);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -841,12 +1063,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .orari__row.is-today {
   padding-left: 14px;
-  box-shadow: inset 2px 0 0 var(--insegna);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
-.orari__row.is-today dt { color: var(--insegna); }
+.orari__row.is-today dt { color: var(--accent); }
 /* "Chiuso" is the most operationally important word on the site. It gets the
    data colour at 8.27:1, not a grey at 2.22:1. */
-.orari__row.is-closed dd { color: var(--oxblood); font-weight: 600; }
+.orari__row.is-closed dd { color: var(--accent); font-weight: 600; }
 
 .addr {
   font-style: normal;
@@ -867,14 +1089,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .map {
   position: relative;
-  margin-top: 56px;
-  aspect-ratio: 3 / 2;
+  margin-top: 44px;
+  aspect-ratio: 4 / 3;
+  max-width: 520px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--r);
   background: var(--tufo-200);
 }
-@media (min-width: 900px) { .map { aspect-ratio: 21 / 8; } }
+/* It is a locator, not a landscape. Full width at 21:8 it was 460px tall and
+   the biggest single element on the page, under the smallest heading. */
+@media (min-width: 900px) { .map { aspect-ratio: 16 / 10; max-width: 560px; margin-top: 0; } }
 .map iframe {
   position: absolute;
   inset: 0;
@@ -914,6 +1139,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ftr__nav a { transition: color var(--t-fast) var(--ease); }
 .ftr__nav a:hover, .ftr p a:hover { color: var(--tufo-050); }
 .ftr__closed { color: rgba(244, 238, 226, .70); }   /* 6.7:1 */
+
+/* Thumbs on a phone: footer links are 18px of text in a list, and the
+   checkbox is the one control in the form a finger can miss. */
+@media (pointer: coarse), (max-width: 900px) {
+  .ftr__nav a { display: inline-block; padding-block: 12px; }
+  .ftr__nav li + li { margin-top: 0; }
+  .check input[type='checkbox'] { width: 24px; height: 24px; }
+}
 
 .social { display: flex; gap: 10px; }
 .social__a {
@@ -1071,7 +1304,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 .cats__link:hover { color: var(--ink); }
 /* the state is carried by the sliding bar below, so the chip itself only
    changes colour and weight: no black pill jumping 400px across a scroller */
-.cats__link.is-on { color: var(--insegna); font-weight: 600; }
+.cats__link.is-on { color: var(--accent); font-weight: 600; }
 
 .cats__bar {
   position: absolute;
@@ -1079,7 +1312,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   bottom: 4px;
   height: 2px;
   width: 1px;
-  background: var(--insegna);
+  background: var(--accent);
   transform-origin: left center;
   transform: translateX(var(--x, 0)) scaleX(var(--w, 0));
   transition: transform .32s var(--ease-out);
@@ -1117,6 +1350,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   margin: 0 0 34px;
 }
 @media (min-width: 760px) { .dischi { grid-template-columns: repeat(8, 1fr); gap: 18px; } }
+.dischi--lead { margin-bottom: clamp(44px, 6vh, 72px); }
 .disco { margin: 0; }
 .disco img {
   width: 100%;
@@ -1167,7 +1401,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 .mitem__price {
   font-weight: 700;
   font-size: var(--fs-300);
-  color: var(--oxblood);
+  color: var(--accent);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -1188,16 +1422,16 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   display: inline-block;
   margin-left: 8px;
   padding: 2px 8px;
-  border: 1px solid var(--oxblood);
+  border: 1px solid var(--tufo-500);
   border-radius: var(--r);
   font-size: var(--fs-100);
   font-weight: 600;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--oxblood);
+  color: var(--ink-2);
   vertical-align: .1em;
 }
-.flag--novita { border-color: var(--insegna); color: var(--insegna); }
+.flag--novita { border-color: var(--accent); color: var(--accent); }
 
 /* the maxi tagliere offer */
 .offer {
@@ -1268,7 +1502,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 .ptable__p {
   padding: 12px 0;
   border-bottom: 1px solid var(--line);
-  color: var(--oxblood);
+  color: var(--accent);
   font-weight: 700;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -1283,7 +1517,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 }
 .mnote--box {
   padding: 18px 20px;
-  border-left: 2px solid var(--insegna);
+  border-left: 2px solid var(--accent);
   background: var(--tufo-100);
   border-radius: 0 var(--r) var(--r) 0;
 }
@@ -1304,7 +1538,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   text-transform: uppercase;
   color: var(--ink-2);
 }
-.label .req { color: var(--oxblood); }
+.label .req { color: var(--danger); }
 
 .input,
 .select,
@@ -1328,13 +1562,13 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 .input:hover, .select:hover, .textarea:hover { border-color: var(--cave-900); }
 .input:focus, .select:focus, .textarea:focus {
   outline: none;
-  border-color: var(--insegna);
-  box-shadow: inset 0 0 0 1px var(--insegna);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 .input[aria-invalid='true'],
 .textarea[aria-invalid='true'] {
-  border-color: var(--oxblood);
-  box-shadow: inset 0 0 0 1px var(--oxblood);
+  border-color: var(--danger);
+  box-shadow: inset 0 0 0 1px var(--danger);
 }
 
 .ferr {
@@ -1342,7 +1576,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   margin-top: 7px;
   font-size: var(--fs-200);
   font-weight: 600;
-  color: var(--oxblood);
+  color: var(--danger);
 }
 .ferr:empty { display: none; }
 
@@ -1367,7 +1601,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   width: 22px;
   height: 22px;
   margin: 1px 0 0;
-  accent-color: var(--insegna);
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
@@ -1393,7 +1627,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   height: 28px;
   flex: none;
   border-radius: var(--r);
-  background: var(--insegna);
+  background: var(--accent);
   color: var(--tufo-050);
   font-family: var(--ff-body);
   font-size: var(--fs-100);
@@ -1422,8 +1656,21 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 .chips--scroll::-webkit-scrollbar { display: none; }
 .chips--scroll > * { scroll-snap-align: start; }
 
+/* "Di più": the chip that hands the count to a native picker instead of
+   printing twelve more chips nobody taps. */
+.chip--more { padding-inline: 18px; }
+
+/* the picker itself, revealed under the row only while a large party is on */
+.partypick {
+  margin-top: 16px;
+  max-width: 320px;
+}
+.partypick .label { margin-bottom: 8px; }
+
 .chip {
   flex: none;
+  /* thumbs, not cursors: a single digit still gets a 46px target */
+  min-width: 46px;
   min-height: 48px;
   padding: 9px 16px;
   /* the primary control surface of the booking flow: the edge has to clear
@@ -1443,8 +1690,8 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 .chip:hover:not([disabled]) { border-color: var(--cave-900); }
 .chip[aria-pressed='true'],
 .chip.is-on {
-  background: var(--insegna);
-  border-color: var(--insegna);
+  background: var(--accent);
+  border-color: var(--accent);
   color: var(--tufo-050);
 }
 .chip[disabled] {
@@ -1474,23 +1721,13 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
    -------------------------------------------------------------------------- */
 .prenota { background: var(--tufo-050); padding-block: 46px 84px; }
 .prenota__grid { display: grid; gap: 34px; align-items: start; }
+/* A grid item's default min-width is auto, i.e. its min-content width. The
+   date strip is fourteen chips wide, so this column reported 2618px inside a
+   350px track and the whole phone page scrolled sideways. */
+.prenota__grid > * { min-width: 0; }
 @media (min-width: 980px) {
   .prenota__grid { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 56px; }
 }
-
-/* the room, above the summary, so the card reads as a caption to a place
-   rather than a black box floating on grey. It scrolls; the summary under it
-   is the thing worth pinning, and two sticky siblings in one column would
-   simply paint over each other. */
-.prenota__shot {
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  border-radius: var(--r);
-  margin-bottom: 20px;
-  background: var(--tufo-200);
-}
-.prenota__shot img { width: 100%; height: 100%; object-fit: cover; }
-@media (min-width: 980px) { .prenota__shot { aspect-ratio: 3 / 4; } }
 
 .prenota__intro { padding-block: 44px 36px; }
 
@@ -1504,12 +1741,19 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 .card + .card { margin-top: 20px; }
 
 .riepilogo {
-  position: sticky;
-  top: calc(var(--bar-h) + 22px);
   padding: 26px 24px;
   background: var(--cave-900);
   color: var(--tufo-200);
   border-radius: var(--r);
+}
+/* Sticky only where there is a second column to stick in. On a phone the
+   summary sits under the form, and pinning it there would cover the fields the
+   guest is filling in. */
+@media (min-width: 980px) {
+  .riepilogo {
+    position: sticky;
+    top: calc(var(--bar-h) + 22px);
+  }
 }
 .riepilogo h2 { font-size: var(--fs-500); color: var(--tufo-050); margin-bottom: 20px; }
 .riepilogo__row {
@@ -1543,8 +1787,8 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   background: var(--tufo-050);
   color: var(--ink-2);
 }
-.alert--err  { border-left-color: var(--oxblood); color: var(--oxblood); background: rgba(122, 42, 46, .07); }
-.alert--ok   { border-left-color: var(--insegna); color: var(--ink); background: rgba(18, 67, 52, .08); }
+.alert--err  { border-left-color: var(--danger); color: var(--danger); background: rgba(163, 48, 43, .07); }
+.alert--ok   { border-left-color: var(--accent); color: var(--ink); background: rgba(18, 67, 52, .08); }
 .alert--info { border-left-color: var(--tufo-500); color: var(--ink-2); background: var(--tufo-050); }
 
 /* the confirmed booking card */
@@ -1628,8 +1872,8 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 .tris__cell.is-win { background: rgba(122, 42, 46, .14); }
 .mk { width: 60%; height: 60%; }
 .mk__p { fill: none; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
-.tris__cell[data-p='x'] .mk__p { stroke: var(--oxblood); }
-.tris__cell[data-p='o'] .mk__p { stroke: var(--insegna); }
+.tris__cell[data-p='x'] .mk__p { stroke: var(--seal); }
+.tris__cell[data-p='o'] .mk__p { stroke: var(--accent); }
 .tris__status {
   margin-top: 18px;
   text-align: center;
@@ -1654,8 +1898,8 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 .doc h3 { margin: 28px 0 8px; font-size: var(--fs-400); color: var(--ink); }
 .doc p { margin: 0 0 15px; }
 .doc strong { color: var(--ink); font-weight: 600; }
-.doc a { color: var(--insegna); text-decoration: underline; text-underline-offset: 4px; }
-.doc a:hover { color: #0C2E24; }
+.doc a { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+.doc a:hover { color: var(--accent-dark); }
 .doc ul { margin: 0 0 18px; padding-left: 22px; list-style: disc; }
 .doc li { margin-bottom: 8px; }
 .doc__date {
@@ -1669,7 +1913,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   margin-top: 38px;
   padding: 22px 24px;
   background: var(--tufo-100);
-  border-left: 2px solid var(--insegna);
+  border-left: 2px solid var(--accent);
   border-radius: 0 var(--r) var(--r) 0;
   font-size: var(--fs-200);
 }
@@ -1722,7 +1966,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
 
 /* a: entrance, only on the landing hero, once, on load */
 @media (prefers-reduced-motion: no-preference) {
-  .js-anim .hero__frame img { animation: hero-settle 1.8s var(--ease) both; }
+  .js-anim .hero__shot img { animation: hero-settle 1.8s var(--ease) both; }
   @keyframes hero-settle {
     from { transform: scale(1.07); }
     to   { transform: scale(1); }
@@ -1739,21 +1983,21 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
     to   { transform: translateY(0); }
   }
 
-  .js-anim .hero__type > .eyebrow,
-  .js-anim .hero__type > .hero__lede,
-  .js-anim .hero__type > .cta-row {
+  .js-anim .hero__lead > .eyebrow,
+  .js-anim .hero__lead > .hero__lede,
+  .js-anim .hero__lead > .cta-row {
     animation: soft-up .9s var(--ease) both;
   }
-  .js-anim .hero__type > .eyebrow    { animation-delay: .05s; }
-  .js-anim .hero__type > .hero__lede { animation-delay: .42s; }
-  .js-anim .hero__type > .cta-row    { animation-delay: .54s; }
+  .js-anim .hero__lead > .eyebrow    { animation-delay: .05s; }
+  .js-anim .hero__lead > .hero__lede { animation-delay: .42s; }
+  .js-anim .hero__lead > .cta-row    { animation-delay: .54s; }
   @keyframes soft-up {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: none; }
   }
 }
 
-/* d: scroll reveal, on section heads only. Four mosaic photographs each
+/* d: scroll reveal, on section heads only. Four photographs each
    independently zooming and fading is decoration, so the scale is gone and
    the frames are not in the reveal set any more. */
 .js-anim .rev {
@@ -1793,31 +2037,31 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
       from { transform: scale(1.06); }
       to   { transform: scale(1); }
     }
-    .hero__frame img, .chapter__shot img, .disco img, .prenota__shot img { animation: none; }
+    .hero__shot img, .chapter__shot img, .disco img { animation: none; }
   }
 }
 
 /* hover. Pointer devices only, and slow enough to read as material. */
 @media (hover: hover) and (pointer: fine) {
-  .mosaic__cell .ph img,
+  .grid3 .ph img,
   .split .ph img { transition: transform .7s var(--ease); }
-  .mosaic__cell:hover .ph img,
+  .grid3 > div:hover .ph img,
   .split:hover .ph img { transform: scale(1.035); }
 
-  .mosaic__cell .ph__cap b { position: relative; }
-  .mosaic__cell .ph__cap b::after {
+  .grid3 .ph__cap b { position: relative; }
+  .grid3 .ph__cap b::after {
     content: '';
     position: absolute;
     left: 0;
     bottom: -6px;
     width: 100%;
     height: 2px;
-    background: var(--insegna);
+    background: var(--accent);
     transform: scaleX(0);
     transform-origin: left center;
     transition: transform .5s var(--ease);
   }
-  .mosaic__cell:hover .ph__cap b::after { transform: scaleX(1); }
+  .grid3 > div:hover .ph__cap b::after { transform: scaleX(1); }
 }
 
 /* --------------------------------------------------------------------------
@@ -1833,9 +2077,9 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   }
   .js-anim .rev,
   .js-anim .ph img,
-  .hero__frame img,
+  .hero__shot img,
   .hero__h1 .ln > span,
-  .hero__type > * {
+  .hero__lead > * {
     opacity: 1 !important;
     transform: none !important;
   }
@@ -1847,7 +2091,7 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
   .targa__ring, .js-anim .targa__ring, .js-anim .targa.is-in .targa__ring {
     transform: none !important;
     opacity: 1 !important;
-    box-shadow: inset 0 0 0 3px var(--gold), inset 0 0 0 5px var(--oxblood);
+    box-shadow: inset 0 0 0 3px var(--gold), inset 0 0 0 5px var(--seal);
   }
   .chapter__shot { transition: none; }
   .cats__bar { transition: none; }
