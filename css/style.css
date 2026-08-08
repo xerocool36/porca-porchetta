@@ -722,8 +722,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* the painted ROMA sign sits in the top 7% of its plate; the crop is pinned
    high so the thing the alt text describes survives the frame */
 .hero__shot--arch img { object-position: 50% 12%; }
-/* the corridor plate carries its tables low in the frame */
-.hero__shot img.is-low { object-position: 50% 62%; }
+/* The middle frame is the only one with people in it, and they sit just above
+   the centre of the plate. The corridor shot used to be here and was two thirds
+   bare wall: place, people, food reads as a fraschetta; place, wall, food does
+   not. The corridor moved to "Che cos'è una fraschetta", where it runs large
+   and portrait and the tufo texture is the point. */
+.hero__shot img.is-mid { object-position: 50% 64%; }
 /* on a phone only the arch runs: two more portraits here would push the first
    sentence of the page a whole screen further down */
 .hero__shot--extra { display: none; }
@@ -1955,35 +1959,42 @@ body.has-dock { padding-bottom: calc(var(--dock-h, 76px) + 12px); }
    disabled by the reduced motion block at the end.
    ========================================================================== */
 
-/* a: entrance, only on the landing hero, once, on load */
+/* a: entrance, only on the landing hero, once, on load.
+
+   These carry no .js-anim gate, unlike the scroll reveals below. They are pure
+   CSS animations that need no JavaScript to finish, and js/main.js loads at the
+   end of <body> — so gating them meant the hero painted in its END state, then
+   the class landed, then `animation-fill-mode: both` snapped everything back to
+   its start and replayed it. On a phone that reads as the logo jumping on every
+   refresh. The reduced-motion media query above is the only switch they need. */
 @media (prefers-reduced-motion: no-preference) {
-  .js-anim .hero__shot img { animation: hero-settle 1.8s var(--ease) both; }
+  .hero__shot img { animation: hero-settle 1.8s var(--ease) both; }
   @keyframes hero-settle {
     from { transform: scale(1.07); }
     to   { transform: scale(1); }
   }
 
-  .js-anim .hero__h1 .ln > span {
+  .hero__h1 .ln > span {
     animation: line-up 1s var(--ease) both;
     animation-delay: .12s;
   }
-  .js-anim .hero__h1 .ln:nth-child(2) > span { animation-delay: .23s; }
-  .js-anim .hero__h1 .ln:nth-child(3) > span { animation-delay: .34s; }
+  .hero__h1 .ln:nth-child(2) > span { animation-delay: .23s; }
+  .hero__h1 .ln:nth-child(3) > span { animation-delay: .34s; }
   @keyframes line-up {
     from { transform: translateY(105%); }
     to   { transform: translateY(0); }
   }
 
-  .js-anim .hero__lead > .hero__mark,
-  .js-anim .hero__lead > .eyebrow,
-  .js-anim .hero__say > .hero__lede,
-  .js-anim .hero__say > .cta-row {
+  .hero__lead > .hero__mark,
+  .hero__lead > .eyebrow,
+  .hero__say > .hero__lede,
+  .hero__say > .cta-row {
     animation: soft-up .9s var(--ease) both;
   }
-  .js-anim .hero__lead > .hero__mark { animation-delay: 0s; }
-  .js-anim .hero__lead > .eyebrow    { animation-delay: .12s; }
-  .js-anim .hero__say > .hero__lede  { animation-delay: .42s; }
-  .js-anim .hero__say > .cta-row     { animation-delay: .54s; }
+  .hero__lead > .hero__mark { animation-delay: 0s; }
+  .hero__lead > .eyebrow    { animation-delay: .12s; }
+  .hero__say > .hero__lede  { animation-delay: .42s; }
+  .hero__say > .cta-row     { animation-delay: .54s; }
   @keyframes soft-up {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: none; }
