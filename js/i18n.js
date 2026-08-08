@@ -47,10 +47,6 @@
     'hero.f1': 'Sixty covers',
     'hero.f2': 'Via del Trivio 31',
     'hero.f3': 'The lake, a hundred metres',
-    'hero.when': 'When we are open',
-    'hero.w1d': 'Tuesday to Friday',
-    'hero.w2d': 'Saturday and Sunday',
-    'hero.wlink': 'Where we are',
 
     /* the header lockup, which is set rather than drawn */
     'mark.sub': 'Fraschetta · Anguillara',

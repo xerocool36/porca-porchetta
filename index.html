@@ -150,39 +150,39 @@
      them, and the type keeps a real ground, so no scrim is needed. -->
 <section class="hero" id="top">
   <div class="hero__type wrap">
+
+    <!-- Their roundel at the size it was drawn for. It is the only place on the
+         landing page the full-colour mark appears: in the bar it reads as a
+         sticker, here it reads as a sign over a door. -->
     <div class="hero__lead">
-    <p class="eyebrow" data-i18n="hero.kicker">Anguillara Sabazia · Lago di Bracciano</p>
+      <img class="hero__mark" src="assets/img/logo.png" alt="" width="512" height="512"
+           fetchpriority="high" decoding="async">
+      <p class="eyebrow" data-i18n="hero.kicker">Anguillara Sabazia · Lago di Bracciano</p>
 
-    <h1 class="hero__h1">
-      <span class="ln"><span data-i18n="hero.h1a">Una fraschetta</span></span>
-      <span class="ln"><span data-i18n="hero.h1b">scavata nel tufo</span></span>
-    </h1>
-
-    <p class="hero__lede" data-i18n="hero.lede">
-      Porchetta tagliata al momento, taglieri, panini e vino in caraffa.
-      A cento metri dal lago di Bracciano.
-    </p>
-
-    <div class="cta-row">
-      <a class="btn btn--vino" href="prenota.html">
-        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>
-        <span data-i18n="nav.book">Prenota</span>
-      </a>
-      <a class="btn btn--linea" href="menu.html" data-i18n="nav.menu">Menù</a>
-    </div>
+      <h1 class="hero__h1">
+        <span class="ln"><span data-i18n="hero.h1a">Una fraschetta</span></span>
+        <span class="ln"><span data-i18n="hero.h1b">scavata nel tufo</span></span>
+      </h1>
     </div>
 
-    <!-- The right of a hero is where a stock photo usually goes. The most useful
-         thing a fraschetta can put there is when it is open. -->
-    <aside class="hero__when">
-     <h2 class="hero__when-k" data-i18n="hero.when">Quando siamo aperti</h2>
-     <dl class="hero__when-l">
-       <div><dt data-i18n="hero.w1d">Martedì-venerdì</dt><dd>17:00-23:00</dd></div>
-       <div><dt data-i18n="hero.w2d">Sabato e domenica</dt><dd>11:30-14:30 · 17:00-23:00</dd></div>
-       <div class="is-closed"><dt data-i18n="d.mon">Lunedì</dt><dd data-i18n="in.closed">Chiuso</dd></div>
-     </dl>
-     <a class="linkish" href="#dove" data-i18n="hero.wlink">Dove siamo</a>
-   </aside>
+    <!-- The sentence and the two actions take the right of the title block, so
+         nothing has to be invented to fill it. The opening hours used to sit
+         here and were cut: they are stated properly under "Orari e contatti"
+         and saying them twice made the hero a timetable. -->
+    <div class="hero__say">
+      <p class="hero__lede" data-i18n="hero.lede">
+        Porchetta tagliata al momento, taglieri, panini e vino in caraffa.
+        A cento metri dal lago di Bracciano.
+      </p>
+
+      <div class="cta-row">
+        <a class="btn btn--vino" href="prenota.html">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"></use></svg>
+          <span data-i18n="nav.book">Prenota</span>
+        </a>
+        <a class="btn btn--linea" href="menu.html" data-i18n="nav.menu">Menù</a>
+      </div>
+    </div>
 
     <!-- Three portraits standing side by side, so no plate is letterboxed. The
          arch carries the mobile view alone; the other two are desktop only. -->
